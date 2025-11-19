@@ -1,92 +1,78 @@
 // app/api/admin/products/update/route.ts
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const id = String(formData.get("id") ?? "");
+    const id = formData.get("id")?.toString();
     if (!id) {
       return NextResponse.json(
-        { ok: false, error: "Missing product id" },
+        { error: "Missing product id" },
         { status: 400 },
       );
     }
 
-    const name = String(formData.get("name") ?? "");
-    const slug = String(formData.get("slug") ?? "");
-    const category = (formData.get("category") as string | null) ?? "GIFT";
-    const sku = (formData.get("sku") as string | null) ?? "";
+    const name = formData.get("name")?.toString().trim() ?? "";
+    const slug = formData.get("slug")?.toString().trim() ?? "";
+    const category = formData.get("category")?.toString() ?? null;
+    const status = formData.get("status")?.toString() ?? "DRAFT";
 
-    const minQtyRaw = formData.get("minQty") as string | null;
-    const minQty = minQtyRaw ? Number(minQtyRaw) : 0;
+    const sku = formData.get("sku")?.toString() || null;
+    const minQtyRaw = formData.get("minQty")?.toString() || null;
+    const minQty = minQtyRaw ? Number(minQtyRaw) : null;
 
-    const priceHint = (formData.get("priceHint") as string | null) ?? "";
-    const currency = (formData.get("currency") as string | null) ?? "";
+    const priceHint = formData.get("priceHint")?.toString() || null;
+    const currency = formData.get("currency")?.toString() || null;
 
-    const shortDesc = (formData.get("shortDesc") as string | null) ?? "";
-    const description = (formData.get("description") as string | null) ?? "";
+    const shortDesc = formData.get("shortDesc")?.toString() || null;
+    const description = formData.get("description")?.toString() || null;
 
-    const coverImage = (formData.get("coverImage") as string | null) ?? "";
+    // ✅ 這兩個很重要：從 form 取出圖片 URL
+    const coverImage =
+      (formData.get("coverImage") as string | null)?.trim() || null;
 
-    let images: string[] = (formData.getAll("images") as string[])
+    const gallery = formData
+      .getAll("gallery")
       .map((v) => v.toString().trim())
-      .filter(Boolean);
+      .filter(Boolean); // string[]
 
-    if (images.length === 0) {
-      const imagesRaw = (formData.get("images") as string | null) ?? "";
-      images = imagesRaw
-        .split("\n")
-        .map((v) => v.trim())
-        .filter(Boolean);
-    }
+    // Debug 需要的話可以暫時打開
+    // console.log("[UPDATE_FORM_IMAGES]", coverImage, gallery);
 
-    // ✅ 目前表單勾選的所有 tags
-    const tagIds = (formData.getAll("tagIds") as string[]).filter(Boolean);
-
-    // 1. 更新 product 本身欄位
     await prisma.product.update({
       where: { id },
       data: {
         name,
         slug,
-        category,
+        category: category as any,
+        status: status as any,
         sku,
-        minQty,
+        minQty: minQty ?? undefined,
         priceHint,
         currency,
         shortDesc,
         description,
-        coverImage,
-        images,
+        coverImage,     // 👈 大圖 URL 寫進欄位
+        gallery,        // 👈 小圖陣列寫進欄位 (String[])
       },
     });
 
-    // 2. 重新寫入中介表（先刪掉原本，再新增現在勾選的）
-    await prisma.$transaction([
-      prisma.productTag.deleteMany({
-        where: { productId: id },
-      }),
-      tagIds.length
-        ? prisma.productTag.createMany({
-            data: tagIds.map((tagId) => ({
-              productId: id,
-              tagId,
-            })),
-          })
-        : prisma.$executeRaw`SELECT 1`, // 沒 tag 時用一個 no-op 占位
-    ]);
-
-    const redirectUrl = new URL(`/admin/products/${id}`, req.url);
-    return NextResponse.redirect(redirectUrl, 303);
-  } catch (error) {
-    console.error("[PRODUCT_UPDATE_ERROR]", error);
+    return NextResponse.redirect(
+      new URL(`/admin/products/${id}`, req.url),
+    );
+  } catch (err) {
+    console.error("[PRODUCT_UPDATE_ERROR]", err);
     return NextResponse.json(
-      { ok: false, error: String(error) },
+      {
+        error: "Failed to update product",
+        detail:
+          err instanceof Error ? err.message : String(err),
+      },
       { status: 500 },
     );
   }

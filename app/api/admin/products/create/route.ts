@@ -1,7 +1,7 @@
 // app/api/admin/products/create/route.ts
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { updateProductImagesFromForm } from "../imageUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -9,71 +9,50 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const name = String(formData.get("name") ?? "");
-    const slug = String(formData.get("slug") ?? "");
+    const name = String(formData.get("name") ?? "").trim();
+    const slug = String(formData.get("slug") ?? "").trim();
     const category = (formData.get("category") as string | null) ?? "GIFT";
-    const sku = (formData.get("sku") as string | null) ?? "";
+    const status = (formData.get("status") as string | null) ?? "ACTIVE";
 
-    const minQtyRaw = formData.get("minQty") as string | null;
-    const minQty = minQtyRaw ? Number(minQtyRaw) : 0;
+    // ...其他欄位（sku / shortDesc / description / minQty / ...）
+    const sku = (formData.get("sku") as string | null) ?? null;
 
-    const priceHint = (formData.get("priceHint") as string | null) ?? "";
-    const currency = (formData.get("currency") as string | null) ?? "";
-
-    const shortDesc = (formData.get("shortDesc") as string | null) ?? "";
-    const description = (formData.get("description") as string | null) ?? "";
-
-    const coverImage = (formData.get("coverImage") as string | null) ?? "";
-
-    // gallery images
-    let images: string[] = (formData.getAll("images") as string[])
-      .map((v) => v.toString().trim())
-      .filter(Boolean);
-
-    if (images.length === 0) {
-      const imagesRaw = (formData.get("images") as string | null) ?? "";
-      images = imagesRaw
-        .split("\n")
-        .map((v) => v.trim())
-        .filter(Boolean);
+    if (!name || !slug) {
+      return NextResponse.json(
+        { ok: false, error: "Name & slug are required" },
+        { status: 400 },
+      );
     }
 
-    // ✅ 這裡拿到所有勾選的 tagIds（來自 checkbox name="tagIds"）
-    const tagIds = (formData.getAll("tagIds") as string[]).filter(Boolean);
-
-    // 1. 先建立 product 本身（不處理 tags）
+    // ✅ 先建立 Product（暫時不含圖片）
     const product = await prisma.product.create({
       data: {
         name,
         slug,
-        category,
+        category: category as any,
+        status: status as any,
+        coverImage,                  // 👈 大圖 URL 寫進來
+        gallery,                     // 👈 小圖陣列寫進來
         sku,
-        minQty,
-        priceHint,
-        currency,
-        shortDesc,
-        description,
-        coverImage,
-        images,
+        // 其他欄位...
       },
     });
 
-    // 2. 再建立中介表 ProductTag
-    if (tagIds.length > 0) {
-      await prisma.productTag.createMany({
-        data: tagIds.map((tagId) => ({
-          productId: product.id,
-          tagId,
-        })),
-      });
-    }
+    // ✅ 從表單拿 URL
+    const coverImageUrl =
+      (formData.get("coverImage") as string | null) ?? null;
+    const galleryUrls = formData.getAll("images") as string[];
 
+    // ✅ 映射到 Image / ProductImage
+    await updateProductImagesFromForm(product.id, coverImageUrl, galleryUrls);
+
+    // 你的原本 redirect / response
     const redirectUrl = new URL("/admin/products", req.url);
     return NextResponse.redirect(redirectUrl, 303);
-  } catch (error) {
-    console.error("[PRODUCT_CREATE_ERROR]", error);
+  } catch (err) {
+    console.error("[PRODUCT_CREATE_ERROR]", err);
     return NextResponse.json(
-      { ok: false, error: String(error) },
+      { ok: false, error: "Create product failed" },
       { status: 500 },
     );
   }

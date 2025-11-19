@@ -53,17 +53,13 @@ model Product {
   shortDesc   String?
   description String?
 
-  // ✅ 新圖片系統（R2 圖床）
-  // 封面圖（對應 Image.productsAsCover）
-  coverImageId String?
-  coverImage   Image?  @relation("ProductCoverImage", fields: [coverImageId], references: [id])
+  // ✅ 新圖片系統：直接存 URL
+  // 大圖（封面）：/admin 用 ImageInputField name="coverImage"
+  coverImage String?
 
-  // 圖庫：多張圖 + 排序（對應 ProductImage.product）
-  gallery ProductImage[]
-
-  // ✅ 如果你想暫時保留舊欄位做過渡，可以解開註解：
-  // legacyCoverImage String?   // 舊的首圖 URL
-  // legacyImages     String[]  // 舊的其他細節圖 URL
+  // 小圖（Gallery）：/admin 用 GalleryImagesInputField name="gallery"
+  gallery       String[]
+  productImages ProductImage[]
 
   // 基本商業資訊
   sku       String? @unique
@@ -271,7 +267,7 @@ model HomeSection {
   updatedAt DateTime @updatedAt
 }
 
-// ✅ 全新的圖床 / 相簿系統（對接 R2 / S3）
+// ✅ 圖床 / 相簿系統（對接 R2 / S3）
 
 model Image {
   id         String  @id @default(cuid())
@@ -287,10 +283,7 @@ model Image {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // 關聯：被哪些 Product 當成封面圖
-  productsAsCover Product[] @relation("ProductCoverImage")
-
-  // 關聯：做為 Product 圖庫中的一張圖
+  // 關聯：做為 Product 圖庫中的一張圖（如果之後要用 ProductImage 這張表）
   productImages ProductImage[]
 
   // 關聯：做為 Album 的封面圖
@@ -332,6 +325,7 @@ model AlbumImage {
 }
 
 /// 產品與圖片的多對多（含排序）
+/// （目前 Product 已經直接存 URL，這張表可以先保留作為未來擴充用）
 model ProductImage {
   id        String @id @default(cuid())
   productId String

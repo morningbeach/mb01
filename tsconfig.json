@@ -34,7 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "app/api/admin/products/_image"  ],
   "exclude": [
     "node_modules"
   ]

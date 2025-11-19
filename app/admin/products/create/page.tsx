@@ -1,6 +1,9 @@
 // app/admin/products/create/page.tsx
 import { prisma } from "@/lib/prisma";
-import { ImageInputField } from "@/app/admin/components/ImageInputField";
+import {
+  ImageInputField,
+  GalleryImagesInputField,
+} from "@/app/admin/components/ImageInputField";
 import { ProductTagSelector } from "@/app/admin/products/components/ProductTagSelector";
 
 export const dynamic = "force-dynamic";
@@ -18,41 +21,44 @@ export default async function AdminProductCreatePage() {
           <p className="admin-page-header-eyebrow">PRODUCTS</p>
           <h1 className="admin-page-title">New product</h1>
           <p className="admin-page-subtitle">
-            Create a new product entry for catalog &amp; detail pages.
+            Create a new product entry for catalog &amp; product detail pages.
           </p>
         </div>
         <a
           href="/admin/products"
-          className="text-xs text-zinc-500 hover:text-zinc-800"
+          className="text-sm text-zinc-500 hover:text-zinc-800"
         >
           ← Back to products
         </a>
       </div>
 
+      {/* Form */}
       <form
         action="/api/admin/products/create"
         method="POST"
-        className="space-y-10"
+        className="space-y-6"
       >
-        {/* BASIC INFO */}
+        {/* Basic info */}
         <section className="admin-card">
           <div className="admin-card-body space-y-5">
-            <div>
-              <h2 className="section-title">Basic info</h2>
-            </div>
+            <h2 className="section-title">Basic information</h2>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-1.5">
+            <div className="grid gap-5 md:grid-cols-3">
+              <div className="space-y-1.5 md:col-span-2">
                 <label className="field-label">Name</label>
-                <input name="name" className="admin-input" required />
+                <input
+                  name="name"
+                  className="admin-input"
+                  placeholder="ESG Gift Set A"
+                  required
+                />
               </div>
-
               <div className="space-y-1.5">
                 <label className="field-label">Slug</label>
                 <input
                   name="slug"
                   className="admin-input font-mono"
-                  placeholder="example-product"
+                  placeholder="esg-gift-set-a"
                   required
                 />
               </div>
@@ -61,40 +67,47 @@ export default async function AdminProductCreatePage() {
             <div className="grid gap-5 md:grid-cols-3">
               <div className="space-y-1.5">
                 <label className="field-label">Category</label>
-                <select
-                  name="category"
-                  className="admin-input"
-                  defaultValue="GIFT"
-                >
-                  <option value="GIFT">GIFT</option>
-                  <option value="GIFT_BOX">GIFT_BOX</option>
-                  <option value="GIFT_SET">GIFT_SET</option>
+                <select name="category" className="admin-input" defaultValue="GIFT">
+                  <option value="GIFT">Gift</option>
+                  <option value="GIFT_BOX">Gift box</option>
+                  <option value="GIFT_SET">Gift set</option>
                 </select>
               </div>
-
+              <div className="space-y-1.5">
+                <label className="field-label">Status</label>
+                <select name="status" className="admin-input" defaultValue="ACTIVE">
+                  <option value="ACTIVE">Active</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+              </div>
               <div className="space-y-1.5">
                 <label className="field-label">SKU</label>
-                <input name="sku" className="admin-input" />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="field-label">Minimum order</label>
                 <input
-                  type="number"
-                  name="minQty"
-                  className="admin-input"
-                  min={0}
+                  name="sku"
+                  className="admin-input font-mono"
+                  placeholder="OPTIONAL"
                 />
               </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-3">
+              <div className="space-y-1.5">
+                <label className="field-label">Min. order qty</label>
+                <input
+                  name="minQty"
+                  type="number"
+                  min={0}
+                  className="admin-input"
+                  placeholder="e.g. 100"
+                />
+              </div>
               <div className="space-y-1.5">
                 <label className="field-label">Price hint</label>
                 <input
                   name="priceHint"
                   className="admin-input"
-                  placeholder="e.g. From USD 3.5 / set (1,000+ sets)"
+                  placeholder="From NT$ 399 / set"
                 />
               </div>
               <div className="space-y-1.5">
@@ -102,153 +115,56 @@ export default async function AdminProductCreatePage() {
                 <input
                   name="currency"
                   className="admin-input"
-                  placeholder="TWD / USD / HKD..."
+                  placeholder="TWD / USD / RMB..."
                 />
               </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="field-label">Short description</label>
-                <textarea
-                  name="shortDesc"
-                  rows={3}
-                  className="admin-textarea"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="field-label">Full description</label>
-                <textarea
-                  name="description"
-                  rows={5}
-                  className="admin-textarea"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* IMAGES */}
-        <section className="admin-card">
-          <div className="admin-card-body">
-            <div className="mb-4">
-              <h2 className="section-title">Images</h2>
+            <div className="space-y-1.5">
+              <label className="field-label">Short description</label>
+              <textarea
+                name="shortDesc"
+                rows={2}
+                className="admin-input resize-none"
+                placeholder="One-line description for listing & SEO."
+              />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <ImageInputField
-                  name="coverImage"
-                  label="Cover image"
-                  placeholder="https://..."
-                />
-
-                <div className="space-y-1.5">
-                  <label className="field-label">Gallery images</label>
-                  <textarea
-                    name="images"
-                    rows={5}
-                    className="admin-textarea font-mono text-xs"
-                    placeholder="One image URL per line"
-                  />
-                  <p className="helper-text">
-                    Optional. These URLs will be used on the product detail
-                    page gallery.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-3 py-3 text-[11px] text-zinc-500">
-                Preview will be visible on product detail page.
-              </div>
+            <div className="space-y-1.5">
+              <label className="field-label">Full description</label>
+              <textarea
+                name="description"
+                rows={5}
+                className="admin-input"
+                placeholder="Detailed description shown on product detail page."
+              />
             </div>
           </div>
         </section>
 
-        {/* SPECS */}
+        {/* Images */}
         <section className="admin-card">
-          <div className="admin-card-body space-y-4">
-            <h2 className="section-title">Specifications</h2>
+          <div className="admin-card-body space-y-5">
+            <h2 className="section-title">Images</h2>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="field-label">Lead time</label>
-                <input
-                  name="leadTime"
-                  className="admin-input"
-                  placeholder="e.g. 約 25–30 天（不含運輸）"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="field-label">Materials</label>
-                <input
-                  name="materials"
-                  className="admin-input"
-                  placeholder="e.g. rPET non-woven, cotton rope handles..."
-                />
-              </div>
-            </div>
+            <ImageInputField
+              name="coverImage"
+              label="Cover image"
+              description="This image will be used in product list and as hero image on product detail page."
+            />
 
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="field-label">Dimensions</label>
-                <input
-                  name="dimensions"
-                  className="admin-input"
-                  placeholder="e.g. W32 × D10 × H26 cm"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="field-label">Packaging info</label>
-                <input
-                  name="packagingInfo"
-                  className="admin-input"
-                  placeholder="e.g. 1 set / polybag, 20 sets / carton"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-3">
-              <div className="space-y-1.5">
-                <label className="field-label">Origin country</label>
-                <input
-                  name="originCountry"
-                  className="admin-input"
-                  placeholder="CN / TW / ..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="field-label">Unit</label>
-                <input
-                  name="unit"
-                  className="admin-input"
-                  placeholder="set / pc / pair..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="field-label">Notes for buyer</label>
-                <input
-                  name="notesForBuyer"
-                  className="admin-input"
-                  placeholder="MOQ suggestions, packing tips..."
-                />
-              </div>
-            </div>
+            <GalleryImagesInputField
+              name="gallery"
+              label="Gallery images"
+              defaultValues={[]}
+            />
           </div>
         </section>
 
-        {/* TAGS */}
+        {/* Tags */}
         <section className="admin-card">
-          <div className="admin-card-body space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="section-title">Tags</h2>
-              <a
-                href="/admin/products/tags"
-                className="text-[11px] text-zinc-500 hover:text-zinc-800"
-              >
-                Manage tag list ↗
-              </a>
-            </div>
+          <div className="admin-card-body space-y-5">
+            <h2 className="section-title">Tags & filters</h2>
             <ProductTagSelector
               allTags={allTags}
               initialSelectedIds={[]}
