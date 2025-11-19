@@ -1,0 +1,22 @@
+// app/api/admin/images/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(req: NextRequest) {
+  try {
+    const images = await prisma.imageAsset.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+
+    return NextResponse.json({ ok: true, images });
+  } catch (error) {
+    console.error("[LIST_IMAGES_ERROR]", error);
+    return NextResponse.json(
+      { ok: false, error: String(error), images: [] },
+      { status: 500 }
+    );
+  }
+}

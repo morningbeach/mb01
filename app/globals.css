@@ -1,0 +1,116 @@
+/* app/globals.css */
+
+/* 這一行才是把 Tailwind v4 載進來的關鍵 */
+@import "tailwindcss";
+
+/* 下面都是一般 CSS，不要用 @apply，先保持純 CSS 就好 */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #020617; /* 等同 bg-slate-950 */
+  color: #f9fafb;            /* 等同 text-slate-50 */
+  -webkit-font-smoothing: antialiased;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", "Segoe UI", sans-serif;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==== Admin UI 基礎樣式 ==== */
+@layer components {
+  /* 整個 admin 頁面外層 */
+  .admin-page {
+    @apply min-h-screen bg-white text-zinc-900;
+  }
+
+  /* 置中容器（控制寬度＋內距） */
+  .admin-container {
+    @apply mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10;
+  }
+
+  /* 卡片：所有後台區塊都用這個 */
+  .admin-card {
+    @apply rounded-2xl border border-zinc-200 bg-white px-4 py-5 md:px-6 md:py-6;
+  }
+
+  /* 小標題（區塊標題） */
+  .admin-section-label {
+    @apply mb-3 text-xs font-semibold tracking-[0.16em] text-zinc-500;
+  }
+
+  /* input / textarea 共用樣式 */
+  .admin-input {
+    @apply w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none
+           focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/40;
+  }
+
+  .admin-input-sm {
+    @apply w-full rounded-lg border border-zinc-300 px-3 py-1.5 text-sm outline-none
+           focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/40;
+  }
+
+  /* label 文字 */
+  .admin-label {
+    @apply text-xs font-medium text-zinc-700;
+  }
+
+  .admin-label-sm {
+    @apply text-[11px] font-medium text-zinc-600;
+  }
+
+  /* 主要按鈕 */
+  .admin-btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-zinc-900
+           px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800;
+  }
+
+  .admin-btn-primary-lg {
+    @apply inline-flex items-center justify-center rounded-full bg-zinc-900
+           px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800;
+  }
+
+  /* 次要 / 邊框按鈕 */
+  .admin-btn-outline {
+    @apply inline-flex items-center justify-center rounded-full border border-zinc-300
+           px-4 py-2 text-xs text-zinc-700 hover:border-zinc-400;
+  }
+
+  .admin-btn-danger {
+    @apply inline-flex items-center justify-center rounded-full border border-zinc-300
+           px-4 py-1.5 text-xs text-zinc-600 hover:border-red-500 hover:text-red-600;
+  }
+
+  /* 區塊標題 H1 */
+  .admin-page-title {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .admin-page-subtitle {
+    @apply mt-1 text-sm text-zinc-500;
+  }
+
+  /* 區塊之間的間距 */
+  .admin-page-stack {
+    @apply space-y-8;
+  }
+}
