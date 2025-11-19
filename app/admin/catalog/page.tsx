@@ -32,7 +32,8 @@ export default async function AdminCatalogPage() {
         <div className="admin-card-body">
           <h2 className="section-title mb-3">Create new catalog category</h2>
           <form
-            action="/api/admin/catalog"
+            // ✅ 改成現在實際存在的 route
+            action="/api/admin/catalog/create"
             method="POST"
             className="grid gap-3 md:grid-cols-[2fr,2fr,1fr,auto]"
           >
@@ -68,6 +69,14 @@ export default async function AdminCatalogPage() {
               </select>
             </div>
             <div className="flex items-end">
+              {/* ✅ 預設 order 放在最後一個 */}
+              <input
+                type="hidden"
+                name="order"
+                value={categories.length + 1}
+              />
+              {/* ✅ 預設為啟用 */}
+              <input type="hidden" name="isActive" value="on" />
               <button type="submit" className="btn-primary w-full md:w-auto">
                 Add
               </button>
@@ -109,8 +118,7 @@ export default async function AdminCatalogPage() {
               )}
 
               {categories.map((cat, idx) => {
-                const rowBg =
-                  idx % 2 === 0 ? "bg-white" : "bg-zinc-50/60";
+                const rowBg = idx % 2 === 0 ? "bg-white" : "bg-zinc-50/60";
 
                 return (
                   <tr key={cat.id} className={rowBg}>
@@ -185,15 +193,13 @@ export default async function AdminCatalogPage() {
                         >
                           Edit
                         </Link>
+
+                        {/* ✅ 刪除走 /api/admin/catalog/delete + hidden id */}
                         <form
-                          action={`/api/admin/catalog/${cat.id}`}
+                          action="/api/admin/catalog/delete"
                           method="POST"
                         >
-                          <input
-                            type="hidden"
-                            name="_action"
-                            value="delete"
-                          />
+                          <input type="hidden" name="id" value={cat.id} />
                           <button type="submit" className="btn-danger">
                             Delete
                           </button>

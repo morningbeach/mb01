@@ -1,4 +1,3 @@
-// app/api/admin/catalog/update/route.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -9,17 +8,19 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const id = String(formData.get("id") ?? "");
+    const id = String(formData.get("id") ?? "").trim();
     if (!id) {
       return NextResponse.json(
         { ok: false, error: "Missing category id" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const name = String(formData.get("name") ?? "").trim();
     const slug = String(formData.get("slug") ?? "").trim();
-    const baseCategoryRaw = (formData.get("baseCategory") as string | null) ?? "";
+
+    const baseCategoryRaw =
+      (formData.get("baseCategory") as string | null) ?? "";
     const orderRaw = (formData.get("order") as string | null) ?? "";
     const heroTitle = (formData.get("heroTitle") as string | null) ?? "";
     const heroSubtitle = (formData.get("heroSubtitle") as string | null) ?? "";
@@ -31,13 +32,14 @@ export async function POST(req: NextRequest) {
     const isActive = formData.get("isActive") === "on";
 
     const order = orderRaw ? Number(orderRaw) : 0;
+    const baseCategory = baseCategoryRaw || null;
 
     await prisma.frontCategory.update({
       where: { id },
       data: {
         name,
         slug,
-        baseCategory: baseCategoryRaw ? (baseCategoryRaw as any) : null,
+        baseCategory: baseCategory as any,
         order,
         heroTitle: heroTitle || null,
         heroSubtitle: heroSubtitle || null,
@@ -55,7 +57,7 @@ export async function POST(req: NextRequest) {
     console.error("[CATALOG_UPDATE_ERROR]", error);
     return NextResponse.json(
       { ok: false, error: String(error) },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

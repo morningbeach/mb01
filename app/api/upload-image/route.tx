@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
     });
 
     // ✅ 這裡改成 redirect，不再回 JSON
+    
     const redirectUrl = new URL("/admin/products", req.url);
     return NextResponse.redirect(redirectUrl, 303);
   } catch (error) {

@@ -9,132 +9,134 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData();
 
+    const action = formData.get("_action")?.toString() ?? "";
     const frontCategoryId = formData.get("frontCategoryId")?.toString();
+
     if (!frontCategoryId) {
       return NextResponse.json(
         { ok: false, error: "Missing frontCategoryId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // 多筆欄位
-    const ids = formData.getAll("groupId").map((v) => v.toString());
-    const labels = formData.getAll("groupLabel").map((v) => v.toString());
-    const descriptions = formData
-      .getAll("groupDescription")
-      .map((v) => v.toString());
-    const tagIds = formData.getAll("groupTagId").map((v) => v.toString());
-    const ordersRaw = formData.getAll("groupOrder").map((v) => v.toString());
-    const deleteIds = new Set(
-      formData.getAll("groupDelete").map((v) => v.toString())
-    );
+    // 共用的 helper：用 tagSlug 找 Tag.id
+    async function resolveTagIdFromSlug(tagSlug: string) {
+      const slug = tagSlug.trim();
+      if (!slug) return null;
 
-    const len = Math.max(
-      ids.length,
-      labels.length,
-      descriptions.length,
-      tagIds.length,
-      ordersRaw.length
-    );
-
-    type IncomingGroup = {
-      id?: string;
-      label: string;
-      description?: string;
-      tagId: string;
-      order: number;
-      delete?: boolean;
-    };
-
-    const groups: IncomingGroup[] = [];
-
-    for (let i = 0; i < len; i++) {
-      const id = (ids[i] ?? "").trim();
-      const label = (labels[i] ?? "").trim();
-      const tagId = (tagIds[i] ?? "").trim();
-      const description = (descriptions[i] ?? "").trim();
-      const orderVal = parseInt(ordersRaw[i] ?? "", 10);
-      const order = Number.isFinite(orderVal) ? orderVal : i;
-
-      // label 或 tagId 沒填的行就跳過（視為空白）
-      if (!label || !tagId) continue;
-
-      const isDelete = id && deleteIds.has(id);
-
-      groups.push({
-        id: id || undefined,
-        label,
-        description: description || undefined,
-        tagId,
-        order,
-        delete: isDelete,
+      const tag = await prisma.tag.findUnique({
+        where: { slug },
+        select: { id: true },
       });
+
+      return tag?.id ?? null;
     }
 
-    // 目前 DB 中的 group
-    const existing = await prisma.frontCategoryTagGroup.findMany({
-      where: { frontCategoryId },
-      select: { id: true },
-    });
-    const existingIds = new Set(existing.map((g) => g.id));
+    if (action === "create") {
+      const label = (formData.get("label")?.toString() ?? "").trim();
+      const description =
+        (formData.get("description")?.toString() ?? "").trim() || null;
+      const tagSlug = (formData.get("tagSlug")?.toString() ?? "").trim();
+      const orderRaw = (formData.get("order")?.toString() ?? "").trim();
+      const order = orderRaw ? Number(orderRaw) : 0;
 
-    // 逐一處理
-    for (const g of groups) {
-      // 刪除
-      if (g.id && g.delete) {
-        await prisma.frontCategoryTagGroup.delete({
-          where: { id: g.id },
-        });
-        existingIds.delete(g.id);
-        continue;
+      if (!label || !tagSlug) {
+        return NextResponse.json(
+          { ok: false, error: "Label and tagSlug are required" },
+          { status: 400 },
+        );
       }
 
-      // 更新
-      if (g.id) {
-        await prisma.frontCategoryTagGroup.update({
-          where: { id: g.id },
-          data: {
-            label: g.label,
-            description: g.description ?? null,
-            tagId: g.tagId,
-            order: g.order,
-          },
-        });
-        existingIds.delete(g.id);
-        continue;
+      const tagId = await resolveTagIdFromSlug(tagSlug);
+      if (!tagId) {
+        return NextResponse.json(
+          { ok: false, error: `Tag not found for slug: ${tagSlug}` },
+          { status: 400 },
+        );
       }
 
-      // 新增
       await prisma.frontCategoryTagGroup.create({
         data: {
           frontCategoryId,
-          label: g.label,
-          description: g.description ?? null,
-          tagId: g.tagId,
-          order: g.order,
+          label,
+          description,
+          tagId,
+          order,
         },
       });
-    }
+    } else if (action === "update") {
+      const id = formData.get("id")?.toString();
+      if (!id) {
+        return NextResponse.json(
+          { ok: false, error: "Missing group id" },
+          { status: 400 },
+        );
+      }
 
-    // （可選）沒出現在表單裡的舊 group 要不要自動刪除？
-    // for (const id of existingIds) {
-    //   await prisma.frontCategoryTagGroup.delete({ where: { id } });
-    // }
+      const label = (formData.get("label")?.toString() ?? "").trim();
+      const description =
+        (formData.get("description")?.toString() ?? "").trim() || null;
+      const tagSlug = (formData.get("tagSlug")?.toString() ?? "").trim();
+      const orderRaw = (formData.get("order")?.toString() ?? "").trim();
+      const order = orderRaw ? Number(orderRaw) : 0;
+
+      if (!label || !tagSlug) {
+        return NextResponse.json(
+          { ok: false, error: "Label and tagSlug are required" },
+          { status: 400 },
+        );
+      }
+
+      const tagId = await resolveTagIdFromSlug(tagSlug);
+      if (!tagId) {
+        return NextResponse.json(
+          { ok: false, error: `Tag not found for slug: ${tagSlug}` },
+          { status: 400 },
+        );
+      }
+
+      await prisma.frontCategoryTagGroup.update({
+        where: { id },
+        data: {
+          label,
+          description,
+          tagId,
+          order,
+        },
+      });
+    } else if (action === "delete") {
+      const id = formData.get("id")?.toString();
+      if (!id) {
+        return NextResponse.json(
+          { ok: false, error: "Missing group id" },
+          { status: 400 },
+        );
+      }
+
+      await prisma.frontCategoryTagGroup.delete({
+        where: { id },
+      });
+    } else {
+      return NextResponse.json(
+        { ok: false, error: `Unsupported action: ${action}` },
+        { status: 400 },
+      );
+    }
 
     // 重新驗證頁面 cache
     revalidatePath("/products");
     revalidatePath("/admin/catalog");
     revalidatePath(`/admin/catalog/${frontCategoryId}`);
 
-    // ✅ 回去編輯頁，而不是顯示 JSON
+    // 回到該分類的編輯頁
     return NextResponse.redirect(
-      new URL(`/admin/catalog/${frontCategoryId}`, req.url)
+      new URL(`/admin/catalog/${frontCategoryId}`, req.url),
     );
   } catch (err) {
     console.error("[UPDATE_CATALOG_GROUPS_ERROR]", err);
     return NextResponse.json(
       { ok: false, error: "Failed to update tag groups" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

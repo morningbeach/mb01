@@ -15,9 +15,9 @@ generator client {
 
 // 大類別（前台主選單用）
 enum Category {
-  GIFT        // 禮品
-  GIFT_BOX    // 包裝盒
-  GIFT_SET    // 禮品套組
+  GIFT // 禮品
+  GIFT_BOX // 包裝盒
+  GIFT_SET // 禮品套組
 }
 
 // 產品狀態（後台管理用）
@@ -27,14 +27,24 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum HomeSectionType {
+  HERO
+  WHY
+  PRODUCTS
+  FACTORY
+  BLOG
+  CTA
+  RICH_TEXT // 未來要加自訂文字區塊可以用這個
+}
+
 //
 // MODELS
 //
 
 model Product {
-  id    String @id @default(cuid())
-  slug  String @unique
-  name  String
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
 
   // 大方向類別（GIFT / GIFT_BOX / GIFT_SET）
   category Category
@@ -43,12 +53,20 @@ model Product {
   shortDesc   String?
   description String?
 
-  // 圖片
-  coverImage String?   // 首圖
-  images     String[]  // 其他細節圖 URL
+  // ✅ 新圖片系統（R2 圖床）
+  // 封面圖（對應 Image.productsAsCover）
+  coverImageId String?
+  coverImage   Image?  @relation("ProductCoverImage", fields: [coverImageId], references: [id])
+
+  // 圖庫：多張圖 + 排序（對應 ProductImage.product）
+  gallery ProductImage[]
+
+  // ✅ 如果你想暫時保留舊欄位做過渡，可以解開註解：
+  // legacyCoverImage String?   // 舊的首圖 URL
+  // legacyImages     String[]  // 舊的其他細節圖 URL
 
   // 基本商業資訊
-  sku       String?  @unique
+  sku       String? @unique
   minQty    Int?
   priceHint String?
   currency  String?
@@ -83,8 +101,8 @@ model Product {
 }
 
 model Tag {
-  id    String @id @default(cuid())
-  slug  String @unique
+  id    String  @id @default(cuid())
+  slug  String  @unique
   name  String
   color String?
 
@@ -136,18 +154,18 @@ model GiftSetItem {
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String    @id @default(cuid())
+  slug        String    @unique
   title       String
   excerpt     String?
-  content     String   // 之後可以存 Markdown
+  content     String // 之後可以存 Markdown
   coverImage  String?
   publishedAt DateTime?
-  isPublished Boolean  @default(false)
+  isPublished Boolean   @default(false)
 
   tags      BlogTag[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model BlogTag {
@@ -171,64 +189,63 @@ model Page {
   seoTitle       String?
   seoDescription String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AdminUser {
-  id       String @id @default(cuid())
-  email    String @unique
+  id       String  @id @default(cuid())
+  email    String  @unique
   name     String?
   password String
-  role     String @default("admin")
+  role     String  @default("admin")
 }
 
 model FrontCategory {
-  id          String   @id @default(cuid())
-  slug        String   @unique   // URL 用：gifts, gift-boxes, gift-sets, services...
-  name        String             // 導覽 / 卡片標題用：例如 "Gifts"
+  id   String @id @default(cuid())
+  slug String @unique // URL 用：gifts, gift-boxes, gift-sets, services...
+  name String // 導覽 / 卡片標題用：例如 "Gifts"
 
   // 單一分項內頁 hero 區塊文案
-  heroTitle     String?          // 分類頁大標題
-  heroSubtitle  String?          // 分類頁副標
-  heroImage     String?          // 分類頁 hero 圖片 URL（可用圖床 / 上傳）
+  heroTitle    String? // 分類頁大標題
+  heroSubtitle String? // 分類頁副標
+  heroImage    String? // 分類頁 hero 圖片 URL（可用圖床 / 上傳）
 
   // /products 總覽頁上的卡片內容
-  cardTitle       String?        // 總覽卡片大標
-  cardDescription String?        // 卡片描述
-  cardImage       String?        // 卡片圖片 URL（可用圖床 / 上傳）
+  cardTitle       String? // 總覽卡片大標
+  cardDescription String? // 卡片描述
+  cardImage       String? // 卡片圖片 URL（可用圖床 / 上傳）
 
   // 可選：對應 Product.Category 作為基礎篩選
   baseCategory Category?
 
-  order       Int      @default(0)
-  isActive    Boolean  @default(true)
+  order    Int     @default(0)
+  isActive Boolean @default(true)
 
-  tagGroups   FrontCategoryTagGroup[]
+  tagGroups FrontCategoryTagGroup[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model FrontCategoryTagGroup {
-  id              String @id @default(cuid())
+  id              String        @id @default(cuid())
   frontCategoryId String
   frontCategory   FrontCategory @relation(fields: [frontCategoryId], references: [id])
 
-  label       String        // 分組的小標，例如 "Mid-Autumn programs"
-  description String?       // 可選，放在分組標題下面
+  label       String // 分組的小標，例如 "Mid-Autumn programs"
+  description String? // 可選，放在分組標題下面
 
-  // 新欄位：必填 FK
-  tagId  String
-  tag    Tag @relation(fields: [tagId], references: [id])
+  tagId String
+  tag   Tag    @relation(fields: [tagId], references: [id])
 
-  order       Int    @default(0)
+  order Int @default(0)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-
+// 可能是舊版 / 簡易圖庫用，可當 legacy 用
 model ImageAsset {
   id        String   @id @default(cuid())
   url       String
@@ -236,32 +253,93 @@ model ImageAsset {
   createdAt DateTime @default(now())
 }
 
-// schema.prisma
-
-enum HomeSectionType {
-  HERO
-  WHY
-  PRODUCTS
-  FACTORY
-  BLOG
-  CTA
-  RICH_TEXT   // 未來要加自訂文字區塊可以用這個
-}
-
+// 首頁動態區塊設定（後台 JSON 編輯器用）
 model HomeSection {
-  id        Int             @id @default(autoincrement())
-  type      HomeSectionType
-  order     Int             @default(100) // 數字越小越前面
-  enabled   Boolean         @default(true)
+  id      Int             @id @default(autoincrement())
+  type    HomeSectionType
+  order   Int             @default(100) // 數字越小越前面
+  enabled Boolean         @default(true)
 
   /// JSON 內容，依 type 不同有不同結構：
   /// HERO: { titleLine1_en, titleLine1_zh, ... }
   /// WHY / PRODUCTS / FACTORY: { title_en, title_zh, subtitle_en, subtitle_zh, cards: [...] }
   /// BLOG: { title_en, ... , posts: [...] }
   /// CTA: { title_en, title_zh, body_en, body_zh, ... }
-  payload   Json
+  payload Json
 
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+// ✅ 全新的圖床 / 相簿系統（對接 R2 / S3）
+
+model Image {
+  id         String  @id @default(cuid())
+  url        String  @unique // 對外可直接使用的 URL
+  storageKey String  @unique // R2/S3 裡的 key，例如 "uploads/2025/11/xxx.webp"
+  width      Int?
+  height     Int?
+  size       Int? // bytes
+  mimeType   String?
+  alt        String?
+  title      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 關聯：被哪些 Product 當成封面圖
+  productsAsCover Product[] @relation("ProductCoverImage")
+
+  // 關聯：做為 Product 圖庫中的一張圖
+  productImages ProductImage[]
+
+  // 關聯：做為 Album 的封面圖
+  albumsAsCover Album[] @relation("AlbumCoverImage")
+
+  // 關聯：出現在哪些 Album（相簿）裡
+  albumItems AlbumImage[]
+}
+
+/// 相簿（之後 homepage 區塊、產品系列都可以掛「相簿」）
+model Album {
+  id          String  @id @default(cuid())
+  slug        String  @unique // 例如 "homepage-hero", "factory-gallery"
+  name        String
+  description String?
+
+  coverImageId String?
+  coverImage   Image?  @relation("AlbumCoverImage", fields: [coverImageId], references: [id])
+
+  isSystem Boolean @default(false) // true = 系統內建相簿，不允許刪除
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items AlbumImage[]
+}
+
+/// 相簿內的圖片排序
+model AlbumImage {
+  id       String @id @default(cuid())
+  albumId  String
+  imageId  String
+  position Int    @default(0)
+
+  album Album @relation(fields: [albumId], references: [id])
+  image Image @relation(fields: [imageId], references: [id])
+
+  @@unique([albumId, imageId])
+}
+
+/// 產品與圖片的多對多（含排序）
+model ProductImage {
+  id        String @id @default(cuid())
+  productId String
+  imageId   String
+  position  Int    @default(0)
+
+  product Product @relation(fields: [productId], references: [id])
+  image   Image   @relation(fields: [imageId], references: [id])
+
+  @@unique([productId, imageId])
+}

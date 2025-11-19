@@ -1,47 +1,50 @@
 // app/api/admin/catalog/create/route.ts
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const formData = await req.formData();
+    const formData = await request.formData();
 
-    const name = String(formData.get("name") ?? "").trim();
-    const slug = String(formData.get("slug") ?? "").trim();
-    const baseCategoryRaw = (formData.get("baseCategory") as string | null) ?? "";
-    const orderRaw = (formData.get("order") as string | null) ?? "";
-    const isActive = formData.get("isActive") === "on";
+    const name = String(formData.get("name") || "").trim();
+    const slug = String(formData.get("slug") || "").trim();
+    const baseCategoryRaw = String(formData.get("baseCategory") || "").trim();
+    const orderRaw = String(formData.get("order") || "").trim();
+    const isActiveRaw = formData.get("isActive");
 
     if (!name || !slug) {
       return NextResponse.json(
-        { ok: false, error: "Missing name or slug" },
-        { status: 400 },
+        { error: "Name and slug are required." },
+        { status: 400 }
       );
     }
 
-    const count = await prisma.frontCategory.count();
-    const order = orderRaw ? Number(orderRaw) : count + 1;
+    const order = orderRaw ? Number(orderRaw) : 0;
+    const baseCategory = baseCategoryRaw || null;
+    const isActive = isActiveRaw === "on" || isActiveRaw === "true";
 
-    const category = await prisma.frontCategory.create({
+    const created = await prisma.frontCategory.create({
       data: {
         name,
         slug,
-        baseCategory: baseCategoryRaw ? (baseCategoryRaw as any) : null,
+        baseCategory, // 如果是 enum，值是 GIFT / GIFT_BOX / GIFT_SET 就可以
         order,
         isActive,
       },
     });
 
-    const redirectUrl = new URL(`/admin/catalog/${category.id}`, req.url);
-    return NextResponse.redirect(redirectUrl, 303);
-  } catch (error) {
-    console.error("[CATALOG_CREATE_ERROR]", error);
+    // 建立完導回後台編輯頁或列表都可以
+    return NextResponse.redirect(
+      new URL(`/admin/catalog/${created.id}`, request.url),
+      { status: 303 }
+    );
+  } catch (err) {
+    console.error("Error creating frontCategory:", err);
     return NextResponse.json(
-      { ok: false, error: String(error) },
-      { status: 500 },
+      { error: "Failed to create catalog category." },
+      { status: 500 }
     );
   }
 }

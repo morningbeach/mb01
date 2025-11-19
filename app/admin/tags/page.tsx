@@ -1,6 +1,7 @@
 // app/admin/tags/page.tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { TagDeleteForm } from "./TagDeleteForm"; // ✅ 新增這行
 
 export const dynamic = "force-dynamic";
 
@@ -117,29 +118,9 @@ export default async function AdminTagsPage() {
                         >
                           Edit
                         </Link>
-                        <form
-                          action="/api/admin/tags/delete"
-                          method="POST"
-                          onSubmit={(e) => {
-                            if (
-                              !confirm(
-                                usageCount > 0
-                                  ? `This tag is used in ${usageCount} product(s). Delete anyway?`
-                                  : "Delete this tag?"
-                              )
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <input type="hidden" name="id" value={tag.id} />
-                          <button
-                            type="submit"
-                            className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-600 hover:border-red-400"
-                          >
-                            Delete
-                          </button>
-                        </form>
+
+                        {/* ✅ 改用 Client Component 負責 confirm + submit */}
+                        <TagDeleteForm tagId={tag.id} usageCount={usageCount} />
                       </div>
                     </td>
                   </tr>

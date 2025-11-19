@@ -23,15 +23,23 @@ const nextConfig = {
         protocol: "https",
         hostname: "www.tomorrowtw.com",
       },
+      // ✅ 新增：允許 R2 圖床 img.mbpack.co
+      {
+        protocol: "https",
+        hostname: "img.mbpack.co",
+        pathname: "/**",
+      },
     ],
   },
 
   experimental: {
+    // ✅ 如果你現在主要在 Codespaces / Cloudflare 上測試
+    // 建議先暫時不要限制 allowedOrigins，讓 Next 用相對路徑
     serverActions: {
       allowedOrigins: [
         "localhost:3000",
-        // 記得維持現在 Codespaces 的網址
-        "literate-acorn-q75pr5wjw34r9q-3000.app.github.dev",
+        // 如果未來真的需要指定外部 domain 再加
+        // "mbat1.pages.dev",
       ],
     },
   },

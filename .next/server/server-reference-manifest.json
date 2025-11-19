@@ -1,46 +1,5 @@
 {
-  "node": {
-    "1ed89cbd86c82790829a85a5b2f421691ac906dd": {
-      "workers": {
-        "app/admin/homepage/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fworkspaces%2Fmb01%2Fapp%2Fadmin%2Fhomepage%2Fpage.tsx%22%2C%5B%22%24%24ACTION_2%22%2C%22%24%24ACTION_0%22%2C%22%24%24ACTION_1%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/admin/homepage/page": "rsc"
-      }
-    },
-    "310a495ba2e4ac983bc215e12e8cf1d3a13ebda7": {
-      "workers": {
-        "app/admin/homepage/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fworkspaces%2Fmb01%2Fapp%2Fadmin%2Fhomepage%2Fpage.tsx%22%2C%5B%22%24%24ACTION_2%22%2C%22%24%24ACTION_0%22%2C%22%24%24ACTION_1%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/admin/homepage/page": "rsc"
-      }
-    },
-    "e3cad55796090a2a175c34d58be8bdb8b834e356": {
-      "workers": {
-        "app/admin/homepage/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fworkspaces%2Fmb01%2Fapp%2Fadmin%2Fhomepage%2Fpage.tsx%22%2C%5B%22%24%24ACTION_2%22%2C%22%24%24ACTION_0%22%2C%22%24%24ACTION_1%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/admin/homepage/page": "rsc"
-      }
-    },
-    "1683b8db0555a835b4eb7da55196c849b9067aa8": {
-      "workers": {
-        "app/admin/homepage/hero/[id]/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fworkspaces%2Fmb01%2Fapp%2Fadmin%2Fhomepage%2Fhero%2F%5Bid%5D%2Fpage.tsx%22%2C%5B%22%24%24ACTION_0%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/admin/homepage/hero/[id]/page": "rsc"
-      }
-    },
-    "1998e5ac9258e5572aba90e9a3972d9365ab0eb7": {
-      "workers": {
-        "app/admin/homepage/products/[id]/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fworkspaces%2Fmb01%2Fapp%2Fadmin%2Fhomepage%2Fproducts%2F%5Bid%5D%2Fpage.tsx%22%2C%5B%22%24%24ACTION_0%22%5D%5D%5D&__client_imported__=!"
-      },
-      "layer": {
-        "app/admin/homepage/products/[id]/page": "rsc"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
-  "encryptionKey": "CVBXTmHkmTUdhK1MmymKMYS7iSPeIds6eXCgZtjk+ag="
+  "encryptionKey": "KyRXN+Aq6D/JSVujZWCKe86oZcheaQI6Lcc0WINiWMY="
 }
