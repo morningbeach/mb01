@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { SiteShell } from "@/components/SiteShell";
 
 export const dynamic = "force-dynamic";
 
@@ -58,26 +59,22 @@ export default async function CatalogCategoryPage({
   );
 
   return (
-    <main className="min-h-screen bg-zinc-50 pb-16 text-zinc-900">
+    <SiteShell>
       {/* HERO */}
-      <section className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">
-            PRODUCTS
+      <section className="text-center">
+        <p className="text-sm font-medium uppercase tracking-wider text-zinc-500">{category.name}</p>
+        <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          {category.heroTitle || category.name}
+        </h1>
+        {category.heroSubtitle && (
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600">
+            {category.heroSubtitle}
           </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] md:text-4xl">
-            {category.heroTitle || category.name}
-          </h1>
-          {category.heroSubtitle && (
-            <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-zinc-600">
-              {category.heroSubtitle}
-            </p>
-          )}
-        </div>
+        )}
       </section>
 
       {/* GROUPS + CARDS */}
-      <section className="mx-auto max-w-6xl px-4 pt-10 md:px-6 md:pt-12">
+      <section className="mt-12">
         {category.tagGroups.map((group) => {
           const list = group.tagId ? groupedByTagId[group.tagId] : [];
           if (!list || list.length === 0) return null;
@@ -223,6 +220,6 @@ export default async function CatalogCategoryPage({
           </div>
         )}
       </section>
-    </main>
+    </SiteShell>
   );
 }

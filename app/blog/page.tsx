@@ -1,23 +1,21 @@
 // app/blog/page.tsx
 import Link from "next/link";
+import { SiteShell } from "../../components/SiteShell";
 
 export default function BlogPage() {
   return (
-    <div className="bg-white text-zinc-900">
-      <SiteHeader />
-
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-12 md:px-6 md:pt-16">
-        {/* HERO */}
-        <section>
-          <p className="text-sm text-zinc-500">Blog</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-            Notes on packaging, gifting and production.
-          </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-zinc-600">
-            Articles to help buyers, marketers and designers make better
-            decisions about structures, materials and timelines.
-          </p>
-        </section>
+    <SiteShell>
+      {/* HERO */}
+      <section className="text-center">
+        <p className="text-sm font-medium uppercase tracking-wider text-zinc-500">Blog</p>
+        <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          Notes on packaging, gifting and production.
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600">
+          Articles to help buyers, marketers and designers make better
+          decisions about structures, materials and timelines.
+        </p>
+      </section>
 
         {/* POSTS GRID */}
         <section className="mt-10 grid gap-6 md:grid-cols-3">
@@ -77,54 +75,7 @@ export default function BlogPage() {
             </Link>
           </div>
         </section>
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
-
-function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
-        <div className="text-lg font-semibold tracking-tight">MB Packaging</div>
-        <nav className="hidden gap-8 text-sm text-zinc-600 md:flex">
-          <Link href="/" className="hover:text-black">
-            Home
-          </Link>
-          <Link href="/about" className="hover:text-black">
-            About
-          </Link>
-          <Link href="/products" className="hover:text-black">
-            Products
-          </Link>
-          <Link href="/factory" className="hover:text-black">
-            Factory
-          </Link>
-          <Link href="/blog" className="hover:text-black">
-            Blog
-          </Link>
-          <Link href="/contact" className="hover:text-black">
-            Contact
-          </Link>
-        </nav>
-        <Link
-          href="/contact"
-          className="rounded-full bg-black px-4 py-1.5 text-sm text-white hover:bg-zinc-800"
-        >
-          Get a Quote
-        </Link>
-      </div>
-    </header>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="border-t border-zinc-200 py-8 text-center text-sm text-zinc-500">
-      © 2025 MB Packaging — Premium Gift Box Manufacturer.
-    </footer>
+    </SiteShell>
   );
 }
 

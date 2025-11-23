@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "./ProductGallery";
+import { SiteShell } from "@/app/components/SiteShell";
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +37,8 @@ export default async function ProductDetailPage({
   ].filter(Boolean) as string[];
 
   return (
-    <main className="min-h-screen bg-white text-zinc-900 pb-20">
-      <div className="mx-auto max-w-6xl px-4 pt-10 md:px-6">
+    <SiteShell>
+      <div>
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-zinc-500">
           <a href="/products" className="hover:text-zinc-900">
@@ -237,5 +238,6 @@ function ExtraSpecs({ product }: { product: any }) {
         )}
       </div>
     </section>
+    </SiteShell>
   );
 }

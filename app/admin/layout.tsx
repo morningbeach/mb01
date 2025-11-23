@@ -1,6 +1,5 @@
 // app/admin/layout.tsx
 import type { ReactNode } from "react";
-import "../globals.css";
 import { AdminNav } from "./components/AdminNav";
 
 export const dynamic = "force-dynamic";

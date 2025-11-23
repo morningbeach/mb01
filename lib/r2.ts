@@ -70,7 +70,7 @@ export async function listR2Images(options?: {
   prefix?: string;
   maxKeys?: number;
 }): Promise<R2ImageItem[]> {
-  const prefix = options?.prefix ?? "uploads/";
+  const prefix = options?.prefix ?? "";
   const maxKeys = options?.maxKeys ?? 200;
 
   const command = new ListObjectsV2Command({
@@ -90,6 +90,37 @@ export async function listR2Images(options?: {
         url,
         size: Number(obj.Size ?? 0),
         lastModified: (obj.LastModified as Date) ?? null,
+      };
+    }) ?? [];
+
+  return items;
+}
+
+// ✅ 列出 R2 物件（返回完整資訊，包含 size 和 lastModified 字串）
+export async function listR2Objects(options?: {
+  prefix?: string;
+  maxKeys?: number;
+}): Promise<Array<{ key: string; url: string; size: number; lastModified: string }>> {
+  const prefix = options?.prefix ?? "";
+  const maxKeys = options?.maxKeys ?? 1000;
+
+  const command = new ListObjectsV2Command({
+    Bucket: bucketName,
+    Prefix: prefix,
+    MaxKeys: maxKeys,
+  });
+
+  const res = await r2Client.send(command);
+
+  const items =
+    res.Contents?.filter((obj) => !!obj.Key).map((obj) => {
+      const key = obj.Key!;
+      const url = `${publicBaseUrl}/${key}`;
+      return {
+        key,
+        url,
+        size: Number(obj.Size ?? 0),
+        lastModified: obj.LastModified?.toISOString() ?? new Date().toISOString(),
       };
     }) ?? [];
 

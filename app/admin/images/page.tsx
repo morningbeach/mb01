@@ -1,33 +1,17 @@
-// app/api/admin/images/route.ts
-import { NextResponse } from "next/server";
-import { listR2Images } from "@/lib/r2";
+// app/admin/images/page.tsx
+import { R2ManagerClient } from "./r2-manager-client";
+import { AdminPageHeader } from "../components/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  try {
-    // 從 R2 列出圖片（預設 prefix = "uploads/"，maxKeys = 200）
-    const files = await listR2Images({
-      prefix: "uploads/",
-      maxKeys: 200,
-    });
-
-    // 轉成前端 ImageAssetItem 需要的格式
-    const images = files.map((file) => {
-      const filename = file.key.split("/").pop() ?? file.key;
-      return {
-        id: file.key,        // 用 key 當 id 就好
-        url: file.url,       // R2_PUBLIC_BASE_URL + key
-        label: filename,     // 圖片名稱當 label
-      };
-    });
-
-    return NextResponse.json({ images });
-  } catch (err) {
-    console.error("[R2] list images error:", err);
-    return NextResponse.json(
-      { error: "Failed to list images from R2" },
-      { status: 500 },
-    );
-  }
+export default async function ImagesPage() {
+  return (
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="圖床管理"
+        description="管理 Cloudflare R2 上的圖片檔案（支援資料夾、軟刪除、批次操作）"
+      />
+      <R2ManagerClient />
+    </div>
+  );
 }

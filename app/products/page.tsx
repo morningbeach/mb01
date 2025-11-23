@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { SiteShell } from "../../components/SiteShell";
 
 export const dynamic = "force-dynamic";
 
@@ -12,36 +13,22 @@ export default async function ProductsLandingPage() {
   });
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-900">
+    <SiteShell>
       {/* HERO */}
-      <section className="border-b border-zinc-200 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 md:flex-row md:items-end md:justify-between md:px-6 md:py-12">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">
-              PRODUCT CATALOG
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-zinc-900 md:text-4xl">
-              A focused catalog for gifting & presentation packaging.
-            </h1>
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-zinc-600">
-              Each category below is managed from the database. You can add new
-              categories, change copy and reorder items without touching code,
-              while keeping a clear structure for buyers and brand teams.
-            </p>
-          </div>
-
-          <div className="mt-2 flex flex-col gap-2 text-[12px] text-zinc-500 md:items-end">
-            <p>For brand owners, buyers and design teams.</p>
-            <p className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span>Project-based quotation ・ MOQ from 300–1,000 sets</span>
-            </p>
-          </div>
-        </div>
+      <section className="text-center">
+        <p className="text-sm font-medium uppercase tracking-wider text-zinc-500">Products</p>
+        <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          A focused catalog for gifting & presentation packaging.
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600">
+          Each category below is managed from the database. You can add new
+          categories, change copy and reorder items without touching code,
+          while keeping a clear structure for buyers and brand teams.
+        </p>
       </section>
 
       {/* CATEGORY GRID */}
-      <section className="mx-auto max-w-6xl px-4 pb-20 pt-10 md:px-6 md:pt-12">
+      <section className="mt-12">
         <div className="grid gap-8 md:grid-cols-2">
           {categories.map((cat) => (
             <CategoryCard
@@ -86,7 +73,7 @@ export default async function ProductsLandingPage() {
           </div>
         </div>
       </section>
-    </main>
+    </SiteShell>
   );
 }
 

@@ -1,194 +1,183 @@
-// app/contact/page.tsx
-import Link from "next/link";
+"use client";
+
+import { SiteShell } from "../../components/SiteShell";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useEffect, useState } from "react";
 
 export default function ContactPage() {
+  const { lang } = useLanguage();
+  const [pageData, setPageData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/pages/contact")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => setPageData(data))
+      .catch(() => {});
+  }, []);
+
+  const data = pageData?.pageData || {};
+
+  const hero = {
+    label: lang === "zh" ? (pageData?.label_zh || "聯絡我們") : (pageData?.label_en || "Get in touch"),
+    title: lang === "zh" ? (pageData?.title_zh || "讓我們討論您的包裝需求") : (pageData?.title_en || "Let's discuss your packaging needs"),
+    desc: lang === "zh" ? (pageData?.desc_zh || "向我們發送簡短的問題或專案需求，我們將盡快回覆。") : (pageData?.desc_en || "Send us a brief or a question about your project. We will reply within one business day."),
+  };
+
+  const formLabels = {
+    name: lang === "zh" ? (data.formLabels?.name_zh || "姓名") : (data.formLabels?.name_en || "Name"),
+    email: lang === "zh" ? (data.formLabels?.email_zh || "電子郵件") : (data.formLabels?.email_en || "Email"),
+    company: lang === "zh" ? (data.formLabels?.company_zh || "公司") : (data.formLabels?.company_en || "Company"),
+    quantity: lang === "zh" ? (data.formLabels?.quantity_zh || "數量") : (data.formLabels?.quantity_en || "Quantity"),
+    timeline: lang === "zh" ? (data.formLabels?.timeline_zh || "時間表") : (data.formLabels?.timeline_en || "Timeline"),
+    details: lang === "zh" ? (data.formLabels?.details_zh || "專案詳情") : (data.formLabels?.details_en || "Project details"),
+    submit: lang === "zh" ? (data.formLabels?.submit_zh || "提交") : (data.formLabels?.submit_en || "Submit"),
+    emailNote: lang === "zh" ? (data.formLabels?.emailNote_zh || "或直接發送電子郵件至 info@mbpackaging.com") : (data.formLabels?.emailNote_en || "Or email us directly at info@mbpackaging.com"),
+  };
+
+  const contactDetails = {
+    title: lang === "zh" ? (data.contactDetails?.title_zh || "聯絡資訊") : (data.contactDetails?.title_en || "Contact details"),
+    email: data.contactDetails?.email || "info@mbpackaging.com",
+    whatsapp: data.contactDetails?.whatsapp || "+86 138 xxxx xxxx",
+  };
+
+  const officeInfo = {
+    title: lang === "zh" ? (data.officeInfo?.title_zh || "辦公地址") : (data.officeInfo?.title_en || "Office location"),
+    address: lang === "zh" ? (data.officeInfo?.address_zh || "中國深圳市寶安區") : (data.officeInfo?.address_en || "Bao'an District, Shenzhen, China"),
+    note: lang === "zh" ? (data.officeInfo?.note_zh || "（僅限預約訪問）") : (data.officeInfo?.note_en || "(By appointment only)"),
+  };
+
+  const businessHours = {
+    title: lang === "zh" ? (data.businessHours?.title_zh || "營業時間") : (data.businessHours?.title_en || "Business hours"),
+    hours: lang === "zh" ? (data.businessHours?.hours_zh || "週一至週五，上午 9:00 至下午 6:00（中國標準時間）") : (data.businessHours?.hours_en || "Mon–Fri, 9:00 AM – 6:00 PM (CST)"),
+    note: lang === "zh" ? (data.businessHours?.note_zh || "我們通常在 24 小時內回覆。") : (data.businessHours?.note_en || "We typically reply within 24 hours."),
+  };
+
   return (
-    <div className="bg-white text-zinc-900">
-      <SiteHeader />
+    <SiteShell>
+      {/* HERO */}
+      <section className="text-center">
+        <p className="text-sm font-medium uppercase tracking-wider text-zinc-500">
+          {hero.label}
+        </p>
+        <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+          {hero.title}
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-600">
+          {hero.desc}
+        </p>
+      </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-12 md:px-6 md:pt-16">
-        {/* HERO */}
-        <section>
-          <p className="text-sm text-zinc-500">Contact</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-            Start a project or ask a question.
-          </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-zinc-600">
-            Share your quantity, timeline and a rough idea of what you need.
-            We’ll respond with suggestions and a quick quotation.
-          </p>
-        </section>
-
-        {/* FORM + INFO */}
-        <section className="mt-12 grid gap-10 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-          {/* FORM */}
-          <div className="rounded-xl border border-zinc-200 bg-white px-5 py-6 shadow-sm">
-            <form className="space-y-4 text-sm text-zinc-800">
-              <div>
-                <label className="block text-xs text-zinc-500">Name</label>
-                <input
-                  type="text"
-                  className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                  placeholder="Your name"
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs text-zinc-500">Email</label>
-                  <input
-                    type="email"
-                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500">Company</label>
-                  <input
-                    type="text"
-                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                    placeholder="Company name"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-xs text-zinc-500">Estimated quantity</label>
-                  <input
-                    type="text"
-                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                    placeholder="e.g. 5,000 sets"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500">Timeline</label>
-                  <input
-                    type="text"
-                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                    placeholder="e.g. before Sept 2025"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs text-zinc-500">
-                  Project details
-                </label>
-                <textarea
-                  className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900"
-                  rows={4}
-                  placeholder="Briefly describe your products, packaging type, or any references."
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="mt-2 w-full rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
-              >
-                Send message
-              </button>
-
-              <p className="mt-2 text-xs text-zinc-500">
-                Or email us directly at{" "}
-                <a
-                  href="mailto:info@example.com"
-                  className="underline underline-offset-2"
-                >
-                  info@example.com
-                </a>
-                .
-              </p>
-            </form>
-          </div>
-
-          {/* INFO */}
-          <div className="space-y-6 text-sm text-zinc-700">
-            <div>
-              <h2 className="text-base font-medium text-zinc-900">
-                Contact details
-              </h2>
-              <p className="mt-2 text-[14px] text-zinc-700">
-                Email: <span className="text-zinc-900">info@example.com</span>
-                <br />
-                WhatsApp: <span className="text-zinc-900">+86 000 0000 000</span>
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-base font-medium text-zinc-900">
-                Office & factory
-              </h2>
-              <p className="mt-2 text-[14px] text-zinc-700">
-                Address line 1
-                <br />
-                City, Province, Country
-              </p>
-              <p className="mt-2 text-[13px] text-zinc-500">
-                We can arrange factory visits or online calls for your team.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-base font-medium text-zinc-900">
-                Business hours
-              </h2>
-              <p className="mt-2 text-[14px] text-zinc-700">
-                Monday–Friday, 9:00–18:00 (GMT+8)
-              </p>
-              <p className="mt-2 text-[13px] text-zinc-500">
-                We aim to respond within one working day.
-              </p>
+      {/* CONTACT INFO + FORM */}
+      <section className="mx-auto mt-12 grid max-w-4xl gap-12 md:grid-cols-2">
+        {/* Contact Details */}
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">
+              {contactDetails.title}
+            </h2>
+            <div className="mt-3 space-y-2 text-[15px] text-zinc-600">
+              <p>{contactDetails.email}</p>
+              <p>{contactDetails.whatsapp}</p>
             </div>
           </div>
-        </section>
-      </main>
 
-      <SiteFooter />
-    </div>
-  );
-}
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">
+              {officeInfo.title}
+            </h2>
+            <div className="mt-3 text-[15px] text-zinc-600">
+              <p>{officeInfo.address}</p>
+              <p className="mt-1 text-xs text-zinc-500">{officeInfo.note}</p>
+            </div>
+          </div>
 
-function SiteHeader() {
-  return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
-        <div className="text-lg font-semibold tracking-tight">MB Packaging</div>
-        <nav className="hidden gap-8 text-sm text-zinc-600 md:flex">
-          <Link href="/" className="hover:text-black">
-            Home
-          </Link>
-          <Link href="/about" className="hover:text-black">
-            About
-          </Link>
-          <Link href="/products" className="hover:text-black">
-            Products
-          </Link>
-          <Link href="/factory" className="hover:text-black">
-            Factory
-          </Link>
-          <Link href="/blog" className="hover:text-black">
-            Blog
-          </Link>
-          <Link href="/contact" className="hover:text-black">
-            Contact
-          </Link>
-        </nav>
-        <Link
-          href="/contact"
-          className="rounded-full bg-black px-4 py-1.5 text-sm text-white hover:bg-zinc-800"
-        >
-          Get a Quote
-        </Link>
-      </div>
-    </header>
-  );
-}
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">
+              {businessHours.title}
+            </h2>
+            <div className="mt-3 text-[15px] text-zinc-600">
+              <p>{businessHours.hours}</p>
+              <p className="mt-1 text-xs text-zinc-500">{businessHours.note}</p>
+            </div>
+          </div>
+        </div>
 
-function SiteFooter() {
-  return (
-    <footer className="border-t border-zinc-200 py-8 text-center text-sm text-zinc-500">
-      © 2025 MB Packaging — Premium Gift Box Manufacturer.
-    </footer>
+        {/* Contact Form */}
+        <div>
+          <form className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.name}
+              </label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.email}
+              </label>
+              <input
+                type="email"
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.company}
+              </label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.quantity}
+              </label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.timeline}
+              </label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-700">
+                {formLabels.details}
+              </label>
+              <textarea
+                rows={4}
+                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-black px-6 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+            >
+              {formLabels.submit}
+            </button>
+
+            <p className="text-xs text-zinc-500">
+              {formLabels.emailNote}
+            </p>
+          </form>
+        </div>
+      </section>
+    </SiteShell>
   );
 }

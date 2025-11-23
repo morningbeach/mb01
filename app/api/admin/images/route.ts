@@ -1,33 +1,50 @@
 // app/api/admin/images/route.ts
-import { NextResponse } from "next/server";
-import { listR2Images } from "@/lib/r2";
+import { NextRequest, NextResponse } from "next/server";
+import { listR2Objects } from "@/lib/r2";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    // 從 R2 列出圖片（預設 prefix = "uploads/"，maxKeys = 200）
-    const files = await listR2Images({
-      prefix: "uploads/",
-      maxKeys: 200,
+    const searchParams = req.nextUrl.searchParams;
+    const prefix = searchParams.get("prefix") || "uploads/";
+
+    // 1. 從 R2 列出所有檔案（預設從 uploads/ 開始）
+    const r2Files = await listR2Objects({ prefix, maxKeys: 1000 });
+
+    // 2. 從資料庫取得軟刪除標記
+    const images = await prisma.image.findMany({
+      where: {
+        storageKey: {
+          in: r2Files.map((f) => f.key),
+        },
+      },
+      select: {
+        storageKey: true,
+        isDeleted: true,
+      },
     });
 
-    // 轉成前端 ImageAssetItem 需要的格式
-    const images = files.map((file) => {
-      const filename = file.key.split("/").pop() ?? file.key;
-      return {
-        id: file.key,        // 用 key 當 id 就好
-        url: file.url,       // R2_PUBLIC_BASE_URL + key
-        label: filename,     // 圖片名稱當 label
-      };
-    });
+    const deletedMap = new Map(
+      images.map((img) => [img.storageKey, img.isDeleted])
+    );
 
-    return NextResponse.json({ images });
-  } catch (err) {
-    console.error("[R2] list images error:", err);
+    // 3. 合併資料
+    const files = r2Files.map((file) => ({
+      key: file.key,
+      url: file.url,
+      size: file.size,
+      lastModified: file.lastModified,
+      isDeleted: deletedMap.get(file.key) || false,
+    }));
+
+    return NextResponse.json({ files });
+  } catch (error) {
+    console.error("列出圖片失敗:", error);
     return NextResponse.json(
-      { error: "Failed to list images from R2" },
-      { status: 500 },
+      { error: "列出圖片失敗" },
+      { status: 500 }
     );
   }
 }

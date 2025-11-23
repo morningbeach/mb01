@@ -1,0 +1,498 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+// 預設資料函數
+function getDefaultAboutData() {
+  return {
+    story_zh: "我們支援全球品牌、代理商和採購商的專案型包裝：從季節性禮品活動到長期零售線。我們的團隊閱讀您的簡報，與您的內部利害關係人保持一致，並將所有內容轉化為結構、材料和生產就緒的規格。\n\n我們不推銷標準目錄，而是從您的限制出發：數量、時間、運輸和品牌指南。從那裡我們提出結構方向、粗略的預算範圍和對您的專案有意義的打樣計劃。\n\n隨著時間推移，我們幫助品牌建立可重複使用的盒子和袋子的結構「語言」，因此每個新專案都感覺一致但從不重複。",
+    story_en: "We support global brands, agencies and buyers with project-based packaging: from seasonal gifting campaigns to long-term retail lines. Our team reads your brief, aligns with your internal stakeholders, and translates everything into structures, materials and production-ready specs.\n\nInstead of pushing standard catalogs, we start from your constraints: quantities, timing, shipping, and brand guidelines. From there we propose structural directions, rough budget ranges and sampling plans that make sense for your project.\n\nOver time, we help brands build reusable structural language for boxes and bags, so each new project feels consistent but never repetitive.",
+    storyImage: "/cdn/about/studio.jpg",
+    values: [
+      { title_zh: "清晰", title_en: "Clarity", body_zh: "我們讓選項、權衡和成本易於內部解釋。", body_en: "We make the options, trade-offs and costs easy to explain internally." },
+      { title_zh: "一致性", title_en: "Consistency", body_zh: "從打樣到量產，我們專注於可重複的結果。", body_en: "From sampling to mass production, we focus on repeatable results." },
+      { title_zh: "可靠性", title_en: "Reliability", body_zh: "實際的時間表、透明的更新和誠實的溝通。", body_en: "Realistic timelines, transparent updates and honest communication." },
+    ],
+    stats: [
+      { label_zh: "包裝經驗", label_en: "Years in packaging", value: "10+" },
+      { label_zh: "年度專案", label_en: "Projects per year", value: "100+" },
+      { label_zh: "服務區域", label_en: "Regions served", value: "Asia / EU / US" },
+    ],
+    experienceTitle_zh: "禮品包裝經驗",
+    experienceTitle_en: "Experience in gifting",
+    experience_zh: "・ FMCG 和零售品牌的季節性禮品套裝。\n・ 會員和 VIP 禮品計劃。\n・ 品牌包裝線的長期結構系統。",
+    experience_en: "・ Seasonal gift sets for FMCG and retail brands.\n・ Membership and VIP gifting programs.\n・ Long-term structural systems for brand packaging lines.",
+  };
+}
+
+function getDefaultFactoryData() {
+  return {
+    stats: [
+      { label_zh: "工廠面積", label_en: "Factory area", value: "10,000 m²" },
+      { label_zh: "員工", label_en: "People", value: "120+" },
+      { label_zh: "月產能", label_en: "Monthly capacity", value: "300,000+ boxes" },
+      { label_zh: "認證", label_en: "Certifications", value: "ISO / audited" },
+    ],
+    images: [
+      { url: "/cdn/factory/floor.jpg", caption_zh: "生產車間", caption_en: "Production floor" },
+      { url: "/cdn/factory/machine.jpg", caption_zh: "印刷設備", caption_en: "Printing equipment" },
+      { url: "/cdn/factory/qc.jpg", caption_zh: "品質檢查", caption_en: "Quality control" },
+    ],
+    equipment_zh: "・ 4色和5色膠印機\n・ 自動精裝盒生產線\n・ 模切和壓痕機\n・ 燙金設備\n・ 覆膜線",
+    equipment_en: "・ 4-color and 5-color offset printing\n・ Automatic rigid box lines\n・ Die-cutting machines\n・ Hot stamping equipment\n・ Lamination lines",
+    qc_zh: "・ 內部結構工程師\n・ 量產前打樣\n・ 生產過程檢查\n・ 出貨前最終檢驗",
+    qc_en: "・ In-house structural engineers\n・ Pre-production sampling\n・ In-process checks\n・ Final inspection before shipping",
+    workflowTitle_zh: "從需求到出貨",
+    workflowTitle_en: "From brief to shipment",
+    workflow: [
+      { title_zh: "工程", title_en: "Engineering", desc_zh: "確認結構和材料", desc_en: "Confirm structure and materials" },
+      { title_zh: "打樣", title_en: "Sampling", desc_zh: "白樣和印刷樣品", desc_en: "White and printed samples" },
+      { title_zh: "量產", title_en: "Mass production", desc_zh: "品控檢查", desc_en: "Production with QC" },
+      { title_zh: "出貨", title_en: "Shipping", desc_zh: "最終檢驗和出貨", desc_en: "Final QC and shipping" },
+    ],
+    ctaTitle_zh: "想要查看更多工廠資訊？",
+    ctaTitle_en: "Want to audit our factory?",
+    ctaDesc_zh: "我們可以分享更多設備和流程資訊",
+    ctaDesc_en: "We can share more information on equipment and processes",
+  };
+}
+
+function getDefaultContactData() {
+  return {
+    formLabels: {
+      name_zh: "姓名", name_en: "Name",
+      email_zh: "電子郵件", email_en: "Email",
+      company_zh: "公司", company_en: "Company",
+      quantity_zh: "預估數量", quantity_en: "Estimated quantity",
+      timeline_zh: "時間表", timeline_en: "Timeline",
+      details_zh: "專案詳情", details_en: "Project details",
+      submit_zh: "發送訊息", submit_en: "Send message",
+      emailNote_zh: "或直接發送郵件至", emailNote_en: "Or email us directly at"
+    },
+    contactDetails: {
+      title_zh: "聯絡方式", title_en: "Contact details",
+      email: "info@example.com",
+      whatsapp: "+86 000 0000 000"
+    },
+    officeInfo: {
+      title_zh: "辦公室與工廠", title_en: "Office & factory",
+      address_zh: "地址第一行\n城市，省份，國家",
+      address_en: "Address line 1\nCity, Province, Country",
+      note_zh: "可安排工廠參觀或線上會議",
+      note_en: "We can arrange factory visits or online calls"
+    },
+    businessHours: {
+      title_zh: "營業時間", title_en: "Business hours",
+      hours_zh: "週一至週五，9:00-18:00 (GMT+8)",
+      hours_en: "Monday–Friday, 9:00–18:00 (GMT+8)",
+      note_zh: "我們會在一個工作日內回覆",
+      note_en: "We aim to respond within one working day"
+    }
+  };
+}
+
+export function CreatePageFormNew() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+
+  // 基本資訊表單資料
+  const [basicData, setBasicData] = useState({
+    slug: "",
+    type: "",
+    navLabel_zh: "",
+    navLabel_en: "",
+    label_zh: "",
+    label_en: "",
+    title_zh: "",
+    title_en: "",
+    desc_zh: "",
+    desc_en: "",
+    showInNav: true,
+    isEnabled: false,
+  });
+
+  // 頁面內容資料（根據類型）
+  const [pageContentData, setPageContentData] = useState<any>({});
+
+  // 當選擇類型時，載入預設內容
+  const handleTypeChange = (type: string) => {
+    setSelectedType(type);
+    setBasicData({ ...basicData, type });
+    
+    // 根據類型初始化預設內容
+    if (type === "ABOUT") {
+      setPageContentData(getDefaultAboutData());
+    } else if (type === "FACTORY") {
+      setPageContentData(getDefaultFactoryData());
+    } else if (type === "CONTACT") {
+      setPageContentData(getDefaultContactData());
+    } else {
+      setPageContentData({});
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      // 先創建頁面
+      const createRes = await fetch("/api/admin/pages/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(basicData),
+      });
+
+      if (!createRes.ok) {
+        const err = await createRes.json();
+        throw new Error(err.error || "建立失敗");
+      }
+
+      const result = await createRes.json();
+      
+      // 如果是 ABOUT/FACTORY/CONTACT，更新 pageData
+      if (selectedType !== "CUSTOM" && Object.keys(pageContentData).length > 0) {
+        const updateRes = await fetch(`/api/admin/pages/${result.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pageData: pageContentData }),
+        });
+        
+        if (!updateRes.ok) {
+          throw new Error("內容儲存失敗");
+        }
+      }
+      
+      alert("頁面建立成功！");
+      router.push("/admin-v2/pages");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-zinc-900">建立新頁面</h1>
+        <p className="mt-1 text-sm text-zinc-600">
+          選擇頁面類型後，在下方直接編輯完整內容
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 基本資訊區塊 */}
+        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          {/* 頁面類型選擇 */}
+          <div className="mb-6">
+            <label className="mb-2 block text-sm font-medium text-zinc-900">
+              頁面類型 * <span className="font-normal text-zinc-500">（選擇後會在下方顯示完整編輯器）</span>
+            </label>
+            <select
+              required
+              value={selectedType}
+              onChange={(e) => handleTypeChange(e.target.value)}
+              className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+            >
+              <option value="">-- 選擇頁面類型 --</option>
+              <option value="ABOUT">About 類型（品牌故事、核心價值、統計數據）</option>
+              <option value="FACTORY">Factory 類型（工廠實力、設備、流程）</option>
+              <option value="CONTACT">Contact 類型（聯絡表單、聯繫方式）</option>
+              <option value="CUSTOM">自訂頁面（使用 Homepage Section 系統）</option>
+            </select>
+          </div>
+
+          {/* URL Slug */}
+          <div className="mb-6">
+            <label className="mb-2 block text-sm font-medium text-zinc-900">
+              網址路徑 (Slug) *
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-zinc-500">/</span>
+              <input
+                type="text"
+                required
+                pattern="[a-z0-9-]+"
+                placeholder="my-custom-page"
+                value={basicData.slug}
+                onChange={(e) => setBasicData({ ...basicData, slug: e.target.value })}
+                className="flex-1 rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              只能使用小寫英文、數字和連字號，例如：custom-campaign
+            </p>
+          </div>
+
+          <hr className="my-6 border-zinc-200" />
+
+          {/* 導覽列名稱 */}
+          <div className="mb-6 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                導覽列名稱（中文）*
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="關於我們"
+                value={basicData.navLabel_zh}
+                onChange={(e) => setBasicData({ ...basicData, navLabel_zh: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                導覽列名稱（英文）
+              </label>
+              <input
+                type="text"
+                placeholder="About"
+                value={basicData.navLabel_en}
+                onChange={(e) => setBasicData({ ...basicData, navLabel_en: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* 頁面標籤 */}
+          <div className="mb-6 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面標籤（中文）
+              </label>
+              <input
+                type="text"
+                placeholder="品牌故事"
+                value={basicData.label_zh}
+                onChange={(e) => setBasicData({ ...basicData, label_zh: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+              <p className="mt-1 text-xs text-zinc-500">顯示在標題上方的小標籤</p>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面標籤（英文）
+              </label>
+              <input
+                type="text"
+                placeholder="Brand Story"
+                value={basicData.label_en}
+                onChange={(e) => setBasicData({ ...basicData, label_en: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* 頁面標題 */}
+          <div className="mb-6 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面標題（中文）*
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="歡迎來到我們的網站"
+                value={basicData.title_zh}
+                onChange={(e) => setBasicData({ ...basicData, title_zh: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面標題（英文）
+              </label>
+              <input
+                type="text"
+                placeholder="Welcome to our website"
+                value={basicData.title_en}
+                onChange={(e) => setBasicData({ ...basicData, title_en: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          {/* 頁面描述 */}
+          <div className="mb-6 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面描述（中文）
+              </label>
+              <textarea
+                rows={4}
+                placeholder="簡短描述這個頁面的內容..."
+                value={basicData.desc_zh}
+                onChange={(e) => setBasicData({ ...basicData, desc_zh: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-900">
+                頁面描述（英文）
+              </label>
+              <textarea
+                rows={4}
+                placeholder="A brief description of this page..."
+                value={basicData.desc_en}
+                onChange={(e) => setBasicData({ ...basicData, desc_en: e.target.value })}
+                className="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <hr className="my-6 border-zinc-200" />
+
+          {/* 顯示設定 */}
+          <div className="space-y-3">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={basicData.showInNav}
+                onChange={(e) => setBasicData({ ...basicData, showInNav: e.target.checked })}
+                className="h-4 w-4 rounded border-zinc-300"
+              />
+              <div>
+                <span className="text-sm font-medium text-zinc-900">顯示在導航列</span>
+                <p className="text-xs text-zinc-500">勾選後，此頁面會出現在網站頂部導航列</p>
+              </div>
+            </label>
+            
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={basicData.isEnabled}
+                onChange={(e) => setBasicData({ ...basicData, isEnabled: e.target.checked })}
+                className="h-4 w-4 rounded border-zinc-300"
+              />
+              <div>
+                <span className="text-sm font-medium text-zinc-900">立即啟用頁面</span>
+                <p className="text-xs text-zinc-500">勾選後，頁面建立後會立即在前台顯示（預設為關閉）</p>
+              </div>
+            </label>
+          </div>
+
+        </div>
+
+        {/* 內容編輯區塊 - 根據選擇的類型顯示 */}
+        {selectedType === "ABOUT" && (
+          <AboutEditorInline 
+            data={pageContentData} 
+            onChange={setPageContentData} 
+          />
+        )}
+
+        {selectedType === "FACTORY" && (
+          <FactoryEditorInline 
+            data={pageContentData} 
+            onChange={setPageContentData} 
+          />
+        )}
+
+        {selectedType === "CONTACT" && (
+          <ContactEditorInline 
+            data={pageContentData} 
+            onChange={setPageContentData} 
+          />
+        )}
+
+        {selectedType === "CUSTOM" && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
+            <p className="text-sm text-blue-900">
+              💡 <strong>CUSTOM 類型</strong>使用 Homepage Section 系統，建立後可以在編輯頁面中配置內容。
+            </p>
+          </div>
+        )}
+
+        {/* 操作按鈕 */}
+        {selectedType && (
+          <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <Link
+              href="/admin-v2/pages"
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100"
+            >
+              取消
+            </Link>
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-black px-6 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+            >
+              {loading ? "建立中..." : "建立頁面"}
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
+
+// About 內聯編輯器 - 簡化版，只顯示關鍵欄位
+function AboutEditorInline({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-semibold text-zinc-900">About 頁面內容</h2>
+      <p className="mb-4 text-sm text-zinc-600">
+        已載入預設內容，建立後可到編輯頁面進行詳細調整
+      </p>
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <p className="text-sm text-zinc-700">✓ 品牌故事（中英文）</p>
+        <p className="text-sm text-zinc-700">✓ 核心價值 3 個</p>
+        <p className="text-sm text-zinc-700">✓ 統計數據 3 個</p>
+        <p className="text-sm text-zinc-700">✓ 經驗列表</p>
+      </div>
+    </div>
+  );
+}
+
+// Factory 內聯編輯器 - 簡化版
+function FactoryEditorInline({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-semibold text-zinc-900">Factory 頁面內容</h2>
+      <p className="mb-4 text-sm text-zinc-600">
+        已載入預設內容，建立後可到編輯頁面進行詳細調整
+      </p>
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <p className="text-sm text-zinc-700">✓ 工廠統計數據 4 個</p>
+        <p className="text-sm text-zinc-700">✓ 工廠圖片 3 張</p>
+        <p className="text-sm text-zinc-700">✓ 設備清單（中英文）</p>
+        <p className="text-sm text-zinc-700">✓ 品質控制流程</p>
+        <p className="text-sm text-zinc-700">✓ 工作流程 4 步驟</p>
+        <p className="text-sm text-zinc-700">✓ 行動呼籲 (CTA)</p>
+      </div>
+    </div>
+  );
+}
+
+// Contact 內聯編輯器 - 簡化版
+function ContactEditorInline({ data, onChange }: { data: any; onChange: (data: any) => void }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-lg font-semibold text-zinc-900">Contact 頁面內容</h2>
+      <p className="mb-4 text-sm text-zinc-600">
+        已載入預設內容，建立後可到編輯頁面進行詳細調整
+      </p>
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <p className="text-sm text-zinc-700">✓ 表單標籤（中英文）</p>
+        <p className="text-sm text-zinc-700">✓ 聯絡資訊（Email, WhatsApp）</p>
+        <p className="text-sm text-zinc-700">✓ 辦公室地址</p>
+        <p className="text-sm text-zinc-700">✓ 營業時間</p>
+      </div>
+    </div>
+  );
+}
+
+

@@ -1,7 +1,7 @@
 // app/page.tsx
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { SiteShell } from "./components/SiteShell";
+import { SiteShell } from "../components/SiteShell";
 import { ProductsCarousel } from "./admin/components/ProductsCarousel";
 
 export const dynamic = "force-dynamic";
