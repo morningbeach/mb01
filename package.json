@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && node -e \"const fs=require('fs');const path=require('path');const cacheDir=path.join('.next','cache');if(fs.existsSync(cacheDir)){fs.rmSync(cacheDir,{recursive:true,force:true});console.log('Removed .next/cache')}\"",
     "start": "next start",
     "lint": "next lint",
     "seed": "ts-node prisma/seed.ts",
