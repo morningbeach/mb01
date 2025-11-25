@@ -58,3 +58,87 @@ export async function PUT(req: NextRequest, { params }: Params) {
     );
   }
 }
+
+// PATCH - 部分更新 section（啟用/停用、排序）
+export async function PATCH(req: NextRequest, { params }: Params) {
+  try {
+    const { id } = await params;
+    const sectionId = parseInt(id);
+    const body = await req.json();
+
+    // 處理排序調整
+    if (body.order !== undefined) {
+      const currentSection = await prisma.homeSection.findUnique({
+        where: { id: sectionId },
+      });
+
+      if (!currentSection) {
+        return NextResponse.json(
+          { error: "Section not found" },
+          { status: 404 }
+        );
+      }
+
+      const oldOrder = currentSection.order;
+      const newOrder = body.order;
+
+      // 在交易中處理排序調整
+      await prisma.$transaction(async (tx) => {
+        if (newOrder < oldOrder) {
+          // 上移：將中間的區塊順序 +1
+          await tx.homeSection.updateMany({
+            where: {
+              order: {
+                gte: newOrder,
+                lt: oldOrder,
+              },
+            },
+            data: {
+              order: {
+                increment: 1,
+              },
+            },
+          });
+        } else {
+          // 下移：將中間的區塊順序 -1
+          await tx.homeSection.updateMany({
+            where: {
+              order: {
+                gt: oldOrder,
+                lte: newOrder,
+              },
+            },
+            data: {
+              order: {
+                decrement: 1,
+              },
+            },
+          });
+        }
+
+        // 更新目標區塊的順序
+        await tx.homeSection.update({
+          where: { id: sectionId },
+          data: { order: newOrder },
+        });
+      });
+    } else {
+      // 普通更新（如啟用/停用）
+      await prisma.homeSection.update({
+        where: { id: sectionId },
+        data: body,
+      });
+    }
+
+    revalidatePath("/admin/homepage");
+    revalidatePath("/");
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("PATCH section error:", error);
+    return NextResponse.json(
+      { error: "Failed to update section" },
+      { status: 500 }
+    );
+  }
+}
