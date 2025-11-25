@@ -3,9 +3,15 @@ name = "mb-packaging"
 compatibility_date = "2024-11-25"
 pages_build_output_dir = ".vercel/output/static"
 
-# 環境變數（敏感資訊請在 Cloudflare Dashboard 設定）
-[env.production]
-# 這些變數需要在 Cloudflare Pages 設定中手動加入
-
-# 開發環境
-[env.preview]
+# 環境變數（Build time 可用）
+[vars]
+NODE_VERSION = "18.18.0"
+R2_ACCOUNT_ID = "c69e3d1a7fc921076100e851e398b5"
+R2_ENDPOINT = "https://c69e3d1a7fc921076100e85195e398b5.r2.cloudflarestorage.com"
+R2_BUCKET_NAME = "gift-images"
+R2_PUBLIC_BASE_URL = "https://img.mbpack.co"
+R2_ACCESS_KEY = "946e9548fff3148bf3638a26083aac36"
+R2_SECRET_KEY = "3e33b5e0f8f6506a35f8709c869c7d09555c47e6dad44af730f31377182638f1"
+ADMIN_BASIC_USER = "mbadmin"
+ADMIN_BASIC_PASS = "35437316"
+DATABASE_URL = "postgresql://postgres:QWrr35437316@44.239.209.64:5432/postgres?sslmode=require"
