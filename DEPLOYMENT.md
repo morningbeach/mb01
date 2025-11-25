@@ -66,7 +66,8 @@ npm run build
    ADMIN_BASIC_USER=mbadmin
    ADMIN_BASIC_PASS=35437316
    
-   NODE_VERSION=18.17.0
+   
+   
    ```
 
 6. **儲存並部署**

@@ -1,13 +1,6 @@
 {
-  "/products/[slug]/page": "app/products/[slug]/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/about/page": "app/about/page.js",
-  "/api/pages/about/route": "app/api/pages/about/route.js",
-  "/products/page": "app/products/page.js",
-  "/[slug]/page": "app/[slug]/page.js",
-  "/catalog-tree/page": "app/catalog-tree/page.js",
-  "/catalog-tree/[...slug]/page": "app/catalog-tree/[...slug]/page.js",
-  "/admin/images/page": "app/admin/images/page.js",
-  "/admin/products-v2/page": "app/admin/products-v2/page.js",
-  "/admin/products-v2/[id]/edit/page": "app/admin/products-v2/[id]/edit/page.js"
+  "/api/nav/route": "app/api/nav/route.js",
+  "/[slug]/page": "app/[slug]/page.js"
 }
