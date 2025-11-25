@@ -1,0 +1,7 @@
+# Cloudflare Pages 部署時忽略的文件
+.next/cache/
+node_modules/
+.git/
+*.log
+.env
+.env.local
