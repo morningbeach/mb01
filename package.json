@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && npx @cloudflare/next-on-pages",
-    "build:cleanup": "node -e \"const fs=require('fs');['.vercel/output/static/_worker.js/cache','.next/cache'].forEach(p=>{if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})})\"",
+    "build": "prisma generate && next build",
+    "pages:build": "prisma generate && npx @cloudflare/next-on-pages",
     "start": "next start",
     "lint": "next lint",
     "seed": "ts-node prisma/seed.ts",
