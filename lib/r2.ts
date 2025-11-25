@@ -6,8 +6,8 @@ import {
 } from "@aws-sdk/client-s3";
 
 const accountId = process.env.R2_ACCOUNT_ID ?? "";           // 例如 c69e3d1a7fc9...
-const accessKeyId = process.env.R2_ACCESS_KEY_ID ?? "";
-const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? "";
+const accessKeyId = process.env.R2_ACCESS_KEY ?? "";
+const secretAccessKey = process.env.R2_SECRET_KEY ?? "";
 const bucketName = process.env.R2_BUCKET_NAME ?? "";
 const publicBaseUrl = process.env.R2_PUBLIC_BASE_URL ?? "";  // 例如 https://img.mbpack.co
 
