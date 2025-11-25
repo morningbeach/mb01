@@ -8,6 +8,7 @@ const productsV2 = [
   // 紙器包裝類
   {
     slug: "luxury-gift-box-a",
+    sku: "GB-LUX-A001",
     name: "豪華禮品盒 A 型",
     category: "GIFT_BOX" as Category,
     shortDesc: "高級天地盒結構，適合高端禮品包裝",
@@ -25,6 +26,7 @@ const productsV2 = [
   },
   {
     slug: "standard-gift-box-b",
+    sku: "GB-STD-B002",
     name: "標準禮品盒 B 型",
     category: "GIFT_BOX" as Category,
     shortDesc: "經濟實惠的天地盒方案",
@@ -42,6 +44,7 @@ const productsV2 = [
   },
   {
     slug: "magnetic-flip-box",
+    sku: "GB-MAG-003",
     name: "磁吸掀蓋禮盒",
     category: "GIFT_BOX" as Category,
     shortDesc: "優雅的磁吸式掀蓋設計",
@@ -59,6 +62,7 @@ const productsV2 = [
   },
   {
     slug: "tea-gift-box-single",
+    sku: "GB-TEA-004",
     name: "單罐茶葉禮盒",
     category: "GIFT_BOX" as Category,
     shortDesc: "專為茶葉設計的精品包裝",
@@ -76,6 +80,7 @@ const productsV2 = [
   },
   {
     slug: "wine-box-double",
+    sku: "GB-WINE-005",
     name: "雙瓶裝酒盒",
     category: "GIFT_BOX" as Category,
     shortDesc: "雙瓶紅酒專用禮盒",
@@ -95,6 +100,7 @@ const productsV2 = [
   // 帆布袋類
   {
     slug: "canvas-flat-bag-standard",
+    sku: "CV-FLAT-006",
     name: "標準帆布平面袋",
     category: "GIFT" as Category,
     shortDesc: "環保耐用的帆布提袋",
@@ -112,6 +118,7 @@ const productsV2 = [
   },
   {
     slug: "canvas-tote-fashion",
+    sku: "CV-TOTE-007",
     name: "時尚托特包",
     category: "GIFT" as Category,
     shortDesc: "大容量實用托特包",
@@ -129,6 +136,7 @@ const productsV2 = [
   },
   {
     slug: "canvas-cosmetic-bag-small",
+    sku: "CV-COSM-008",
     name: "小型化妝包",
     category: "GIFT" as Category,
     shortDesc: "便攜式帆布化妝包",
@@ -148,6 +156,7 @@ const productsV2 = [
   // 3C 產品類
   {
     slug: "wireless-charger-premium",
+    sku: "3C-CHRG-009",
     name: "高級無線充電器",
     category: "GIFT" as Category,
     shortDesc: "15W 快充無線充電盤",
@@ -165,6 +174,7 @@ const productsV2 = [
   },
   {
     slug: "mini-bluetooth-speaker",
+    sku: "3C-SPKR-010",
     name: "迷你藍牙喇叭",
     category: "GIFT" as Category,
     shortDesc: "便攜式無線音響",
@@ -182,6 +192,7 @@ const productsV2 = [
   },
   {
     slug: "wireless-bluetooth-keyboard",
+    sku: "3C-KEYB-011",
     name: "無線藍牙鍵盤",
     category: "GIFT" as Category,
     shortDesc: "輕薄便攜無線鍵盤",
@@ -201,6 +212,7 @@ const productsV2 = [
   // 文具日用品
   {
     slug: "ceramic-coaster-round-set",
+    sku: "HW-COST-012",
     name: "圓形陶瓷杯墊",
     category: "GIFT" as Category,
     shortDesc: "吸水陶瓷杯墊",
@@ -218,6 +230,7 @@ const productsV2 = [
   },
   {
     slug: "led-makeup-mirror",
+    sku: "HW-MIRR-013",
     name: "LED 化妝鏡",
     category: "GIFT" as Category,
     shortDesc: "觸控 LED 補光化妝鏡",
@@ -237,6 +250,7 @@ const productsV2 = [
   // 禮品組
   {
     slug: "corporate-gift-set-a",
+    sku: "SET-CORP-A014",
     name: "企業禮品組 A",
     category: "GIFT_SET" as Category,
     shortDesc: "精選企業禮品三件組",
@@ -255,6 +269,19 @@ const productsV2 = [
 
 async function seedProductsV2() {
   console.log("🌱 開始寫入 V2 產品假資料...\n");
+
+  // 先刪除 V2 產品的所有 ProductTag 關聯
+  const v2ProductIds = await prisma.product.findMany({
+    where: { version: 2 },
+    select: { id: true },
+  });
+  
+  if (v2ProductIds.length > 0) {
+    await prisma.productTag.deleteMany({
+      where: { productId: { in: v2ProductIds.map(p => p.id) } },
+    });
+    console.log(`🗑️  已清除 V2 產品的 Tag 關聯\n`);
+  }
 
   // 清除現有 V2 產品
   const deleted = await prisma.product.deleteMany({

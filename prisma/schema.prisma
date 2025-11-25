@@ -10,29 +10,65 @@ datasource db {
 model Product {
   id             String         @id @default(cuid())
   slug           String         @unique
-  name           String
+  
+  // 多語系欄位
+  name           String         // 預設/英文名稱 (保留向下相容)
+  name_en        String?        // 英文名稱
+  name_zh        String?        // 中文名稱
+  shortDesc      String?        // 預設/英文簡短描述
+  shortDesc_en   String?        // 英文簡短描述
+  shortDesc_zh   String?        // 中文簡短描述
+  description    String?        // 預設/英文詳細描述
+  description_en String?        // 英文詳細描述
+  description_zh String?        // 中文詳細描述
+  
   category       Category
-  shortDesc      String?
-  description    String?
   sku            String?        @unique
   minQty         Int?
   priceHint      String?
+  priceHint_en   String?        // 英文價格提示
+  priceHint_zh   String?        // 中文價格提示
   currency       String?
-  seoTitle       String?
-  seoDescription String?
+  
+  // SEO 多語系
+  seoTitle       String?        // 預設 SEO 標題
+  seoTitle_en    String?        // 英文 SEO 標題
+  seoTitle_zh    String?        // 中文 SEO 標題
+  seoDescription String?        // 預設 SEO 描述
+  seoDescription_en String?     // 英文 SEO 描述
+  seoDescription_zh String?     // 中文 SEO 描述
+  
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+  
+  // 規格多語系
   dimensions     String?
+  dimensions_en  String?
+  dimensions_zh  String?
   leadTime       String?
+  leadTime_en    String?
+  leadTime_zh    String?
   materials      String?
+  materials_en   String?
+  materials_zh   String?
   notesForBuyer  String?
+  notesForBuyer_en String?
+  notesForBuyer_zh String?
   originCountry  String?
+  originCountry_en String?
+  originCountry_zh String?
   packagingInfo  String?
-  status         ProductStatus  @default(ACTIVE)
+  packagingInfo_en String?
+  packagingInfo_zh String?
   unit           String?
+  unit_en        String?
+  unit_zh        String?
+  
+  status         ProductStatus  @default(ACTIVE)
   coverImage     String?
   gallery        String[]
   version        Int            @default(1) // 1=舊版本, 2=新版本
+  images         String[]       // v2 多圖片陣列
   giftSet        GiftSet?
   giftSetItems   GiftSetItem[]
   productImages  ProductImage[]
@@ -42,9 +78,16 @@ model Product {
 model Tag {
   id                  String                  @id @default(cuid())
   slug                String                  @unique
-  name                String
+  
+  // 多語系欄位
+  name                String                  // 預設名稱 (保留向下相容)
+  name_en             String?                 // 英文名稱
+  name_zh             String?                 // 中文名稱
+  subtitle            String?                 // 預設副標題
+  subtitle_en         String?                 // 英文副標題
+  subtitle_zh         String?                 // 中文副標題
+  
   color               String?
-  subtitle            String?
   version             Int                     @default(1) // 1=舊版本, 2=新版本
   blogPosts           BlogTag[]
   frontCategoryGroups FrontCategoryTagGroup[]

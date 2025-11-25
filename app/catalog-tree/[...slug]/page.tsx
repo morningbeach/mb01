@@ -38,6 +38,10 @@ export default async function TreeCatalogPage({
   if (!currentNode) {
     return notFound();
   }
+
+  // 如果節點標記為葉節點但還有子節點，只顯示產品不顯示子節點
+  const hasChildren = !currentNode.isLeaf && currentNode.children && currentNode.children.length > 0;
+  const effectiveChildren = hasChildren ? currentNode.children : [];
   
   // 建構麵包屑（根據 path 欄位）
   const breadcrumbSlugs = currentNode.path;
@@ -84,10 +88,16 @@ export default async function TreeCatalogPage({
   // 允許前台臨時切換展示模式（未來會移除）
   const displayMode = searchParams.displayMode || currentNode.displayMode;
 
+  // 建立有效的節點物件（如果是葉節點，清空 children）
+  const effectiveNode = {
+    ...currentNode,
+    children: effectiveChildren,
+  };
+
   return (
     <SiteShell>
       <CatalogPageClient 
-        node={currentNode}
+        node={effectiveNode}
         breadcrumbs={breadcrumbs}
         displayMode={displayMode}
         currentPath={params.slug.join('/')}

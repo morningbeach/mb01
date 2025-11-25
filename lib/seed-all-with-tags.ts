@@ -6,6 +6,19 @@ const prisma = new PrismaClient();
 async function seedAllWithTags() {
   console.log("🌱 開始完整種子資料寫入（含 TAG 關聯）...\n");
 
+  // ===== 0. 清除舊的 ProductTag 關聯 =====
+  console.log("📍 步驟 0/4: 清除舊的產品-TAG 關聯...");
+  const v2Products = await prisma.product.findMany({ 
+    where: { version: 2 },
+    select: { id: true }
+  });
+  if (v2Products.length > 0) {
+    await prisma.productTag.deleteMany({
+      where: { productId: { in: v2Products.map(p => p.id) } }
+    });
+    console.log(`✓ 已清除 ${v2Products.length} 個產品的 TAG 關聯\n`);
+  }
+
   // ===== 1. 先建立 TAG =====
   console.log("📍 步驟 1/4: 建立 TAG...");
   const { seedTagsV2 } = await import("./seed-tags-v2");

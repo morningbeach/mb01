@@ -68,7 +68,7 @@ export const productTreeData = {
               isLeaf: true,
               coverImage: "https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=800",
               icon: "📦",
-              tagIds: [], // 透過 TAG 篩選產品
+              tagSlugs: ["heaven-earth-box", "luxury-gift"], // 透過 TAG 篩選產品
             },
             {
               slug: "flip-lid-box-hardcover",
@@ -82,7 +82,7 @@ export const productTreeData = {
               isLeaf: true,
               coverImage: "https://images.unsplash.com/photo-1565299543923-37dd37887442?w=800",
               icon: "🎀",
-              tagIds: [], // 透過 TAG 篩選產品
+              tagSlugs: ["flip-lid-box", "magnetic-box"], // 透過 TAG 篩選產品
             },
             {
               slug: "tea-box-hardcover",
@@ -96,7 +96,7 @@ export const productTreeData = {
               isLeaf: true,
               coverImage: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=800",
               icon: "🍵",
-              tagIds: [], // 透過 TAG 篩選產品
+              tagSlugs: ["tea-box", "tea-packaging"], // 透過 TAG 篩選產品
             },
             {
               slug: "wine-box-hardcover",
@@ -776,11 +776,22 @@ export const productTreeData = {
 };
 
 // 遞迴函數：將樹狀資料寫入資料庫
-async function seedNode(nodeData: any, parentId: string | null = null): Promise<void> {
+async function seedNode(nodeData: any, parentId: string | null = null, tagMap?: Map<string, string>): Promise<void> {
   const {
     children,
+    tagSlugs,
     ...data
   } = nodeData;
+
+  // 如果有 tagSlugs，轉換為 tagIds
+  let tagIds: string[] = [];
+  if (tagSlugs && tagSlugs.length > 0 && tagMap) {
+    tagIds = tagSlugs
+      .map((slug: string) => tagMap.get(slug))
+      .filter(Boolean) as string[];
+  } else if (data.tagIds) {
+    tagIds = data.tagIds;
+  }
 
   // 建立當前節點
   const node = await prisma.categoryNode.create({
@@ -789,6 +800,7 @@ async function seedNode(nodeData: any, parentId: string | null = null): Promise<
       parentId,
       path: parentId ? [...(await getParentPath(parentId)), data.slug] : [data.slug],
       productIds: data.productIds || [],
+      tagIds,
       isActive: true,
       isLeaf: data.isLeaf || false,
       isHidden: data.isHidden || false,
@@ -801,7 +813,7 @@ async function seedNode(nodeData: any, parentId: string | null = null): Promise<
   // 遞迴建立子節點
   if (children && children.length > 0) {
     for (const child of children) {
-      await seedNode(child, node.id);
+      await seedNode(child, node.id, tagMap);
     }
   }
 }
@@ -819,12 +831,17 @@ async function getParentPath(parentId: string): Promise<string[]> {
 export async function seedCategoryTree() {
   console.log("🌱 Starting category tree seeding...\n");
 
+  // 取得所有 TAG 的 slug -> id 映射
+  const tags = await prisma.tag.findMany({ where: { version: 2 } });
+  const tagMap = new Map(tags.map(t => [t.slug, t.id]));
+  console.log(`📋 Loaded ${tags.length} TAGs\n`);
+
   // 清空現有資料
   await prisma.categoryNode.deleteMany({});
   console.log("🗑️  Cleared existing category nodes\n");
 
   // 寫入樹狀資料
-  await seedNode(productTreeData);
+  await seedNode(productTreeData, null, tagMap);
 
   console.log("\n✅ Category tree seeding completed!");
   

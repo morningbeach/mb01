@@ -44,6 +44,28 @@ export async function PUT(
     // 確保不能改變 version
     const { version, id, createdAt, updatedAt, tagIds, ...updateData } = body;
 
+    // 檢查 SKU 是否與其他產品重複（排除自己）
+    if (updateData.sku) {
+      const existingProduct = await prisma.product.findFirst({
+        where: {
+          sku: updateData.sku,
+          NOT: {
+            id: params.id, // 排除當前正在更新的產品
+          },
+        },
+      });
+
+      if (existingProduct) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `SKU "${updateData.sku}" 已被其他產品使用（${existingProduct.name}）`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // 先刪除舊的 TAG 關聯，再建立新的
     await prisma.productTag.deleteMany({
       where: { productId: params.id },

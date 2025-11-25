@@ -13,13 +13,20 @@ export async function GET() {
       maxKeys: 200,
     });
 
-    // 轉成前端 ImageAssetItem 需要的格式
+    // 轉成前端 ImagePicker 需要的格式（包含資料夾路徑）
     const images = files.map((file) => {
-      const filename = file.key.split("/").pop() ?? file.key;
+      const parts = file.key.split("/");
+      const filename = parts.pop() ?? file.key;
+      const folder = parts.length > 1 ? parts.slice(1).join("/") : parts.join("/"); // 排除 "uploads/" 前綴
+      
       return {
-        id: file.key,        // 用 key 當 id 就好
+        id: file.key,        // 完整 key 當 id
         url: file.url,       // R2_PUBLIC_BASE_URL + key
-        label: filename,     // 檔名當 label
+        alt: filename,       // 檔名當 alt
+        title: filename,     // 檔名當 title
+        folder: folder || "root", // 資料夾路徑
+        width: null,
+        height: null,
       };
     });
 

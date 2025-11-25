@@ -16,6 +16,7 @@ interface ImageRecord {
   url: string;
   alt: string | null;
   title: string | null;
+  folder?: string;
   width: number | null;
   height: number | null;
 }
@@ -31,6 +32,7 @@ export default function ImagePicker({
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<string[]>(multiValue);
+  const [selectedFolder, setSelectedFolder] = useState<string>("all");
 
   // 載入圖片列表
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function ImagePicker({
   const loadImages = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/images?limit=100");
+      const res = await fetch("/api/images?limit=200");
       if (!res.ok) throw new Error("Failed to fetch images");
       const data = await res.json();
       setImages(data.images || []);
@@ -57,6 +59,14 @@ export default function ImagePicker({
       setLoading(false);
     }
   };
+
+  // 取得所有資料夾
+  const folders = Array.from(new Set(images.map(img => img.folder || "root")));
+  
+  // 過濾顯示的圖片
+  const filteredImages = selectedFolder === "all" 
+    ? images 
+    : images.filter(img => (img.folder || "root") === selectedFolder);
 
   const handleSelect = (url: string) => {
     if (multiple) {
@@ -127,16 +137,47 @@ export default function ImagePicker({
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg w-[90vw] max-w-4xl max-h-[80vh] flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">
-                {multiple ? "選擇圖片（多選）" : "選擇圖片"}
-              </h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
+            <div className="p-4 border-b">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">
+                  {multiple ? "選擇圖片（多選）" : "選擇圖片"}
+                </h3>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {/* 資料夾過濾 */}
+              {folders.length > 1 && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setSelectedFolder("all")}
+                    className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                      selectedFolder === "all"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    全部 ({images.length})
+                  </button>
+                  {folders.map(folder => (
+                    <button
+                      key={folder}
+                      onClick={() => setSelectedFolder(folder)}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                        selectedFolder === folder
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      📁 {folder} ({images.filter(img => (img.folder || "root") === folder).length})
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 圖片網格 */}
@@ -145,13 +186,13 @@ export default function ImagePicker({
                 <div className="text-center py-12 text-gray-500">
                   載入中...
                 </div>
-              ) : images.length === 0 ? (
+              ) : filteredImages.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  圖床中還沒有圖片
+                  {selectedFolder === "all" ? "圖床中還沒有圖片" : "此資料夾中沒有圖片"}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {images.map((img) => {
+                  {filteredImages.map((img) => {
                     const isSelected = multiple
                       ? selectedUrls.includes(img.url)
                       : value === img.url;
@@ -176,6 +217,12 @@ export default function ImagePicker({
                           fill
                           className="object-cover"
                         />
+                        {/* 資料夾標籤 */}
+                        {img.folder && img.folder !== "root" && (
+                          <div className="absolute top-1 left-1 px-2 py-0.5 bg-black/60 text-white text-xs rounded">
+                            📁 {img.folder}
+                          </div>
+                        )}
                         {isSelected && (
                           <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
                             <svg

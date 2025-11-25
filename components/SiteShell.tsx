@@ -87,12 +87,12 @@ export function SiteHeader() {
         {/* Desktop Right Side */}
         <div className="hidden items-center justify-end gap-3 md:flex">
           <LanguageSwitcher />
-          <Link
+          {/* <Link
             href="/admin"
             className="rounded-full border border-zinc-300 px-3 py-1 text-xs hover:bg-zinc-100"
           >
             Admin
-          </Link>
+          </Link> */}
         </div>
 
         {/* Mobile Menu Button */}
@@ -143,13 +143,13 @@ export function SiteHeader() {
                 {lang === "zh" ? (item.navLabel_zh || item.navLabel_en) : (item.navLabel_en || item.navLabel_zh)}
               </Link>
             ))}
-            <Link
+            {/* <Link
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
               className="py-3 text-sm text-zinc-600 hover:text-zinc-900"
             >
               Admin
-            </Link>
+            </Link> */}
           </nav>
         </div>
       )}
