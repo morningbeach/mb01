@@ -30,7 +30,7 @@ ADMIN_BASIC_USER=mbadmin
 ADMIN_BASIC_PASS=35437316
 
 # Node 版本
-NODE_VERSION=18.17.0
+NODE_VERSION=18.18.0
 ```
 
 ### 📌 Cloudflare Pages 設定
@@ -54,7 +54,7 @@ npm run build
 
 **Node version:**
 ```
-18.17.0
+18.18.0
 ```
 
 ### 🌐 部署步驟
