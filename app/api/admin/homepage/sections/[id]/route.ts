@@ -142,3 +142,26 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 }
+
+// DELETE - 刪除 section
+export async function DELETE(req: NextRequest, { params }: Params) {
+  try {
+    const { id } = await params;
+    const sectionId = parseInt(id);
+
+    await prisma.homeSection.delete({
+      where: { id: sectionId },
+    });
+
+    revalidatePath("/admin/homepage");
+    revalidatePath("/");
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("DELETE section error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete section" },
+      { status: 500 }
+    );
+  }
+}

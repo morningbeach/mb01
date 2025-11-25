@@ -104,7 +104,7 @@ export default async function AdminHeroEditPage({
     where: { id },
   });
 
-  if (!hero || hero.type !== "HERO") {
+  if (!hero || hero.type !== "hero") {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 md:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">

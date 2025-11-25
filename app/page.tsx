@@ -299,7 +299,7 @@ function HeroSection({
           {primaryLabel && primaryUrl && (
             <a
               href={primaryUrl}
-              className="rounded-full bg-black px-6 py-3 text-sm font-medium text-white hover:bg-zinc-800"
+              className="rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white hover:bg-zinc-800"
             >
               {primaryLabel}
             </a>
@@ -307,7 +307,7 @@ function HeroSection({
           {secondaryLabel && secondaryUrl && (
             <a
               href={secondaryUrl}
-              className="rounded-full border border-zinc-300 px-6 py-3 text-sm text-zinc-700 hover:bg-zinc-100"
+              className="rounded-full border-2 border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
             >
               {secondaryLabel}
             </a>
@@ -799,8 +799,8 @@ function CTASection({
                       : "bg-zinc-900 text-white hover:bg-zinc-800";
                   const secondaryClasses =
                     textTone === "light"
-                      ? "border border-white/80 text-zinc-50 hover:bg-white/10"
-                      : "border border-zinc-300 text-zinc-800 hover:bg-zinc-100";
+                      ? "border-2 border-white text-white hover:bg-white/10"
+                      : "border-2 border-zinc-300 text-zinc-900 hover:bg-zinc-100";
 
                   return (
                     <a

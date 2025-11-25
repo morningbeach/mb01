@@ -6,7 +6,6 @@ import { cn } from "@/lib/utlis";
 
 const mainNav = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/homepage", label: "Homepage" },
   { href: "/admin/category-tree", label: "Category Tree V2" },
   { href: "/admin/products-v2", label: "Products V2" },
   { href: "/admin/images", label: "Images" },
@@ -96,7 +95,7 @@ export function AdminNav() {
                   className={cn(
                     "rounded-full px-3 py-1 transition-colors",
                     active
-                      ? "bg-zinc-900 text-zinc-50"
+                      ? "bg-zinc-900 text-white"
                       : "text-zinc-600 hover:bg-zinc-200/60 hover:text-zinc-900"
                   )}
                 >

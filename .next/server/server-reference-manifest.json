@@ -1,1 +1,22 @@
-{"node":{"7bbc2212240f94e3c73d6da67515cf2ad5ba2b44":{"workers":{"app/admin/homepage/cta/[id]/page":"31637"},"layer":{"app/admin/homepage/cta/[id]/page":"rsc"}},"3f022874166d51cd7c02c7426f2e3db3e37bf170":{"workers":{"app/admin/homepage/hero/page":"77790"},"layer":{"app/admin/homepage/hero/page":"rsc"}},"f149e703da4d7f4001b1a545ebc3f7c62c7ead3b":{"workers":{"app/admin/homepage/hero/[id]/page":"75451"},"layer":{"app/admin/homepage/hero/[id]/page":"rsc"}},"c77209c21daa1f07bd15d0fe1e14f49579fc987f":{"workers":{"app/admin/pages/[id]/edit/page":"2393"},"layer":{"app/admin/pages/[id]/edit/page":"rsc"}},"bfb971660e2d51e0f63fb83be2b39cb48fc87a06":{"workers":{"app/admin/homepage/factory/[id]/page":"53824"},"layer":{"app/admin/homepage/factory/[id]/page":"rsc"}},"28d47d57e32dc98e573feec49886f036ccfc475a":{"workers":{"app/admin/homepage/why/[id]/page":"39897"},"layer":{"app/admin/homepage/why/[id]/page":"rsc"}},"15552acbae7fda5033960b549296a8559ac60b76":{"workers":{"app/admin/homepage/products/[id]/page":"81442"},"layer":{"app/admin/homepage/products/[id]/page":"rsc"}}},"edge":{},"encryptionKey":"Qp4KJjvVJl9K1CBPrh66nysMDMQnb6K5l1pAole60i0="}
+{
+  "node": {
+    "2d8bb325692fc303628083010840373c74799c57": {
+      "workers": {
+        "app/admin/homepage/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Ctomor%5C%5CMB%5C%5Cmb01%5C%5Capp%5C%5Cadmin%5C%5Chomepage%5C%5Cpage.tsx%22%2C%5B%22%24%24ACTION_0%22%5D%5D%5D&__client_imported__=!"
+      },
+      "layer": {
+        "app/admin/homepage/page": "rsc"
+      }
+    },
+    "15552acbae7fda5033960b549296a8559ac60b76": {
+      "workers": {
+        "app/admin/homepage/products/[id]/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Ctomor%5C%5CMB%5C%5Cmb01%5C%5Capp%5C%5Cadmin%5C%5Chomepage%5C%5Cproducts%5C%5C%5Bid%5D%5C%5Cpage.tsx%22%2C%5B%22%24%24ACTION_0%22%5D%5D%5D&__client_imported__=!"
+      },
+      "layer": {
+        "app/admin/homepage/products/[id]/page": "rsc"
+      }
+    }
+  },
+  "edge": {},
+  "encryptionKey": "Pao8BP3ko91x29G0TL+HKCd/M7KcAO2seqTf8V4vcrg="
+}

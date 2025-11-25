@@ -55,6 +55,7 @@ function getNavItems(): Promise<any[]> {
 export function SiteHeader() {
   const { lang } = useLanguage();
   const [navItems, setNavItems] = React.useState<any[]>(() => cachedNavItems || []);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     getNavItems().then(setNavItems);
@@ -62,13 +63,16 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-4 md:px-6">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-6">
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-base font-semibold tracking-tight">
             MorningBeach / Gifts
           </span>
         </Link>
-        <nav className="flex items-center justify-center gap-6 text-sm text-zinc-600">
+
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center justify-center gap-6 text-sm text-zinc-600 md:flex">
           {navItems.map((item: any) => (
             <Link
               key={item.slug}
@@ -79,7 +83,9 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center justify-end gap-3">
+
+        {/* Desktop Right Side */}
+        <div className="hidden items-center justify-end gap-3 md:flex">
           <LanguageSwitcher />
           <Link
             href="/admin"
@@ -88,7 +94,65 @@ export function SiteHeader() {
             Admin
           </Link>
         </div>
+
+        {/* Mobile Menu Button */}
+        <div className="flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="rounded-lg p-2 text-zinc-600 hover:bg-zinc-100"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {mobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="border-t border-zinc-200 bg-white md:hidden">
+          <nav className="flex flex-col px-4 py-2">
+            {navItems.map((item: any) => (
+              <Link
+                key={item.slug}
+                href={`/${item.slug}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="border-b border-zinc-100 py-3 text-sm text-zinc-600 hover:text-zinc-900"
+              >
+                {lang === "zh" ? (item.navLabel_zh || item.navLabel_en) : (item.navLabel_en || item.navLabel_zh)}
+              </Link>
+            ))}
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-3 text-sm text-zinc-600 hover:text-zinc-900"
+            >
+              Admin
+            </Link>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

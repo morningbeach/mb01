@@ -14,12 +14,12 @@ interface Section {
 }
 
 const SECTION_TYPE_NAMES: Record<string, string> = {
-  hero: "首頁橫幅",
-  products: "精選產品",
-  why: "為什麼選擇我們",
-  factory: "工廠介紹",
-  cta: "行動呼籲",
-  gallery: "圖片廊",
+  HERO: "首頁橫幅",
+  PRODUCTS: "精選產品",
+  WHY: "為什麼選擇我們",
+  FACTORY: "工廠介紹",
+  CTA: "行動呼籲",
+  GALLERY: "圖片廊",
 };
 
 export function HomepageSectionManager({ sections }: { sections: Section[] }) {
@@ -96,14 +96,38 @@ export function HomepageSectionManager({ sections }: { sections: Section[] }) {
     }
   };
 
+  const handleDelete = async (sectionId: number, typeName: string) => {
+    if (!confirm(`確定要刪除「${typeName}」區塊嗎？此操作無法復原。`)) {
+      return;
+    }
+
+    setIsLoading(sectionId);
+    try {
+      const response = await fetch(`/api/admin/homepage/sections/${sectionId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        router.refresh();
+      } else {
+        alert("刪除失敗");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("刪除失敗");
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
   const getEditUrl = (section: Section) => {
     const typeMap: Record<string, string> = {
-      hero: `/admin/homepage/hero/${section.id}`,
-      products: `/admin/homepage/products/${section.id}`,
-      why: `/admin/homepage/why/${section.id}`,
-      factory: `/admin/homepage/factory/${section.id}`,
-      cta: `/admin/homepage/cta/${section.id}`,
-      gallery: `/admin/homepage/gallery/${section.id}`,
+      HERO: `/admin/homepage/hero/${section.id}`,
+      PRODUCTS: `/admin/homepage/products/${section.id}`,
+      WHY: `/admin/homepage/why/${section.id}`,
+      FACTORY: `/admin/homepage/factory/${section.id}`,
+      CTA: `/admin/homepage/cta/${section.id}`,
+      GALLERY: `/admin/homepage/gallery/${section.id}`,
     };
     return typeMap[section.type] || `/admin/homepage/${section.id}`;
   };
@@ -204,6 +228,15 @@ export function HomepageSectionManager({ sections }: { sections: Section[] }) {
                   >
                     編輯內容
                   </Link>
+
+                  {/* 刪除按鈕 */}
+                  <button
+                    onClick={() => handleDelete(section.id, SECTION_TYPE_NAMES[section.type] || section.type)}
+                    disabled={isLoading === section.id}
+                    className="rounded border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    刪除
+                  </button>
                 </div>
               </div>
             </div>

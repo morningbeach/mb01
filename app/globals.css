@@ -22,6 +22,10 @@ body {
 
 a {
   text-decoration: none;
+}
+
+/* 只有沒有明確顏色類別的連結才繼承父元素顏色 */
+a:not([class*="text-"]) {
   color: inherit;
 }
 

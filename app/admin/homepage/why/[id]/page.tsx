@@ -140,7 +140,7 @@ export default async function AdminWhyEditPage({
     where: { id },
   });
 
-  if (!why || why.type !== "WHY") {
+  if (!why || why.type !== "why") {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 md:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">
