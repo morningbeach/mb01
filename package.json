@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build:next && npm run build:worker && npm run build:cleanup",
-    "build:next": "prisma generate && next build",
-    "build:worker": "npx @cloudflare/next-on-pages --skip-build",
+    "build": "prisma generate && npx @cloudflare/next-on-pages",
     "build:cleanup": "node -e \"const fs=require('fs');['.vercel/output/static/_worker.js/cache','.next/cache'].forEach(p=>{if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})})\"",
     "start": "next start",
     "lint": "next lint",
