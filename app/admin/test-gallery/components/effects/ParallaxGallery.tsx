@@ -2,16 +2,26 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ImageOverlay } from "../shared/ImageOverlay";
+import Image from "next/image";
 
 interface ParallaxGalleryProps {
   images: any[];
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
-export function ParallaxGallery({ images }: ParallaxGalleryProps) {
+export function ParallaxGallery({ 
+  images,
+  clickMode = "none",
+  onImageClick,
+  objectFit = "object-contain"
+}: ParallaxGalleryProps) {
   const [scrollY, setScrollY] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -50,9 +60,22 @@ export function ParallaxGallery({ images }: ParallaxGalleryProps) {
                   transform: `translateY(${finalOffset}px)`,
                   opacity: 1 - (scrollY / (images.length * 400)) * (index + 1) * 0.3,
                 }}
+                onClick={() => clickMode !== "none" && onImageClick && onImageClick(image, index)}
               >
-                <div className="relative h-full w-full">
-                  <ImageOverlay image={image} />
+                <div className={`relative h-full w-full ${clickMode !== "none" ? "cursor-pointer" : ""}` }>
+                  <Image
+                    src={image.url || "/cdn/placeholder.jpg"}
+                    alt={image.title || image.label || "Gallery image"}
+                    fill
+                    className={objectFit}
+                    draggable={false}
+                  />
+                  {(image.title || image.subtitle) && (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
+                      {image.title && <h3 className="mb-2 text-2xl font-bold">{image.title}</h3>}
+                      {image.subtitle && <p className="text-sm text-zinc-200">{image.subtitle}</p>}
+                    </div>
+                  )}
                 </div>
               </div>
             );

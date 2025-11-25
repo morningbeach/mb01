@@ -5,11 +5,20 @@ import { ClassicCarousel } from "./effects/ClassicCarousel";
 import { MultiCarousel } from "./effects/MultiCarousel";
 import { KenBurnsGallery } from "./effects/KenBurnsGallery";
 import { FadeCarousel } from "./effects/FadeCarousel";
-import ZoomCarousel from "./effects/ZoomCarousel";
-import MasonryGallery from "./effects/MasonryGallery";
-import GridAnimationGallery from "./effects/GridAnimationGallery";
+import { ZoomCarousel } from "./effects/ZoomCarousel";
+import { MasonryGallery } from "./effects/MasonryGallery";
+import { GridAnimationGallery } from "./effects/GridAnimationGallery";
 import BentoBoxGallery from "./effects/BentoBoxGallery";
 import MinimalGallery from "./effects/MinimalGallery";
+import { ParallaxGallery } from "./effects/ParallaxGallery";
+import { CubeCarousel } from "./effects/CubeCarousel";
+import { StackCarousel } from "./effects/StackCarousel";
+import { CoverflowCarousel } from "./effects/CoverflowCarousel";
+import { WaterfallGallery } from "./effects/WaterfallGallery";
+import { MagazineGallery } from "./effects/MagazineGallery";
+import { CircularCarousel } from "./effects/CircularCarousel";
+import { FlipCarousel } from "./effects/FlipCarousel";
+import { FullscreenSlider } from "./effects/FullscreenSlider";
 import { ImageLightbox } from "./shared/ImageLightbox";
 
 interface GalleryShowcaseProps {
@@ -29,19 +38,24 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
   const [editingImageIndex, setEditingImageIndex] = useState<number | null>(null);
   const [itemsPerView, setItemsPerView] = useState(3);
   const [imageMode, setImageMode] = useState<"contain" | "cover" | "fill" | "none">("contain");
+  const [magazineLayout, setMagazineLayout] = useState<"top" | "left" | "right">("top");
+  const [showText, setShowText] = useState(true);
 
   const effects = [
     { id: "classic", name: "滿版經典橫向", category: "基礎" },
     { id: "multi", name: "多圖橫向輪播", category: "基礎" },
     { id: "fade", name: "淡入淡出", category: "基礎" },
+    { id: "flip", name: "翻轉效果", category: "基礎" },
     { id: "kenburns", name: "Ken Burns 電影感", category: "動態" },
     { id: "zoom", name: "縮放進出", category: "動態" },
+    { id: "fullscreen", name: "全螢幕瀏覽", category: "動態" },
     { id: "masonry", name: "Pinterest 瀑布流", category: "網格" },
     { id: "grid", name: "網格動畫入場", category: "網格" },
     { id: "bento", name: "Bento Box 格子", category: "網格" },
-    { id: "magazine", name: "雜誌排版", category: "網格" },
+    { id: "waterfall", name: "瀑布式展示", category: "網格" },
     { id: "parallax", name: "視差滾動", category: "3D" },
-    { id: "carousel3d", name: "3D 旋轉木馬", category: "3D" },
+    { id: "coverflow", name: "Coverflow 封面流", category: "3D" },
+    { id: "circular", name: "圓形旋轉木馬", category: "3D" },
     { id: "cube", name: "立方體翻轉", category: "3D" },
     { id: "stack", name: "卡片堆疊", category: "進階" },
     { id: "minimal", name: "極簡無印風", category: "進階" },
@@ -69,6 +83,25 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
   const getHeightClass = () => {
     const option = heightOptions.find((h) => h.value === height);
     return option?.class || "h-96";
+  };
+
+  // 為 MinimalGallery 轉換高度為像素值
+  const getHeightInPixels = () => {
+    const option = heightOptions.find((h) => h.value === height);
+    switch (height) {
+      case "64":
+        return "256px";
+      case "80":
+        return "320px";
+      case "96":
+        return "384px";
+      case "screen-60":
+        return "60vh";
+      case "screen-80":
+        return "80vh";
+      default:
+        return "500px";
+    }
   };
 
   const handleImageClick = (image: any, index: number) => {
@@ -108,7 +141,7 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
 
   const renderEffect = () => {
     const props = {
-      images,
+      images: showText ? images : images.map(img => ({ ...img, title: '', subtitle: '' })),
       autoPlaySpeed,
       enableSwipe,
       showControls,
@@ -128,16 +161,35 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
         return <KenBurnsGallery {...props} />;
       case "fade":
         return <FadeCarousel {...props} />;
+      case "flip":
+        return <FlipCarousel {...props} />;
       case "zoom":
         return <ZoomCarousel {...props} />;
+      case "fullscreen":
+        return <FullscreenSlider {...props} />;
       case "masonry":
         return <MasonryGallery {...props} />;
       case "grid":
         return <GridAnimationGallery {...props} />;
       case "bento":
         return <BentoBoxGallery {...props} />;
+      case "waterfall":
+        return <WaterfallGallery {...props} />;
+      case "magazine":
+        return <MagazineGallery {...props} layout={magazineLayout} />;
+      case "parallax":
+        return <ParallaxGallery {...props} />;
+      case "coverflow":
+        return <CoverflowCarousel {...props} />;
+      case "circular":
+        return <CircularCarousel {...props} />;
+      case "cube":
+        return <CubeCarousel {...props} />;
+      case "stack":
+        return <StackCarousel {...props} />;
       case "minimal":
-        return <MinimalGallery {...props} />;
+        // MinimalGallery 需要特殊的 height 格式（像素值而非 className）
+        return <MinimalGallery {...props} height={getHeightInPixels()} />;
       default:
         return <ClassicCarousel {...props} />;
     }
@@ -233,6 +285,39 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
             </button>
             <p className="mt-1 text-xs text-zinc-500">
               播放/暫停、前後按鈕等
+            </p>
+          </div>
+
+          {/* 顯示圖片文字 */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-zinc-700">
+              顯示圖片文字
+            </label>
+            <button
+              onClick={() => setShowText(!showText)}
+              className={`flex h-10 w-full items-center justify-between rounded-lg border px-4 ${
+                showText
+                  ? "border-green-500 bg-green-50 text-green-700"
+                  : "border-zinc-300 bg-zinc-50 text-zinc-500"
+              }`}
+            >
+              <span className="text-sm font-medium">
+                {showText ? "顯示" : "隱藏"}
+              </span>
+              <div
+                className={`h-6 w-11 rounded-full transition-colors ${
+                  showText ? "bg-green-500" : "bg-zinc-300"
+                }`}
+              >
+                <div
+                  className={`h-6 w-6 transform rounded-full bg-white shadow-md transition-transform ${
+                    showText ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </div>
+            </button>
+            <p className="mt-1 text-xs text-zinc-500">
+              標題與副標題
             </p>
           </div>
 
@@ -392,6 +477,64 @@ export function GalleryShowcase({ images, selectedEffect = "classic", onUpdateIm
               </p>
             </div>
           )}
+
+          {/* 雜誌風格布局選擇 - 只在 magazine 效果時顯示 */}
+          {selectedEffect === "magazine" && (
+            <div className="col-span-full">
+              <label className="mb-3 block text-sm font-medium text-zinc-700">
+                雜誌風格布局
+              </label>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { 
+                    value: "top", 
+                    label: "主圖在上", 
+                    icon: "⬛\n▫▫▫", 
+                    desc: "大圖在上方，小圖網格在下"
+                  },
+                  { 
+                    value: "left", 
+                    label: "主圖在左", 
+                    icon: "⬛▫\n⬛▫", 
+                    desc: "大圖在左側，小圖網格在右"
+                  },
+                  { 
+                    value: "right", 
+                    label: "主圖在右", 
+                    icon: "▫⬛\n▫⬛", 
+                    desc: "小圖網格在左，大圖在右側"
+                  },
+                ].map((layout) => (
+                  <button
+                    key={layout.value}
+                    onClick={() => setMagazineLayout(layout.value as any)}
+                    className={`group relative overflow-hidden rounded-lg border-2 p-4 text-center transition-all ${
+                      magazineLayout === layout.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-zinc-200 hover:border-zinc-300"
+                    }`}
+                  >
+                    <div className="mb-2 whitespace-pre-line text-2xl leading-tight">
+                      {layout.icon}
+                    </div>
+                    <div className="text-sm font-semibold text-zinc-900">
+                      {layout.label}
+                    </div>
+                    <div className="mt-1 text-xs text-zinc-500">
+                      {layout.desc}
+                    </div>
+                    {magazineLayout === layout.value && (
+                      <div className="absolute right-2 top-2">
+                        <svg className="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -536,7 +679,7 @@ function ImageEditorModal({
             <img
               src={image.url}
               alt={image.label}
-              className="h-48 w-full object-cover"
+              className="h-32 w-full object-cover"
             />
           </div>
 

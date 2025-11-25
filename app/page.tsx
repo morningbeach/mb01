@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { SiteShell } from "../components/SiteShell";
 import { ProductsCarousel } from "./admin/components/ProductsCarousel";
+import { GalleryClient } from "./components/GalleryClient";
 
 export const dynamic = "force-dynamic";
 
@@ -191,6 +192,14 @@ export default async function Home({
           case "RICH_TEXT":
             return (
               <RichTextSection
+                key={section.id}
+                lang={lang}
+                payload={payload}
+              />
+            );
+          case "GALLERY":
+            return (
+              <GallerySection
                 key={section.id}
                 lang={lang}
                 payload={payload}
@@ -842,6 +851,70 @@ function RichTextSection({
           {body}
         </p>
       )}
+      <Divider />
+    </section>
+  );
+}
+
+/* GALLERY */
+
+async function GallerySection({
+  lang,
+  payload,
+}: {
+  lang: Lang;
+  payload: any;
+}) {
+  const title = t(lang, payload.title_en, payload.title_zh, "");
+  const subtitle = t(lang, payload.subtitle_en, payload.subtitle_zh, "");
+  const albumId = payload.albumId;
+  const effect = payload.effect || "masonry";
+  const imageLimit = payload.imageLimit;
+
+  if (!albumId) return null;
+
+  // 載入相簿資料
+  const album = await prisma.album.findUnique({
+    where: { id: albumId },
+    include: {
+      items: {
+        include: { image: true },
+        orderBy: { position: "asc" },
+        ...(imageLimit ? { take: imageLimit } : {}),
+      },
+    },
+  });
+
+  if (!album || album.items.length === 0) return null;
+
+  const images = album.items.map((item) => ({
+    id: item.image.id,
+    url: item.image.url,
+    label: item.image.title || album.name,
+    title: item.image.title || album.name,
+    subtitle: item.image.alt || "",
+  }));
+
+  return (
+    <section id="gallery" className="mt-6 md:mt-8">
+      {(title || subtitle) && (
+        <div className="mb-6">
+          {title && (
+            <h2 className="text-3xl font-semibold tracking-tight text-zinc-900">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="mt-2 max-w-xl text-[15px] text-zinc-600">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* 使用client component渲染相簿效果 */}
+      <GalleryClient images={images} effect={effect} />
+
       <Divider />
     </section>
   );

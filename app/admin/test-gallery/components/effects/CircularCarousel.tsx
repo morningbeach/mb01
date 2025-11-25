@@ -10,12 +10,18 @@ interface CircularCarouselProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function CircularCarousel({ 
   images,
   autoPlaySpeed = 3000,
-  showControls = true 
+  showControls = true,
+  objectFit = "object-cover"
 }: CircularCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -100,7 +106,7 @@ export function CircularCarousel({
               >
                 <div className="relative h-full w-full overflow-hidden rounded-lg">
                   <div className="relative h-full w-full">
-                    <ImageOverlay image={image} />
+                    <ImageOverlay image={image} objectFit={objectFit} />
                   </div>
                 </div>
               </div>

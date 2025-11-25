@@ -1,7 +1,6 @@
 // app/api/admin/products/create/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { updateProductImagesFromForm } from "../imageUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +37,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // ✅ 從表單拿 URL
+    // 圖片已在 product 建立時設定（coverImage, images）
     const coverImageUrl =
       (formData.get("coverImage") as string | null) ?? null;
     const galleryUrls = formData.getAll("images") as string[];
-
-    // ✅ 映射到 Image / ProductImage
-    await updateProductImagesFromForm(product.id, coverImageUrl, galleryUrls);
 
     // 你的原本 redirect / response
     const redirectUrl = new URL("/admin/products", req.url);

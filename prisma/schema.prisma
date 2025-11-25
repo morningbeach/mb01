@@ -32,6 +32,7 @@ model Product {
   unit           String?
   coverImage     String?
   gallery        String[]
+  version        Int            @default(1) // 1=舊版本, 2=新版本
   giftSet        GiftSet?
   giftSetItems   GiftSetItem[]
   productImages  ProductImage[]
@@ -44,9 +45,67 @@ model Tag {
   name                String
   color               String?
   subtitle            String?
+  version             Int                     @default(1) // 1=舊版本, 2=新版本
   blogPosts           BlogTag[]
   frontCategoryGroups FrontCategoryTagGroup[]
   products            ProductTag[]
+}
+
+// 樹狀分類節點 (CategoryNode) - 完全彈性的樹狀結構
+model CategoryNode {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  
+  // 多語系基本資訊
+  name_zh         String
+  name_en         String
+  description_zh  String?
+  description_en  String?
+  
+  // 樹狀結構
+  parentId        String?
+  parent          CategoryNode?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children        CategoryNode[] @relation("CategoryTree")
+  
+  // 展示設定
+  displayMode     String         @default("grid") // hero-cards, grid, masonry, waterfall, carousel, list, product-detail
+  order           Int            @default(0)      // 排序（同層級內）
+  
+  // 視覺內容
+  coverImage      String?
+  heroImage       String?
+  icon            String?        // emoji 或圖示
+  colorTheme      String?        // 主題色 (hex)
+  
+  // 商品關聯 (如果是葉節點，透過 TAG 篩選商品)
+  productIds      String[]       // [已棄用] 關聯的商品 ID 陣列
+  tagIds          String[]       // TAG ID 陣列，用於篩選此分類下的產品
+  
+  // SEO
+  seoTitle_zh     String?
+  seoTitle_en     String?
+  seoDescription_zh String?
+  seoDescription_en String?
+  
+  // 狀態與顯示控制
+  isActive        Boolean        @default(true)   // 是否啟用
+  isLeaf          Boolean        @default(false)  // 是否為葉節點（最底層）
+  isHidden        Boolean        @default(false)  // 是否隱藏（不在前台顯示，用於超級根節點）
+  showInMenu      Boolean        @default(true)   // 是否顯示在導航選單
+  
+  // 未來擴充用：可記錄實際層級深度（方便查詢和統計）
+  depth           Int            @default(0)      // 0=根, 1=第一層, 2=第二層...
+  path            String[]       @default([])     // 完整路徑 ["parent-slug", "current-slug"]
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@index([parentId])
+  @@index([slug])
+  @@index([order])
+  @@index([isActive])
+  @@index([isHidden])
+  @@index([depth])
 }
 
 model ProductTag {
@@ -135,6 +194,7 @@ model FrontCategory {
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
   heroImage       String?
+  version         Int                     @default(1) // 1=舊版本, 2=新版本
   tagGroups       FrontCategoryTagGroup[]
 }
 
@@ -251,6 +311,7 @@ enum HomeSectionType {
   BLOG
   CTA
   RICH_TEXT
+  GALLERY
 }
 
 /// 網站頁面管理（含預設頁面和自訂頁面）
@@ -339,4 +400,12 @@ enum PageType {
   CONTACT     // Contact 類型（簡易編輯器）
   CASE        // Case 類型（案例展示）
   CUSTOM      // Homepage 類型的自訂頁面（section 系統）
+}
+
+/// 虛擬資料夾（用於 R2 圖片管理，尚未有檔案的資料夾）
+model VirtualFolder {
+  id        String   @id @default(cuid())
+  path      String   @unique  // 資料夾路徑，如 "2024/products"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

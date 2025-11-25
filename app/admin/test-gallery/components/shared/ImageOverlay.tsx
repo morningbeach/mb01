@@ -7,9 +7,10 @@ interface ImageOverlayProps {
   image: any;
   onClick?: () => void;
   className?: string;
+  objectFit?: string;
 }
 
-export function ImageOverlay({ image, onClick, className = "" }: ImageOverlayProps) {
+export function ImageOverlay({ image, onClick, className = "", objectFit = "object-cover" }: ImageOverlayProps) {
   const handleClick = () => {
     if (!onClick) return;
 
@@ -42,7 +43,7 @@ export function ImageOverlay({ image, onClick, className = "" }: ImageOverlayPro
         src={image.url || "/cdn/placeholder.jpg"}
         alt={image.title || image.label || "Gallery image"}
         fill
-        className="object-cover transition-transform duration-300 group-hover:scale-105"
+        className={`${objectFit} transition-transform duration-300 group-hover:scale-105`}
       />
 
       {/* 文字覆蓋層 */}

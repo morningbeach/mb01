@@ -14,7 +14,7 @@ export default async function CatalogCategoryPage({
   const slug = params.slug;
 
   const category = await prisma.frontCategory.findUnique({
-    where: { slug },
+    where: { slug: params.slug, version: 2 },
     include: {
       tagGroups: {
         include: { tag: true },
@@ -31,6 +31,7 @@ export default async function CatalogCategoryPage({
   const products = await prisma.product.findMany({
     where: {
       status: "ACTIVE",
+      version: 2,
       ...(category.baseCategory ? { category: category.baseCategory } : {}),
     },
     include: {

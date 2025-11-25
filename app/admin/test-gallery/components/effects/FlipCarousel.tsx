@@ -10,12 +10,18 @@ interface FlipCarouselProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function FlipCarousel({ 
   images,
   autoPlaySpeed = 3000,
-  showControls = true 
+  showControls = true,
+  objectFit = "object-cover",
 }: FlipCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -79,7 +85,7 @@ export function FlipCarousel({
           }}
         >
           <div className="relative h-full w-full">
-            <ImageOverlay image={images[currentIndex]} />
+            <ImageOverlay image={images[currentIndex]} objectFit={objectFit} />
           </div>
         </div>
       </div>

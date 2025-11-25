@@ -1,4 +1,4 @@
-// File: /workspaces/mb01/app/api/admin/products/update/route.ts
+// File: C:\Users\tomor\MB\mb01\app\api\admin\products\update\route.ts
 import * as entry from '../../../../../../../app/api/admin/products/update/route.js'
 import type { NextRequest } from 'next/server.js'
 

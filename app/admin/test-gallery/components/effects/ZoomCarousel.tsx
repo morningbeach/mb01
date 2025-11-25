@@ -10,13 +10,19 @@ interface ZoomCarouselProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function ZoomCarousel({ 
   images,
   autoPlaySpeed = 3000,
   enableSwipe = true,
-  showControls = true 
+  showControls = true,
+  objectFit = "object-contain"
 }: ZoomCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -85,7 +91,7 @@ export function ZoomCarousel({
               pointerEvents: index === currentIndex ? "auto" : "none",
             }}
           >
-            <ImageOverlay image={image} />
+            <ImageOverlay image={image} objectFit={objectFit} />
           </div>
         ))}
       </div>

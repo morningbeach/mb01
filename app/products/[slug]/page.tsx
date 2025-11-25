@@ -2,7 +2,8 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "./ProductGallery";
-import { SiteShell } from "@/app/components/SiteShell";
+import { SiteShell } from "@/components/SiteShell";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +12,12 @@ export default async function ProductDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
+  const product = await prisma.product.findFirst({
+    where: { slug: params.slug, version: 2 },
     include: {
-      tags: { include: { tag: true } },
+      tags: { 
+        include: { tag: true },
+      },
       giftSet: {
         include: {
           items: {
@@ -38,15 +41,24 @@ export default async function ProductDetailPage({
 
   return (
     <SiteShell>
-      <div>
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-zinc-500">
-          <a href="/products" className="hover:text-zinc-900">
-            Products
-          </a>
-          <span>/</span>
-          <span className="text-zinc-400">{product.name}</span>
-        </div>
+      <ProductContent product={product} gallery={gallery} />
+    </SiteShell>
+  );
+}
+
+/* ------------ Client Component ------------ */
+
+function ProductContent({ product, gallery }: { product: any; gallery: string[] }) {
+  return (
+    <div>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-zinc-500">
+        <Link href="/products" className="hover:text-zinc-900">
+          Products
+        </Link>
+        <span>/</span>
+        <span className="text-zinc-400">{product.name}</span>
+      </div>
 
         {/* Title + Tags */}
         <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -133,7 +145,6 @@ export default async function ProductDetailPage({
           </div>
         </div>
       </div>
-    </main>
   );
 }
 
@@ -238,6 +249,5 @@ function ExtraSpecs({ product }: { product: any }) {
         )}
       </div>
     </section>
-    </SiteShell>
   );
 }

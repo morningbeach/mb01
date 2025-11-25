@@ -7,11 +7,9 @@ import { cn } from "@/lib/utlis";
 const mainNav = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/homepage", label: "Homepage" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/factory", label: "Factory" },
-  { href: "/admin/blog", label: "Blog" },
-  { href: "/admin/contact", label: "Contact" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/category-tree", label: "Category Tree V2" },
+  { href: "/admin/products-v2", label: "Products V2" },
+  { href: "/admin/images", label: "Images" },
 ];
 
 type SubNavItem = { href: string; label: string };
@@ -20,18 +18,25 @@ function getSubNav(pathname: string): SubNavItem[] | null {
   // Homepage 區暫時不需要子選單
   if (pathname.startsWith("/admin/homepage")) return null;
 
-  // Products 區（包含 catalog / tags / images）
+  // Category Tree V2 區
+  if (pathname.startsWith("/admin/category-tree")) {
+    return [
+      { href: "/admin/category-tree", label: "樹狀分類管理" },
+      { href: "/catalog-tree", label: "前台預覽" },
+      { href: "/catalog-tree/tree-view", label: "完整樹狀圖" },
+    ];
+  }
+
+  // Products V2 區
   if (
-    pathname.startsWith("/admin/products") ||
-    pathname.startsWith("/admin/catalog") ||
-    pathname.startsWith("/admin/tags") ||
-    pathname.startsWith("/admin/images")
+    pathname.startsWith("/admin/products-v2") ||
+    pathname.startsWith("/admin/catalog-v2") ||
+    pathname.startsWith("/admin/tags-v2")
   ) {
     return [
-      { href: "/admin/products", label: "Products" },
-      { href: "/admin/catalog", label: "Catalog layout" },
-      { href: "/admin/tags", label: "Tags" },
-      { href: "/admin/images", label: "Images" }, // 圖床管理
+      { href: "/admin/products-v2", label: "商品管理 V2" },
+      { href: "/admin/catalog-v2", label: "分類管理 V2" },
+      { href: "/admin/tags-v2", label: "標籤管理 V2" },
     ];
   }
 

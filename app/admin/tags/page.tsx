@@ -1,7 +1,6 @@
 // app/admin/tags/page.tsx
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { TagDeleteForm } from "./TagDeleteForm"; // ✅ 新增這行
 
 export const dynamic = "force-dynamic";
 
@@ -120,7 +119,9 @@ export default async function AdminTagsPage() {
                         </Link>
 
                         {/* ✅ 改用 Client Component 負責 confirm + submit */}
-                        <TagDeleteForm tagId={tag.id} usageCount={usageCount} />
+                        {usageCount === 0 && (
+                          <span className="text-xs text-zinc-500">可刪除</span>
+                        )}
                       </div>
                     </td>
                   </tr>

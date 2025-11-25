@@ -59,14 +59,13 @@ export default function MinimalGallery({
 
   if (images.length === 0) {
     return (
-      <div
-        style={{ height }}
-        className="flex items-center justify-center bg-zinc-50 text-zinc-300"
-      >
+      <div className="flex h-96 items-center justify-center rounded-lg bg-zinc-50 text-zinc-300">
         請選擇圖片
       </div>
     );
   }
+
+  const currentImage = images[currentIndex];
 
   return (
     <div
@@ -75,32 +74,29 @@ export default function MinimalGallery({
       onMouseLeave={() => setShowControls(false)}
     >
       {/* 極簡容器（MUJI 風格） */}
-      <div
-        style={{ height }}
-        className="relative cursor-pointer px-[10%] py-[8%]"
-        onClick={handleImageClick}
-      >
-        <div className="relative h-full w-full">
-          <Image
-            src={images[currentIndex].url}
-            alt={images[currentIndex].title || ""}
-            fill
-            className={`${objectFit} transition-opacity duration-1000 ${
-              fade ? "opacity-100" : "opacity-0"
-            }`}
-            draggable={false}
-          />
+      <div className="relative overflow-hidden rounded-lg bg-zinc-50" style={{ height }}>
+        <div className="relative h-full w-full p-16">
+          <div className="relative h-full w-full">
+            <Image
+              src={currentImage?.url || "/cdn/placeholder.jpg"}
+              alt={currentImage?.title || currentImage?.label || "Gallery image"}
+              fill
+              className={`${objectFit} transition-opacity duration-1000 ${
+                fade ? "opacity-100" : "opacity-0"
+              }`}
+              draggable={false}
+              priority
+            />
+          </div>
         </div>
 
         {/* 極簡標題（僅文字，無背景） */}
-        {images[currentIndex].title && (
-          <div
-            className={`absolute bottom-[5%] left-[10%] right-[10%] text-center transition-opacity duration-300 ${
+        {currentImage?.title && (
+          <div className="absolute inset-x-0 bottom-20 text-center">
+            <p className={`font-light tracking-wider text-zinc-400 transition-opacity duration-300 ${
               fade ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <p className="font-light tracking-wider text-zinc-400">
-              {images[currentIndex].title}
+            }`}>
+              {currentImage.title}
             </p>
           </div>
         )}
@@ -108,7 +104,7 @@ export default function MinimalGallery({
 
       {/* 極簡控制（懸停才顯示） */}
       <div
-        className={`absolute bottom-8 left-1/2 flex -translate-x-1/2 items-center gap-6 transition-opacity duration-300 ${
+        className={`absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-6 transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
         }`}
       >

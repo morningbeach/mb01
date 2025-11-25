@@ -10,12 +10,18 @@ interface CoverflowCarouselProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function CoverflowCarousel({
   images,
   autoPlaySpeed = 3000,
   showControls = true,
+  objectFit = "object-cover",
 }: CoverflowCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -81,7 +87,7 @@ export function CoverflowCarousel({
               >
                 <div className="relative h-full w-full overflow-hidden rounded-lg shadow-2xl">
                   <div className="relative h-full w-full">
-                    <ImageOverlay image={image} />
+                    <ImageOverlay image={image} objectFit={objectFit} />
                   </div>
                 </div>
               </div>

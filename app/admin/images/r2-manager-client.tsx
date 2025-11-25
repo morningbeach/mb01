@@ -25,17 +25,78 @@ export function R2ManagerClient() {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showDeleted, setShowDeleted] = useState(false);
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  // 記住虛擬建立但尚未有檔案的資料夾路徑（從資料庫讀取）
+  const [virtualFolders, setVirtualFolders] = useState<Set<string>>(new Set());
+  const [deletingFolder, setDeletingFolder] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
     loadFiles();
   }, []);
 
+  // 清理已有實際檔案的虛擬資料夾
+  useEffect(() => {
+    if (files.length > 0 && virtualFolders.size > 0) {
+      const existingFolderPaths = new Set<string>();
+      files.forEach(file => {
+        const displayKey = file.key.replace(/^uploads\//, "");
+        const parts = displayKey.split("/");
+        // 收集所有路徑
+        for (let i = 1; i < parts.length; i++) {
+          existingFolderPaths.add(parts.slice(0, i).join("/"));
+        }
+      });
+
+      // 移除已經有實際檔案的虛擬資料夾
+      const pathsToDelete: string[] = [];
+      virtualFolders.forEach(vf => {
+        if (existingFolderPaths.has(vf)) {
+          pathsToDelete.push(vf);
+        }
+      });
+
+      if (pathsToDelete.length > 0) {
+        // 從資料庫刪除
+        pathsToDelete.forEach(async (path) => {
+          try {
+            await fetch("/api/admin/virtual-folders", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ path }),
+            });
+          } catch (error) {
+            console.error(`清理虛擬資料夾 ${path} 失敗:`, error);
+          }
+        });
+
+        // 更新本地狀態
+        setVirtualFolders(prev => {
+          const newSet = new Set(prev);
+          pathsToDelete.forEach(p => newSet.delete(p));
+          return newSet;
+        });
+      }
+    }
+  }, [files, virtualFolders]);
+
   const loadFiles = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/images");
-      const data = await res.json();
-      setFiles(data.files || []);
+      // 同時載入檔案和虛擬資料夾
+      const [filesRes, foldersRes] = await Promise.all([
+        fetch("/api/admin/images"),
+        fetch("/api/admin/virtual-folders"),
+      ]);
+      
+      const filesData = await filesRes.json();
+      const foldersData = await foldersRes.json();
+      
+      setFiles(filesData.files || []);
+      setVirtualFolders(new Set(foldersData.folders || []));
     } catch (error) {
       console.error("載入檔案失敗:", error);
     } finally {
@@ -43,7 +104,7 @@ export function R2ManagerClient() {
     }
   };
 
-  // 建立資料夾樹狀結構
+  // 建立資料夾樹狀結構（包含虛擬資料夾）
   const buildFolderTree = (files: R2File[]): FolderNode => {
     const root: FolderNode = {
       name: "",
@@ -52,6 +113,7 @@ export function R2ManagerClient() {
       subfolders: new Map(),
     };
 
+    // 先處理實際檔案
     files.forEach((file) => {
       // 移除 uploads/ 前綴顯示
       const displayKey = file.key.replace(/^uploads\//, "");
@@ -74,6 +136,25 @@ export function R2ManagerClient() {
 
       // 加入檔案
       current.files.push(file);
+    });
+
+    // 加入虛擬資料夾
+    virtualFolders.forEach((virtualPath) => {
+      const parts = virtualPath.split("/");
+      let current = root;
+
+      for (let i = 0; i < parts.length; i++) {
+        const folderName = parts[i];
+        if (!current.subfolders.has(folderName)) {
+          current.subfolders.set(folderName, {
+            name: folderName,
+            path: parts.slice(0, i + 1).join("/"),
+            files: [],
+            subfolders: new Map(),
+          });
+        }
+        current = current.subfolders.get(folderName)!;
+      }
     });
 
     return root;
@@ -185,6 +266,234 @@ export function R2ManagerClient() {
     }
   };
 
+  // 新增資料夾（虛擬資料夾，透過導覽實現）
+  const handleCreateFolder = () => {
+    const folderName = newFolderName.trim();
+    
+    if (!folderName) {
+      alert("請輸入資料夾名稱");
+      return;
+    }
+
+    // 檢查資料夾名稱是否合法（只允許英文、數字、底線、連字號）
+    if (!/^[a-zA-Z0-9_-]+$/.test(folderName)) {
+      alert("資料夾名稱只能包含英文字母、數字、底線(_)和連字號(-)");
+      return;
+    }
+
+    // 檢查當前路徑下是否已存在同名資料夾
+    if (currentFolder.subfolders.has(folderName)) {
+      alert("此資料夾已存在");
+      return;
+    }
+
+    // 建立完整的虛擬資料夾路徑
+    const virtualPath = currentPath.length > 0 
+      ? [...currentPath, folderName].join("/")
+      : folderName;
+    
+    // 關閉對話框並清空輸入
+    setShowNewFolderDialog(false);
+    setNewFolderName("");
+
+    // 儲存到資料庫
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/virtual-folders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: virtualPath }),
+        });
+
+        if (!res.ok) throw new Error("新增失敗");
+
+        // 更新本地狀態
+        setVirtualFolders(prev => new Set([...prev, virtualPath]));
+        
+        alert(`已建立虛擬資料夾「${folderName}」\n資料夾已同步至資料庫\n上傳檔案到此路徑後，將會實際存在於 R2`);
+      } catch (error) {
+        console.error("建立虛擬資料夾失敗:", error);
+        alert("建立資料夾失敗，請稍後再試");
+      }
+    })();
+  };
+
+  // 複製圖片連結
+  const handleCopyUrl = async (url: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch (error) {
+      console.error("複製失敗:", error);
+      alert("複製失敗，請手動複製");
+    }
+  };
+
+  // 上傳檔案
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+    const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+
+    // 驗證檔案
+    for (const file of Array.from(fileList)) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        alert(`檔案 "${file.name}" 不是圖片格式\n僅支援: JPG, PNG, WebP, GIF`);
+        e.target.value = "";
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        alert(`檔案 "${file.name}" 過大 (${(file.size / 1024 / 1024).toFixed(2)}MB)\n最大允許 3MB`);
+        e.target.value = "";
+        return;
+      }
+    }
+
+    setUploading(true);
+    const uploaded: string[] = [];
+    const failed: string[] = [];
+    const folder = currentPath.join("/");
+
+    try {
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        setUploadProgress(`上傳中 (${i + 1}/${fileList.length}): ${file.name}`);
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          if (folder) {
+            formData.append("folder", folder);
+          }
+
+          const res = await fetch("/api/admin/upload-image", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || "上傳失敗");
+          }
+
+          const data = await res.json();
+          
+          if (data.ok) {
+            uploaded.push(file.name);
+            // 顯示壓縮資訊
+            if (data.compressionRatio) {
+              console.log(`${file.name}: 壓縮率 ${data.compressionRatio}`);
+            }
+          } else {
+            throw new Error("上傳回應異常");
+          }
+        } catch (error) {
+          console.error(`上傳 ${file.name} 失敗:`, error);
+          failed.push(file.name);
+        }
+      }
+
+      if (uploaded.length > 0) {
+        alert(`成功上傳 ${uploaded.length} 個檔案${failed.length > 0 ? `\n失敗 ${failed.length} 個` : ""}`);
+        await loadFiles();
+      } else {
+        alert("所有檔案上傳失敗\n請檢查檔案格式和大小");
+      }
+    } catch (error) {
+      console.error("上傳失敗:", error);
+      alert("上傳失敗，請稍後再試");
+    } finally {
+      setUploading(false);
+      setUploadProgress("");
+      e.target.value = "";
+    }
+  };
+
+  // 軟刪除資料夾（標記資料夾內所有檔案為已刪除）
+  const handleDeleteFolder = async (folderPath: string, folderName: string) => {
+    // 取得該資料夾的完整節點
+    const tree = buildFolderTree(files);
+    let targetFolder = tree;
+    const pathParts = folderPath.split("/");
+    
+    for (const part of pathParts) {
+      const next = targetFolder.subfolders.get(part);
+      if (!next) break;
+      targetFolder = next;
+    }
+
+    // 收集該資料夾及所有子資料夾的所有檔案
+    const collectAllFiles = (folder: FolderNode): R2File[] => {
+      let allFiles = [...folder.files];
+      folder.subfolders.forEach(subfolder => {
+        allFiles = allFiles.concat(collectAllFiles(subfolder));
+      });
+      return allFiles;
+    };
+
+    const allFiles = collectAllFiles(targetFolder);
+    const fileKeys = allFiles.map(f => f.key);
+
+    // 如果是純虛擬資料夾（沒有任何檔案）
+    if (fileKeys.length === 0) {
+      if (!confirm(`確定要刪除虛擬資料夾「${folderName}」嗎？`)) {
+        return;
+      }
+      
+      // 從資料庫刪除
+      try {
+        const res = await fetch("/api/admin/virtual-folders", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: folderPath }),
+        });
+
+        if (!res.ok) throw new Error("刪除失敗");
+
+        // 更新本地狀態
+        setVirtualFolders(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(folderPath);
+          return newSet;
+        });
+        
+        alert("已刪除虛擬資料夾");
+      } catch (error) {
+        console.error("刪除虛擬資料夾失敗:", error);
+        alert("刪除失敗，請稍後再試");
+      }
+      return;
+    }
+
+    // 確認刪除
+    if (!confirm(`確定要軟刪除資料夾「${folderName}」嗎？\n這將標記 ${fileKeys.length} 個檔案為已刪除`)) {
+      return;
+    }
+
+    setDeletingFolder(folderPath);
+
+    try {
+      const res = await fetch("/api/admin/images/soft-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ keys: fileKeys }),
+      });
+
+      if (!res.ok) throw new Error("刪除失敗");
+
+      alert(`已成功軟刪除資料夾「${folderName}」及其中的 ${fileKeys.length} 個檔案`);
+      await loadFiles();
+    } catch (error) {
+      console.error("刪除資料夾失敗:", error);
+      alert("刪除資料夾失敗，請稍後再試");
+    } finally {
+      setDeletingFolder(null);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12 text-zinc-500">載入中...</div>;
   }
@@ -205,6 +514,27 @@ export function R2ManagerClient() {
           <span className="text-xs text-zinc-500">
             已選擇 {selectedKeys.size} / {displayFiles.length}
           </span>
+
+          <div className="h-4 w-px bg-zinc-200" />
+
+          <label className="cursor-pointer rounded bg-green-600 px-3 py-1.5 text-xs text-white hover:bg-green-700">
+            {uploading ? uploadProgress : "📋 上傳圖片"}
+            <input
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+              multiple
+              onChange={handleFileUpload}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            onClick={() => setShowNewFolderDialog(true)}
+            className="rounded bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700"
+          >
+            + 新增資料夾
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -282,19 +612,36 @@ export function R2ManagerClient() {
           <h3 className="text-xs font-medium text-zinc-700">資料夾</h3>
           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {Array.from(currentFolder.subfolders.values()).map((folder) => (
-              <button
+              <div
                 key={folder.path}
-                onClick={() => navigateToFolder(folder.name)}
-                className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-left hover:bg-zinc-100"
+                className="group relative flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 hover:bg-zinc-100"
               >
-                <span className="text-2xl">📁</span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{folder.name}</div>
-                  <div className="text-xs text-zinc-500">
-                    {folder.files.length} 個檔案
+                <button
+                  onClick={() => navigateToFolder(folder.name)}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <span className="text-2xl">📁</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{folder.name}</div>
+                    <div className="text-xs text-zinc-500">
+                      {folder.files.length} 個檔案
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                {!showDeleted && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFolder(folder.path, folder.name);
+                    }}
+                    disabled={deletingFolder === folder.path}
+                    className="opacity-0 group-hover:opacity-100 rounded bg-red-100 px-2 py-1 text-xs text-red-600 hover:bg-red-200 disabled:opacity-50"
+                    title="軟刪除資料夾"
+                  >
+                    {deletingFolder === folder.path ? "刪除中..." : "🗑️"}
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -322,6 +669,17 @@ export function R2ManagerClient() {
                 onChange={() => toggleSelect(file.key)}
                 className="absolute left-2 top-2 z-10 h-4 w-4 rounded border-zinc-300"
               />
+              <button
+                onClick={() => handleCopyUrl(file.url, file.key)}
+                className="absolute right-2 top-2 z-10 rounded bg-white/90 p-1.5 text-xs opacity-0 shadow-sm transition-opacity hover:bg-white group-hover:opacity-100"
+                title="複製圖片連結"
+              >
+                {copiedKey === file.key ? (
+                  <span className="text-green-600">✓</span>
+                ) : (
+                  <span>🔗</span>
+                )}
+              </button>
               <div className="relative aspect-square overflow-hidden rounded bg-zinc-100">
                 <Image
                   src={file.url}
@@ -400,14 +758,79 @@ export function R2ManagerClient() {
                     {new Date(file.lastModified).toLocaleString("zh-TW")}
                   </td>
                   <td className="px-4 py-2">
-                    {file.isDeleted && (
+                    {file.isDeleted ? (
                       <span className="text-xs text-red-600">已刪除</span>
+                    ) : (
+                      <button
+                        onClick={() => handleCopyUrl(file.url, file.key)}
+                        className="rounded bg-zinc-100 px-2 py-1 text-xs hover:bg-zinc-200"
+                        title="複製圖片連結"
+                      >
+                        {copiedKey === file.key ? "✓ 已複製" : "🔗 複製"}
+                      </button>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 新增資料夾對話框 */}
+      {showNewFolderDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold">新增資料夾</h3>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm text-zinc-700">
+                資料夾名稱
+              </label>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateFolder();
+                  } else if (e.key === "Escape") {
+                    setShowNewFolderDialog(false);
+                    setNewFolderName("");
+                  }
+                }}
+                placeholder="例如: 2024-products"
+                className="w-full rounded border border-zinc-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                autoFocus
+              />
+              <p className="mt-1 text-xs text-zinc-500">
+                只能使用英文字母、數字、底線(_)和連字號(-)
+              </p>
+              {currentPath.length > 0 && (
+                <p className="mt-2 text-xs text-zinc-600">
+                  將建立在：<span className="font-mono text-blue-600">
+                    uploads/{currentPath.join("/")}/
+                  </span>
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowNewFolderDialog(false);
+                  setNewFolderName("");
+                }}
+                className="rounded bg-zinc-100 px-4 py-2 text-sm hover:bg-zinc-200"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleCreateFolder}
+                className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+              >
+                建立
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  name           String
+  category       Category
+  shortDesc      String?
+  description    String?
+  sku            String?        @unique
+  minQty         Int?
+  priceHint      String?
+  currency       String?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  dimensions     String?
+  leadTime       String?
+  materials      String?
+  notesForBuyer  String?
+  originCountry  String?
+  packagingInfo  String?
+  status         ProductStatus  @default(ACTIVE)
+  unit           String?
+  coverImage     String?
+  gallery        String[]
+  giftSet        GiftSet?
+  giftSetItems   GiftSetItem[]
+  productImages  ProductImage[]
+  tags           ProductTag[]
+}
+
+model Tag {
+  id                  String                  @id @default(cuid())
+  slug                String                  @unique
+  name                String
+  color               String?
+  subtitle            String?
+  blogPosts           BlogTag[]
+  frontCategoryGroups FrontCategoryTagGroup[]
+  products            ProductTag[]
+}
+
+model ProductTag {
+  productId String
+  tagId     String
+  product   Product @relation(fields: [productId], references: [id])
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([productId, tagId])
+}
+
+model GiftSet {
+  id        String        @id @default(cuid())
+  productId String        @unique
+  product   Product       @relation(fields: [productId], references: [id])
+  items     GiftSetItem[]
+}
+
+model GiftSetItem {
+  id        String  @id @default(cuid())
+  giftSetId String
+  productId String
+  quantity  Int     @default(1)
+  giftSet   GiftSet @relation(fields: [giftSetId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([giftSetId])
+  @@index([productId])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  content     String
+  coverImage  String?
+  publishedAt DateTime?
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tags        BlogTag[]
+}
+
+model BlogTag {
+  blogPostId String
+  tagId      String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id])
+  tag        Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([blogPostId, tagId])
+}
+
+model Page {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  content        String
+  heroImage      String?
+  seoTitle       String?
+  seoDescription String?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+}
+
+model AdminUser {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  name     String?
+  password String
+  role     String  @default("admin")
+}
+
+model FrontCategory {
+  id              String                  @id @default(cuid())
+  slug            String                  @unique
+  name            String
+  heroTitle       String?
+  heroSubtitle    String?
+  cardTitle       String?
+  cardDescription String?
+  cardImage       String?
+  baseCategory    Category?
+  order           Int                     @default(0)
+  isActive        Boolean                 @default(true)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  heroImage       String?
+  tagGroups       FrontCategoryTagGroup[]
+}
+
+model FrontCategoryTagGroup {
+  id              String        @id @default(cuid())
+  frontCategoryId String
+  label           String
+  description     String?
+  order           Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  tagId           String
+  frontCategory   FrontCategory @relation(fields: [frontCategoryId], references: [id])
+  tag             Tag           @relation(fields: [tagId], references: [id])
+}
+
+model ImageAsset {
+  id        String   @id @default(cuid())
+  url       String
+  label     String?
+  createdAt DateTime @default(now())
+}
+
+model HomeSection {
+  id        Int             @id @default(autoincrement())
+  type      HomeSectionType
+  order     Int             @default(100)
+  enabled   Boolean         @default(true)
+  /// JSON 內容，依 type 不同有不同結構：
+  /// HERO: { titleLine1_en, titleLine1_zh, ... }
+  /// WHY / PRODUCTS / FACTORY: { title_en, title_zh, subtitle_en, subtitle_zh, cards: [...] }
+  /// BLOG: { title_en, ... , posts: [...] }
+  /// CTA: { title_en, title_zh, body_en, body_zh, ... }
+  payload   Json
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Image {
+  id            String         @id @default(cuid())
+  url           String         @unique
+  storageKey    String         @unique
+  width         Int?
+  height        Int?
+  size          Int?
+  mimeType      String?
+  alt           String?
+  title         String?
+  isDeleted     Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  albumsAsCover Album[]        @relation("AlbumCoverImage")
+  albumItems    AlbumImage[]
+  productImages ProductImage[]
+}
+
+/// 相簿（之後 homepage 區塊、產品系列都可以掛「相簿」）
+model Album {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  name         String
+  description  String?
+  coverImageId String?
+  isSystem     Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  caseProjects CaseProject[]
+  coverImage   Image?         @relation("AlbumCoverImage", fields: [coverImageId], references: [id])
+  items        AlbumImage[]
+}
+
+/// 相簿內的圖片排序
+model AlbumImage {
+  id       String @id @default(cuid())
+  albumId  String
+  imageId  String
+  position Int    @default(0)
+  album    Album  @relation(fields: [albumId], references: [id])
+  image    Image  @relation(fields: [imageId], references: [id])
+
+  @@unique([albumId, imageId])
+}
+
+/// 產品與圖片的多對多（含排序）
+/// （目前 Product 已經直接存 URL，這張表可以先保留作為未來擴充用）
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  imageId   String
+  position  Int     @default(0)
+  image     Image   @relation(fields: [imageId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId, imageId])
+}
+
+enum Category {
+  GIFT
+  GIFT_BOX
+  GIFT_SET
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum HomeSectionType {
+  HERO
+  WHY
+  PRODUCTS
+  FACTORY
+  BLOG
+  CTA
+  RICH_TEXT
+  GALLERY
+}
+
+/// 網站頁面管理（含預設頁面和自訂頁面）
+model SitePage {
+  id          String   @id @default(cuid())
+  slug        String   @unique  // 網址路徑，如 "about", "custom-campaign"
+  type        PageType           // 頁面類型
+  isDefault   Boolean  @default(false)  // 是否為預設頁面（不能刪除）
+  isEnabled   Boolean  @default(false)  // 是否顯示在前台
+  showInNav   Boolean  @default(true)   // 是否顯示在導覽列
+  order       Int      @default(100)     // 排序
+  
+  // 多語言欄位
+  navLabel_zh String?  // 導覽列顯示名稱（中文）
+  navLabel_en String?  // 導覽列顯示名稱（英文）
+  label_zh    String?  // 頁面標籤（如 "Brand Story"）
+  label_en    String?
+  title_zh    String?  // 頁面標題
+  title_en    String?
+  desc_zh     String?  @db.Text  // 頁面描述
+  desc_en     String?  @db.Text
+  
+  // 內容欄位（根據類型使用）
+  content_zh  String?  @db.Text  // 主要內容（About/Factory/Contact 類型用）
+  content_en  String?  @db.Text
+  
+  // 結構化內容（JSON格式儲存各類型頁面的區塊資料）
+  // About: { story, image, values[], stats[] }
+  // Factory: { stats[], images[], equipment, qc, workflow[], cta }
+  // Contact: { form, contactInfo }
+  // Custom/Homepage: sections[]
+  pageData    Json?
+  
+  // SEO
+  seoTitle_zh    String?
+  seoTitle_en    String?
+  seoDesc_zh     String?
+  seoDesc_en     String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// 案例專案（Case 頁面用）
+model CaseProject {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  
+  // 多語言欄位
+  title_zh    String
+  title_en    String?
+  desc_zh     String?  @db.Text
+  desc_en     String?  @db.Text
+  client_zh   String?  // 客戶名稱
+  client_en   String?
+  category_zh String?  // 分類（如「禮品包裝」「節慶禮盒」）
+  category_en String?
+  
+  // 案例資訊
+  year        Int?     // 年份
+  coverImage  String?  // 封面圖
+  images      String[] // 圖片陣列（R2 URLs）
+  albumId     String?  // 關聯相簿（可選）
+  
+  // 顯示控制
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)  // 是否為精選案例
+  order       Int      @default(0)
+  
+  // SEO
+  seoTitle_zh String?
+  seoTitle_en String?
+  seoDesc_zh  String?
+  seoDesc_en  String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  album       Album?   @relation(fields: [albumId], references: [id])
+}
+
+enum PageType {
+  HOMEPAGE    // 首頁（預設的 /）
+  PRODUCTS    // 產品頁（使用現有 catalog 系統）
+  ABOUT       // About 類型（簡易編輯器）
+  FACTORY     // Factory 類型（簡易編輯器）
+  CONTACT     // Contact 類型（簡易編輯器）
+  CASE        // Case 類型（案例展示）
+  CUSTOM      // Homepage 類型的自訂頁面（section 系統）
+}
+
+/// 虛擬資料夾（用於 R2 圖片管理，尚未有檔案的資料夾）
+model VirtualFolder {
+  id        String   @id @default(cuid())
+  path      String   @unique  // 資料夾路徑，如 "2024/products"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

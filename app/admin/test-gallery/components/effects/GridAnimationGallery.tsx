@@ -9,10 +9,16 @@ interface GridAnimationGalleryProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function GridAnimationGallery({
   images,
+  objectFit = "object-cover",
 }: GridAnimationGalleryProps) {
   const [visibleIndices, setVisibleIndices] = useState<number[]>([]);
 
@@ -53,7 +59,7 @@ export function GridAnimationGallery({
                 transitionDelay: `${index * 50}ms`,
               }}
             >
-              <ImageOverlay image={image} />
+              <ImageOverlay image={image} objectFit={objectFit} />
             </div>
           );
         })}

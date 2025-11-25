@@ -21,48 +21,48 @@ export default function FactoryPage() {
   const data = pageData?.pageData || {};
 
   const hero = {
-    label: lang === "zh" ? (pageData?.label_zh || "工廠實力") : (pageData?.label_en || "Factory Strength"),
-    title: lang === "zh" ? (pageData?.title_zh || "清潔、結構化的禮品盒和包裝生產基地。") : (pageData?.title_en || "A clean, structured production base for gift boxes and packaging."),
-    desc: lang === "zh" ? (pageData?.desc_zh || "我們的設施專注於一致的品質和可靠的交付。") : (pageData?.desc_en || "Our facility is designed around consistent quality and reliable delivery."),
+    label: lang === "zh" ? (pageData?.label_zh || "生產基地") : (pageData?.label_en || "Production Base"),
+    title: lang === "zh" ? (pageData?.title_zh || "以知識循環驅動的現代包裝生產基地") : (pageData?.title_en || "A modern packaging production base driven by knowledge circulation"),
+    desc: lang === "zh" ? (pageData?.desc_zh || "我們的工廠不只是生產設備的集合，而是知識沉澱、流程優化與品質管理的系統化實踐。每一個環節都經過理性設計，每一次改進都源於經驗累積。") : (pageData?.desc_en || "Our factory is not just a collection of production equipment, but a systematic practice of knowledge settlement, process optimization, and quality management. Every step is rationally designed, every improvement stems from accumulated experience."),
   };
 
   const stats = data.stats || [
-    { label_en: "Factory area", label_zh: "工廠面積", value: "10,000 m²" },
-    { label_en: "People", label_zh: "員工", value: "120+" },
-    { label_en: "Monthly capacity", label_zh: "月產能", value: "300,000+ boxes" },
-    { label_en: "Certifications", label_zh: "認證", value: "ISO / audited" },
+    { label_en: "Production Philosophy", label_zh: "生產理念", value: lang === "zh" ? "穩定是生產的形式，理解是品牌的靈魂" : "Stability is the form of production; understanding is the soul of the brand" },
+    { label_en: "Quality System", label_zh: "品質系統", value: lang === "zh" ? "流程透明化與責任歸屬明確化" : "Process transparency and clear accountability" },
+    { label_en: "Knowledge Management", label_zh: "知識管理", value: lang === "zh" ? "每次錯誤記錄成案例，每個成功附上原因" : "Every mistake becomes a case study, every success comes with its reason" },
+    { label_en: "Team Culture", label_zh: "團隊文化", value: lang === "zh" ? "學習型團隊，共同成長" : "Learning team, co-growth" },
   ];
 
   const images = data.images || [
-    { url: "/cdn/factory/floor.jpg", caption_en: "Clean and organized production floor.", caption_zh: "清潔整齊的生產樓層。" },
-    { url: "/cdn/factory/machines.jpg", caption_en: "Equipment for printing, die-cutting and rigid box forming.", caption_zh: "印刷、模切和硬盒成型設備。" },
-    { url: "/cdn/factory/qc.jpg", caption_en: "QC teams checking structure, printing and finishing.", caption_zh: "QC 團隊檢查結構、印刷和整理。" },
+    { url: "/cdn/factory/floor.jpg", caption_en: "Organized production floor: every process has its flow, every detail is documented", caption_zh: "有序的生產現場：每個流程都有邏輯，每個細節都被記錄" },
+    { url: "/cdn/factory/machines.jpg", caption_en: "Professional equipment: tools for precision, foundation for stability", caption_zh: "專業設備：實現精準的工具，穩定的基礎" },
+    { url: "/cdn/factory/qc.jpg", caption_en: "Quality control: not just inspection, but systematic verification", caption_zh: "品質管控：不只是檢查，而是系統化的確認" },
   ];
 
   const equipment = {
-    title: lang === "zh" ? "設備與能力" : "Equipment & capabilities",
+    title: lang === "zh" ? "生產能力" : "Production Capabilities",
     items: lang === "zh" ?
-      (data.equipment_zh || "・ 4色和5色膠印\n・ 全自動和半自動硬盒生產線\n・ 模切和壓痕機\n・ 燙金和壓紋設備\n・ 覆膜和表面處理線").split("\n") :
-      (data.equipment_en || "・ 4-color and 5-color offset printing\n・ Automatic and semi-automatic rigid box lines\n・ Die-cutting and creasing machines\n・ Hot stamping and embossing equipment\n・ Lamination and surface finishing lines").split("\n"),
+      (data.equipment_zh || "・ 多工序整合：印刷、模切、成型、後加工一體化\n・ 彈性產能：小批量訂製到中大規模量產\n・ 材料整合：紙張、特種紙、裱貼材料供應鏈管理\n・ 工藝選擇：依專案需求提供適配的工法與節奏\n・ 品質追溯：完整記錄每批次生產參數與檢驗數據").split("\n") :
+      (data.equipment_en || "・ Multi-process integration: printing, die-cutting, forming, post-processing integration\n・ Flexible capacity: from small-batch customization to medium-to-large-scale production\n・ Material integration: paper, specialty paper, lamination material supply chain management\n・ Process selection: providing adaptive methods and pace based on project needs\n・ Quality traceability: complete records of production parameters and inspection data for each batch").split("\n"),
   };
 
   const qc = {
-    title: lang === "zh" ? "品質控制與工程" : "Quality control & engineering",
+    title: lang === "zh" ? "品質管理系統" : "Quality Management System",
     items: lang === "zh" ?
-      (data.qc_zh || "・ 內部結構工程師負責盒子設計和測試\n・ 生產前打樣和批准\n・ 量產期間的過程檢查\n・ 包裝和運輸前的最終檢驗").split("\n") :
-      (data.qc_en || "・ In-house structural engineers for box design and testing\n・ Pre-production sampling and approval\n・ In-process checks during mass production\n・ Final inspection before packing and shipping").split("\n"),
+      (data.qc_zh || "・ 結構驗證：設計階段的可行性評估與工藝確認\n・ 打樣確認：白樣與印刷樣的階段性檢驗與修正\n・ 過程監控：關鍵製程的即時品檢與數據記錄\n・ 最終檢驗：出貨前的全面品質確認與包裝檢查\n・ 問題追溯：每次錯誤記錄成案例，持續改進").split("\n") :
+      (data.qc_en || "・ Structural verification: feasibility assessment and process confirmation at design stage\n・ Sample confirmation: phased inspection and correction of white samples and printed samples\n・ Process monitoring: real-time quality inspection and data recording of critical processes\n・ Final inspection: comprehensive quality confirmation and packaging inspection before shipment\n・ Issue traceability: every mistake becomes a case study for continuous improvement").split("\n"),
   };
 
   const workflow = data.workflow || [
-    { step: "01", title_en: "Engineering", title_zh: "工程", body_en: "We confirm structure, materials and key tolerances.", body_zh: "我們確認結構、材料和關鍵公差。" },
-    { step: "02", title_en: "Sampling", title_zh: "打樣", body_en: "White and printed samples for structure & finishing approval.", body_zh: "白樣和印刷樣品用於結構和整理批准。" },
-    { step: "03", title_en: "Mass production", title_zh: "量產", body_en: "Production with in-line QC at critical stages.", body_zh: "在關鍵階段進行在線 QC 的生產。" },
-    { step: "04", title_en: "Packing & shipping", title_zh: "包裝和運輸", body_en: "Final QC, packing and shipping arrangements to your location.", body_zh: "最終 QC、包裝和運輸安排到您的位置。" },
+    { step: "01", title_en: "Understanding & Planning", title_zh: "理解與規劃", body_en: "Reading briefs, understanding needs, proposing structural directions and rough budget ranges that make sense for the project.", body_zh: "閱讀需求、理解目標、提出結構方向與合理的預算範圍，讓專案從規劃階段就有清晰依據。" },
+    { step: "02", title_en: "Design & Sampling", title_zh: "設計與打樣", body_en: "Engineering validation, white samples and printed samples for phased confirmation. Every detail is discussed, not assumed.", body_zh: "工程驗證、白樣與印刷樣的階段性確認。每個細節都經過討論，而非假設。" },
+    { step: "03", title_en: "Production & Monitoring", title_zh: "生產與監控", body_en: "Mass production with in-process quality checks. Process transparency and clear accountability at every critical stage.", body_zh: "量產階段的過程品檢。流程透明化與責任歸屬明確化，每個關鍵環節都有記錄。" },
+    { step: "04", title_en: "Delivery & Follow-up", title_zh: "交付與追蹤", body_en: "Final inspection, packing and shipping. Post-delivery follow-up to ensure expectations are met and feedback is documented.", body_zh: "最終檢驗、包裝與出貨。交付後追蹤，確保符合預期，並將反饋記錄成知識。" },
   ];
 
   const cta = {
-    title: lang === "zh" ? (data.ctaTitle_zh || "想要審核我們的工廠或查看更多詳情？") : (data.ctaTitle_en || "Want to audit our factory or see more details?"),
-    desc: lang === "zh" ? (data.ctaDesc_zh || "我們可以分享更多關於設備、流程和以前的審核信息。") : (data.ctaDesc_en || "We can share more information on equipment, processes and previous audits."),
+    title: lang === "zh" ? (data.ctaTitle_zh || "想了解更多關於我們的生產流程與品質系統？") : (data.ctaTitle_en || "Want to learn more about our production process and quality system?"),
+    desc: lang === "zh" ? (data.ctaDesc_zh || "我們樂意分享更多關於設備、流程、案例與知識管理的細節。讓我們從理解開始，找到最適合您專案的包裝方案。") : (data.ctaDesc_en || "We're happy to share more details about equipment, processes, case studies and knowledge management. Let's start from understanding and find the most suitable packaging solution for your project."),
   };
 
   return (

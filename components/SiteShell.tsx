@@ -20,15 +20,44 @@ export function SiteShell({ children }: { children: ReactNode }) {
   );
 }
 
+// 全局快取導覽項目，避免重複請求
+let cachedNavItems: any[] | null = null;
+let navItemsPromise: Promise<any[]> | null = null;
+
+function getNavItems(): Promise<any[]> {
+  // 如果已有快取，直接返回
+  if (cachedNavItems !== null) {
+    return Promise.resolve(cachedNavItems);
+  }
+
+  // 如果正在請求中，返回同一個 Promise
+  if (navItemsPromise !== null) {
+    return navItemsPromise;
+  }
+
+  // 發起新請求
+  navItemsPromise = fetch("/api/nav")
+    .then((res) => res.ok ? res.json() : [])
+    .then((data) => {
+      cachedNavItems = data;
+      navItemsPromise = null;
+      return data;
+    })
+    .catch(() => {
+      cachedNavItems = [];
+      navItemsPromise = null;
+      return [];
+    });
+
+  return navItemsPromise;
+}
+
 export function SiteHeader() {
   const { lang } = useLanguage();
-  const [navItems, setNavItems] = React.useState<any[]>([]);
+  const [navItems, setNavItems] = React.useState<any[]>(() => cachedNavItems || []);
 
   React.useEffect(() => {
-    fetch("/api/nav")
-      .then((res) => res.ok ? res.json() : [])
-      .then((data) => setNavItems(data))
-      .catch(() => setNavItems([]));
+    getNavItems().then(setNavItems);
   }, []);
 
   return (

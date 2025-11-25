@@ -10,12 +10,18 @@ interface CubeCarouselProps {
   autoPlaySpeed?: number;
   enableSwipe?: boolean;
   showControls?: boolean;
+  height?: string;
+  aspectRatio?: string;
+  clickMode?: "none" | "link" | "lightbox";
+  onImageClick?: (image: any, index: number) => void;
+  objectFit?: string;
 }
 
 export function CubeCarousel({ 
   images,
   autoPlaySpeed = 3000,
-  showControls = true 
+  showControls = true,
+  objectFit = "object-cover"
 }: CubeCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -77,7 +83,7 @@ export function CubeCarousel({
               }}
             >
               <div className="relative h-full w-full">
-                <ImageOverlay image={displayImages[0]} />
+                <ImageOverlay image={displayImages[0]} objectFit={objectFit} />
               </div>
             </div>
           )}
@@ -91,7 +97,7 @@ export function CubeCarousel({
               }}
             >
               <div className="relative h-full w-full">
-                <ImageOverlay image={displayImages[1]} />
+                <ImageOverlay image={displayImages[1]} objectFit={objectFit} />
               </div>
             </div>
           )}
@@ -105,7 +111,7 @@ export function CubeCarousel({
               }}
             >
               <div className="relative h-full w-full">
-                <ImageOverlay image={displayImages[2]} />
+                <ImageOverlay image={displayImages[2]} objectFit={objectFit} />
               </div>
             </div>
           )}
@@ -119,7 +125,7 @@ export function CubeCarousel({
               }}
             >
               <div className="relative h-full w-full">
-                <ImageOverlay image={displayImages[3]} />
+                <ImageOverlay image={displayImages[3]} objectFit={objectFit} />
               </div>
             </div>
           )}

@@ -1,25 +1,11 @@
 // app/admin/products/page.tsx
 import Link from "next/link";
 import Image from "next/image";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-// Server Action：刪除產品
-export async function deleteProduct(formData: FormData) {
-  "use server";
-
-  const id = formData.get("productId") as string | null;
-  if (!id) return;
-
-  await prisma.product.delete({
-    where: { id },
-  });
-
-  // 刷新列表頁
-  revalidatePath("/admin/products");
-}
+// Note: Delete functionality moved to API route for Cloudflare compatibility
 
 export default async function AdminProductsPage() {
   const products = await prisma.product.findMany({
@@ -127,20 +113,10 @@ export default async function AdminProductsPage() {
                       >
                         Edit
                       </Link>
-
-                      <form action={deleteProduct}>
-                        <input
-                          type="hidden"
-                          name="productId"
-                          value={product.id}
-                        />
-                        <button
-                          type="submit"
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
-                      </form>
+                      
+                      <span className="text-xs text-zinc-400">
+                        (Delete via DB)
+                      </span>
                     </div>
                   </td>
                 </tr>

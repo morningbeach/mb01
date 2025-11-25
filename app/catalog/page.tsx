@@ -28,7 +28,10 @@ export default async function CatalogPage({
 }) {
   const categoryFilter = mapCategoryFilter(searchParams.category);
   const products = await prisma.product.findMany({
-    where: categoryFilter ? { category: categoryFilter } : undefined,
+    where: {
+      version: 2,
+      ...(categoryFilter ? { category: categoryFilter } : {}),
+    },
     orderBy: { createdAt: "desc" },
     include: {
       tags: { include: { tag: true } },
