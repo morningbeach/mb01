@@ -33,8 +33,7 @@ const nextConfig = {
   },
 
   // Cloudflare Pages 優化
-  output: "export",
-  distDir: "out",
+  output: "standalone",
   
   // 暫時跳過類型檢查以加快建置（部署時可改用 CI 檢查）
   typescript: {

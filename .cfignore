@@ -1,5 +1,6 @@
 # Cloudflare Pages 部署時忽略的文件
 .next/cache/
+.vercel/output/static/_next/cache/
 node_modules/
 .git/
 *.log
