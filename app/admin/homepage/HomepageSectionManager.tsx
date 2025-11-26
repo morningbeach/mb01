@@ -9,8 +9,7 @@ interface Section {
   type: string;
   order: number;
   enabled: boolean;
-  contentZh: any;
-  contentEn: any;
+  payload?: any;
 }
 
 const SECTION_TYPE_NAMES: Record<string, string> = {
@@ -20,6 +19,10 @@ const SECTION_TYPE_NAMES: Record<string, string> = {
   FACTORY: "工廠介紹",
   CTA: "行動呼籲",
   GALLERY: "圖片廊",
+  EMBED: "嵌入區塊",
+  VIDEO: "影片區塊",
+  RICH_TEXT: "富文本區塊",
+  BLOG: "部落格",
 };
 
 export function HomepageSectionManager({ sections }: { sections: Section[] }) {
@@ -128,6 +131,10 @@ export function HomepageSectionManager({ sections }: { sections: Section[] }) {
       FACTORY: `/admin/homepage/factory/${section.id}`,
       CTA: `/admin/homepage/cta/${section.id}`,
       GALLERY: `/admin/homepage/gallery/${section.id}`,
+      EMBED: `/admin/homepage/embed/${section.id}`,
+      VIDEO: `/admin/homepage/video/${section.id}`,
+      RICH_TEXT: `/admin/homepage/rich-text/${section.id}`,
+      BLOG: `/admin/homepage/blog/${section.id}`,
     };
     return typeMap[section.type] || `/admin/homepage/${section.id}`;
   };

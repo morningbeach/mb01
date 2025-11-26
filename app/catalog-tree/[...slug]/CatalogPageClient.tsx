@@ -5,6 +5,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { DisplayModeToggle } from "./DisplayModeToggle";
 
+// 多語系輔助函數
+function getLocalizedText(item: any, field: string, lang: string): string {
+  if (!item) return '';
+  const zhField = `${field}_zh`;
+  const enField = `${field}_en`;
+  
+  if (lang === 'zh') {
+    return item[zhField] || item[field] || item[enField] || '';
+  } else {
+    return item[enField] || item[field] || item[zhField] || '';
+  }
+}
+
 export function CatalogPageClient({
   node,
   breadcrumbs,
@@ -134,7 +147,7 @@ function HeroCardsLayout({ node, lang, products = [] }: { node: any; lang: strin
                   {product.coverImage ? (
                     <Image
                       src={product.coverImage}
-                      alt={product.name}
+                      alt={getLocalizedText(product, 'name', lang)}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -145,10 +158,10 @@ function HeroCardsLayout({ node, lang, products = [] }: { node: any; lang: strin
                   )}
                 </div>
                 <div className="p-5">
-                  <h3 className="text-lg font-semibold tracking-tight text-zinc-900">{product.name}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-600">{product.shortDesc}</p>
-                  {product.priceHint && (
-                    <p className="mt-3 text-sm font-medium text-zinc-900">{product.priceHint}</p>
+                  <h3 className="text-lg font-semibold tracking-tight text-zinc-900">{getLocalizedText(product, 'name', lang)}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-600">{getLocalizedText(product, 'shortDesc', lang)}</p>
+                  {(product.priceHint || product.priceHint_zh || product.priceHint_en) && (
+                    <p className="mt-3 text-sm font-medium text-zinc-900">{getLocalizedText(product, 'priceHint', lang)}</p>
                   )}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">
@@ -161,7 +174,7 @@ function HeroCardsLayout({ node, lang, products = [] }: { node: any; lang: strin
                             color: pt.tag.color || '#71717a'
                           }}
                         >
-                          {pt.tag.name}
+                          {getLocalizedText(pt.tag, 'name', lang)}
                         </span>
                       ))}
                     </div>
@@ -239,7 +252,7 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                   {product.coverImage ? (
                     <Image
                       src={product.coverImage}
-                      alt={product.name}
+                      alt={getLocalizedText(product, 'name', lang)}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
@@ -250,10 +263,10 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                   )}
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-zinc-900">{product.name}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-zinc-600 line-clamp-2">{product.shortDesc}</p>
-                  {product.priceHint && (
-                    <p className="mt-2 text-sm font-medium text-zinc-900">{product.priceHint}</p>
+                  <h3 className="font-semibold text-zinc-900">{getLocalizedText(product, 'name', lang)}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-zinc-600 line-clamp-2">{getLocalizedText(product, 'shortDesc', lang)}</p>
+                  {(product.priceHint || product.priceHint_zh || product.priceHint_en) && (
+                    <p className="mt-2 text-sm font-medium text-zinc-900">{getLocalizedText(product, 'priceHint', lang)}</p>
                   )}
                   {/* TAG 顯示 */}
                   {product.tags && product.tags.length > 0 && (
@@ -267,7 +280,7 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                             color: pt.tag.color || '#71717a'
                           }}
                         >
-                          {pt.tag.name}
+                          {getLocalizedText(pt.tag, 'name', lang)}
                         </span>
                       ))}
                     </div>
@@ -342,7 +355,7 @@ function MasonryLayout({ node, lang, products = [] }: { node: any; lang: string;
                   {product.coverImage ? (
                     <Image
                       src={product.coverImage}
-                      alt={product.name}
+                      alt={getLocalizedText(product, 'name', lang)}
                       fill
                       className="object-cover"
                     />
@@ -353,10 +366,10 @@ function MasonryLayout({ node, lang, products = [] }: { node: any; lang: string;
                   )}
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-zinc-900">{product.name}</h3>
-                  <p className="mt-1 text-sm text-zinc-600">{product.shortDesc}</p>
-                  {product.priceHint && (
-                    <p className="mt-2 text-sm font-medium text-zinc-900">{product.priceHint}</p>
+                  <h3 className="font-semibold text-zinc-900">{getLocalizedText(product, 'name', lang)}</h3>
+                  <p className="mt-1 text-sm text-zinc-600">{getLocalizedText(product, 'shortDesc', lang)}</p>
+                  {(product.priceHint || product.priceHint_zh || product.priceHint_en) && (
+                    <p className="mt-2 text-sm font-medium text-zinc-900">{getLocalizedText(product, 'priceHint', lang)}</p>
                   )}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -369,7 +382,7 @@ function MasonryLayout({ node, lang, products = [] }: { node: any; lang: string;
                             color: pt.tag.color || '#71717a'
                           }}
                         >
-                          {pt.tag.name}
+                          {getLocalizedText(pt.tag, 'name', lang)}
                         </span>
                       ))}
                     </div>
@@ -451,7 +464,7 @@ function CarouselLayout({ node, lang, products = [] }: { node: any; lang: string
                     {product.coverImage ? (
                       <Image
                         src={product.coverImage}
-                        alt={product.name}
+                        alt={getLocalizedText(product, 'name', lang)}
                         fill
                         className="object-cover"
                       />
@@ -462,10 +475,10 @@ function CarouselLayout({ node, lang, products = [] }: { node: any; lang: string
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-zinc-900">{product.name}</h3>
-                    <p className="mt-1 text-sm text-zinc-600">{product.shortDesc}</p>
-                    {product.priceHint && (
-                      <p className="mt-2 text-sm font-medium text-zinc-900">{product.priceHint}</p>
+                    <h3 className="font-semibold text-zinc-900">{getLocalizedText(product, 'name', lang)}</h3>
+                    <p className="mt-1 text-sm text-zinc-600">{getLocalizedText(product, 'shortDesc', lang)}</p>
+                    {(product.priceHint || product.priceHint_zh || product.priceHint_en) && (
+                      <p className="mt-2 text-sm font-medium text-zinc-900">{getLocalizedText(product, 'priceHint', lang)}</p>
                     )}
                     {product.tags && product.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
@@ -478,7 +491,7 @@ function CarouselLayout({ node, lang, products = [] }: { node: any; lang: string
                               color: pt.tag.color || '#71717a'
                             }}
                           >
-                            {pt.tag.name}
+                            {getLocalizedText(pt.tag, 'name', lang)}
                           </span>
                         ))}
                       </div>
@@ -558,7 +571,7 @@ function ListLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                   {product.coverImage ? (
                     <Image
                       src={product.coverImage}
-                      alt={product.name}
+                      alt={getLocalizedText(product, 'name', lang)}
                       fill
                       className="object-cover"
                     />
@@ -569,10 +582,10 @@ function ListLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-zinc-900">{product.name}</h3>
-                  <p className="mt-1 text-sm text-zinc-600">{product.shortDesc}</p>
-                  {product.priceHint && (
-                    <p className="mt-2 text-sm font-medium text-zinc-900">{product.priceHint}</p>
+                  <h3 className="text-lg font-semibold text-zinc-900">{getLocalizedText(product, 'name', lang)}</h3>
+                  <p className="mt-1 text-sm text-zinc-600">{getLocalizedText(product, 'shortDesc', lang)}</p>
+                  {(product.priceHint || product.priceHint_zh || product.priceHint_en) && (
+                    <p className="mt-2 text-sm font-medium text-zinc-900">{getLocalizedText(product, 'priceHint', lang)}</p>
                   )}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
@@ -585,7 +598,7 @@ function ListLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                             color: pt.tag.color || '#71717a'
                           }}
                         >
-                          {pt.tag.name}
+                          {getLocalizedText(pt.tag, 'name', lang)}
                         </span>
                       ))}
                     </div>

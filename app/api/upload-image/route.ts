@@ -27,18 +27,22 @@ export async function POST(req: NextRequest) {
       : "bin";
     const safeExt = ext?.toLowerCase() || "bin";
 
-    const key = `uploads/${Date.now()}-${Math.random()
+    // 使用日期資料夾：年月日格式 (YYYYMMDD)
+    const now = new Date();
+    const dateFolder = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+
+    const key = `uploads/${dateFolder}/${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 10)}.${safeExt}`;
 
     // 丟去 R2
     const url = await uploadToR2(key, buffer, contentType);
 
-    return NextResponse.json({ url });
+    return NextResponse.json({ success: true, url });
   } catch (err) {
     console.error("[UPLOAD_IMAGE] error:", err);
     return NextResponse.json(
-      { error: "Upload failed" },
+      { success: false, error: "Upload failed" },
       { status: 500 },
     );
   }

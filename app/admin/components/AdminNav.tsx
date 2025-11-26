@@ -8,6 +8,8 @@ const mainNav = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/category-tree", label: "Category Tree V2" },
   { href: "/admin/products-v2", label: "Products V2" },
+  { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/pages", label: "Pages" },
   { href: "/admin/images", label: "Images" },
 ];
 
@@ -16,6 +18,25 @@ type SubNavItem = { href: string; label: string };
 function getSubNav(pathname: string): SubNavItem[] | null {
   // Homepage 區暫時不需要子選單
   if (pathname.startsWith("/admin/homepage")) return null;
+
+  // Blog 區
+  if (pathname.startsWith("/admin/blog")) {
+    return [
+      { href: "/admin/blog", label: "文章列表" },
+      { href: "/admin/blog/new", label: "新增文章" },
+      { href: "/blog", label: "前台預覽" },
+    ];
+  }
+
+  // Pages 區 (PROCESS / FAQ / CASE)
+  if (pathname.startsWith("/admin/pages")) {
+    return [
+      { href: "/admin/pages", label: "頁面列表" },
+      { href: "/admin/pages/process", label: "PROCESS 編輯" },
+      { href: "/admin/pages/faq", label: "FAQ 編輯" },
+      { href: "/admin/pages/case", label: "CASE 編輯" },
+    ];
+  }
 
   // Category Tree V2 區
   if (pathname.startsWith("/admin/category-tree")) {

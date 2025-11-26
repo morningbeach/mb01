@@ -7,6 +7,9 @@ import { TranslateButton } from "../../components/TranslateButton";
 import { AboutEditor } from "./AboutEditor";
 import { FactoryEditor } from "./FactoryEditor";
 import { ContactEditor } from "./ContactEditor";
+import { ProcessEditor } from "./ProcessEditor";
+import { FaqEditor } from "./FaqEditor";
+import { CaseEditor } from "./CaseEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -102,13 +105,30 @@ export default async function EditPagePage({ params }: { params: { id: string } 
             <ContactEditor pageId={page.id} pageData={page.pageData} />
           </div>
         )}
+        {page.type === "CASE" && (
+          <div className="mt-6">
+            <CaseEditor pageId={page.id} pageData={page.pageData} />
+          </div>
+        )}
+        {page.type === "PROCESS" && (
+          <div className="mt-6">
+            <ProcessEditor pageId={page.id} pageData={page.pageData} />
+          </div>
+        )}
+        {page.type === "FAQ" && (
+          <div className="mt-6">
+            <FaqEditor pageId={page.id} pageData={page.pageData} />
+          </div>
+        )}
         {page.type === "CUSTOM" && (
-          <div className="mt-6 rounded-xl border border-blue-300 bg-blue-50 p-6">
-            <p className="text-sm text-blue-800">CUSTOM 類型使用 Homepage sections 系統（待開發）</p>
+          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 p-6">
+            <p className="text-sm text-blue-700">
+              CUSTOM 類型頁面可使用 Homepage sections 系統進行編輯。
+            </p>
           </div>
         )}
 
-        <div className="mt-6"><Link href="/admin-v2/pages" className="rounded border px-4 py-2 text-sm">← 返回</Link></div>
+        <div className="mt-6"><Link href="/admin/pages" className="rounded border px-4 py-2 text-sm">← 返回</Link></div>
       </main>
     </div>
   );

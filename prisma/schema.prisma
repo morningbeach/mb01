@@ -182,12 +182,29 @@ model GiftSetItem {
 model BlogPost {
   id          String    @id @default(cuid())
   slug        String    @unique
-  title       String
-  excerpt     String?
-  content     String
+  
+  // 多語系欄位
+  title       String         // 預設標題（向下相容）
+  title_en    String?        // 英文標題
+  title_zh    String?        // 中文標題
+  excerpt     String?        // 預設摘要
+  excerpt_en  String?        // 英文摘要
+  excerpt_zh  String?        // 中文摘要
+  content     String         // 預設內容
+  content_en  String?  @db.Text  // 英文內容
+  content_zh  String?  @db.Text  // 中文內容
+  
   coverImage  String?
   publishedAt DateTime?
   isPublished Boolean   @default(false)
+  isFeatured  Boolean   @default(false)  // 是否為精選文章
+  
+  // SEO
+  seoTitle_en    String?
+  seoTitle_zh    String?
+  seoDesc_en     String?
+  seoDesc_zh     String?
+  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   tags        BlogTag[]
@@ -355,6 +372,8 @@ enum HomeSectionType {
   CTA
   RICH_TEXT
   GALLERY
+  EMBED
+  VIDEO
 }
 
 /// 網站頁面管理（含預設頁面和自訂頁面）
@@ -442,6 +461,8 @@ enum PageType {
   FACTORY     // Factory 類型（簡易編輯器）
   CONTACT     // Contact 類型（簡易編輯器）
   CASE        // Case 類型（案例展示）
+  PROCESS     // Process 類型（流程步驟）
+  FAQ         // FAQ 類型（問答）
   CUSTOM      // Homepage 類型的自訂頁面（section 系統）
 }
 

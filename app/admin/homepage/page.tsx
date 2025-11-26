@@ -25,6 +25,44 @@ const defaultHeroPayload = {
   secondaryLabel_zh: "下載型錄",
 };
 
+/** 預設 EMBED payload */
+const defaultEmbedPayload = {
+  title_en: "",
+  title_zh: "",
+  embedCode: "",
+  embedType: "custom",
+  aspectRatio: "16:9",
+  customHeight: "",
+  maxWidth: "800",
+  showTitle: false,
+};
+
+/** 預設 VIDEO payload */
+const defaultVideoPayload = {
+  title_en: "",
+  title_zh: "",
+  videoUrl: "",
+  posterImage: "",
+  autoplay: false,
+  loop: false,
+  muted: true,
+  showTitle: false,
+};
+
+/** 根據類型取得預設 payload */
+function getDefaultPayload(type: string) {
+  switch (type.toLowerCase()) {
+    case "hero":
+      return defaultHeroPayload;
+    case "embed":
+      return defaultEmbedPayload;
+    case "video":
+      return defaultVideoPayload;
+    default:
+      return {};
+  }
+}
+
 /** Server Action: 新增 Section */
 async function createSection(formData: FormData) {
   "use server";
@@ -44,7 +82,7 @@ async function createSection(formData: FormData) {
       type,
       order: Number.isFinite(order) ? order : 100,
       enabled,
-      payload: typeInput === "hero" ? defaultHeroPayload : {},
+      payload: getDefaultPayload(typeInput),
     },
   });
 
@@ -85,6 +123,10 @@ export default async function AdminHomepagePage() {
               <option value="factory">Factory（工廠介紹）</option>
               <option value="cta">CTA（行動呼籲）</option>
               <option value="gallery">Gallery（圖片廊）</option>
+              <option value="embed">Embed（嵌入區塊）</option>
+              <option value="video">Video（影片區塊）</option>
+              <option value="rich_text">Rich Text（富文本）</option>
+              <option value="blog">Blog（部落格）</option>
             </select>
           </div>
 
