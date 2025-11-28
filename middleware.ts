@@ -2,6 +2,11 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req) {
+  // 暫時關閉所有認證 - 直接放行
+  return NextResponse.next();
+  
+  // === 以下為原本的認證邏輯（暫時停用）===
+  /*
   const url = req.nextUrl;
   const path = url.pathname;
 
@@ -50,8 +55,10 @@ export function middleware(req) {
   }
 
   return NextResponse.next();
+  */
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // 不匹配任何路徑，完全停用 middleware
+  matcher: [],
 };
