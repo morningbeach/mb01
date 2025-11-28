@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/kv";
+import { getSession } from "@/lib/session";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {

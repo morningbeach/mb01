@@ -201,6 +201,19 @@ model AdminUser {
   name     String?
   password String
   role     String  @default("admin")
+  sessions AdminSession[]
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([expiresAt])
 }
 
 model FrontCategory {

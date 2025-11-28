@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
-import { setSession } from "@/lib/kv";
+import { createSession } from "@/lib/session";
 export const runtime = "nodejs";
 
 export async function GET() {
@@ -38,12 +38,11 @@ export async function POST(req: NextRequest) {
       status: 303,
     });
   }
-  // Create opaque session id and store in Vercel KV
+  // Create opaque session id and store in database
   const maxAge = 60 * 60 * 8; // 8 hours
   const sid = crypto.randomBytes(32).toString("hex");
-  const session = { userId: user.id, createdAt: Date.now() };
 
-  const success = await setSession(sid, session, maxAge);
+  const success = await createSession(user.id, sid);
   if (!success) {
     return new NextResponse("Session store error", { status: 500 });
   }

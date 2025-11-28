@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteSession } from "@/lib/kv";
+import { deleteSession } from "@/lib/session";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
