@@ -168,9 +168,11 @@ function HeroCardsLayout({ node, lang, products = [] }: { node: any; lang: strin
                 <div className="p-5">
                   <h3 className="text-lg font-semibold tracking-tight text-zinc-900">{t(lang, product.name_en, product.name_zh, product.name)}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-zinc-600">{t(lang, product.shortDesc_en, product.shortDesc_zh, product.shortDesc)}</p>
+                  {/* 價格欄位暫時關閉
                   {(product.priceHint || product.priceHint_en || product.priceHint_zh) && (
                     <p className="mt-3 text-sm font-medium text-zinc-900">{t(lang, product.priceHint_en, product.priceHint_zh, product.priceHint)}</p>
                   )}
+                  */}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {product.tags.slice(0, 3).map((pt: any) => (
@@ -273,9 +275,11 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                 <div className="p-4 text-center">
                   <h3 className="font-semibold text-zinc-900">{t(lang, product.name_en, product.name_zh, product.name)}</h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-zinc-500 line-clamp-2">{t(lang, product.shortDesc_en, product.shortDesc_zh, product.shortDesc)}</p>
+                  {/* 價格欄位暫時關閉
                   {(product.priceHint || product.priceHint_en || product.priceHint_zh) && (
                     <p className="mt-2 text-sm font-medium text-zinc-900">{t(lang, product.priceHint_en, product.priceHint_zh, product.priceHint)}</p>
                   )}
+                  */}
                   {/* TAG 顯示 */}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap justify-center gap-1">
@@ -376,9 +380,11 @@ function MasonryLayout({ node, lang, products = [] }: { node: any; lang: string;
                 <div className="p-4">
                   <h3 className="font-semibold text-zinc-900">{t(lang, product.name_en, product.name_zh, product.name)}</h3>
                   <p className="mt-1 text-sm text-zinc-600">{t(lang, product.shortDesc_en, product.shortDesc_zh, product.shortDesc)}</p>
+                  {/* 價格欄位暫時關閉
                   {(product.priceHint || product.priceHint_en || product.priceHint_zh) && (
                     <p className="mt-2 text-sm font-medium text-zinc-900">{t(lang, product.priceHint_en, product.priceHint_zh, product.priceHint)}</p>
                   )}
+                  */}
                   {product.tags && product.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {product.tags.slice(0, 3).map((pt: any) => (
@@ -485,9 +491,11 @@ function CarouselLayout({ node, lang, products = [] }: { node: any; lang: string
                   <div className="p-4">
                     <h3 className="font-semibold text-zinc-900">{t(lang, product.name_en, product.name_zh, product.name)}</h3>
                     <p className="mt-1 text-sm text-zinc-600">{t(lang, product.shortDesc_en, product.shortDesc_zh, product.shortDesc)}</p>
+                    {/* 價格欄位暫時關閉
                     {(product.priceHint || product.priceHint_en || product.priceHint_zh) && (
                       <p className="mt-2 text-sm font-medium text-zinc-900">{t(lang, product.priceHint_en, product.priceHint_zh, product.priceHint)}</p>
                     )}
+                    */}
                     {product.tags && product.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {product.tags.slice(0, 3).map((pt: any) => (

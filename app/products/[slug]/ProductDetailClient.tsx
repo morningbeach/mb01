@@ -190,9 +190,11 @@ function SpecsBlock({ product, lang, priceHint }: { product: any; lang: Lang; pr
               ・{lang === "zh" ? "最小訂購量" : "Minimum order"}: {product.minQty.toLocaleString()} {lang === "zh" ? "件" : "pcs"}
             </li>
           )}
+          {/* 價格欄位暫時關閉
           {priceHint && (
             <li>・{lang === "zh" ? "價格" : "Pricing"}: {priceHint}</li>
           )}
+          */}
           {product.currency && (
             <li>・{lang === "zh" ? "幣別" : "Currency"}: {product.currency}</li>
           )}
