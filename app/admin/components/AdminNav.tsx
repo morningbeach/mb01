@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utlis";
+import { useState } from "react";
 
 const mainNav = [
   { href: "/admin", label: "Dashboard" },
@@ -65,6 +66,31 @@ function getSubNav(pathname: string): SubNavItem[] | null {
   return null;
 }
 
+function LogoutButton() {
+  const [loading, setLoading] = useState(false);
+  async function handleLogout() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (e) {
+      // ignore
+    }
+    // redirect to login
+    window.location.href = '/admin/login';
+  }
+
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={loading}
+      className="ml-4 rounded-md bg-red-600 px-3 py-1 text-white hover:bg-red-700 disabled:opacity-60"
+    >
+      {loading ? 'Logging out...' : 'Logout'}
+    </button>
+  );
+}
+
 export function AdminNav() {
   const pathname = usePathname();
   const subNav = getSubNav(pathname);
@@ -99,6 +125,7 @@ export function AdminNav() {
               </Link>
             );
           })}
+          <LogoutButton />
         </nav>
       </div>
 

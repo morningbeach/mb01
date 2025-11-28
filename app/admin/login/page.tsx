@@ -1,7 +1,13 @@
 // app/admin/login/page.tsx
 export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
+  const hasError = searchParams.error === "1";
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">
       <form
@@ -10,6 +16,12 @@ export default function LoginPage() {
         className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-md"
       >
         <h1 className="text-xl font-semibold text-zinc-900">Admin Login</h1>
+
+        {hasError && (
+          <div className="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-600">
+            Email 或密碼錯誤，請重試
+          </div>
+        )}
 
         <div className="mt-4">
           <label className="block text-sm text-zinc-700">Email</label>

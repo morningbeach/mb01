@@ -1,64 +1,62 @@
 // middleware.ts
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export function middleware(req) {
-  // 暫時關閉所有認證 - 直接放行
-  return NextResponse.next();
-  
-  // === 以下為原本的認證邏輯（暫時停用）===
-  /*
-  const url = req.nextUrl;
-  const path = url.pathname;
+// Note: middleware runs in the Edge runtime — avoid heavy Node APIs here.
 
-  // 只保護 /admin 路徑
+// 不需要驗證的路徑（登入頁、API 路由等）
+const PUBLIC_ADMIN_PATHS = [
+  "/admin/login",
+  "/api/admin/login",
+  "/api/admin/logout",
+  "/api/admin/session/validate",
+];
+
+export async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+
+  // 1. 檢查是否為公開路徑（不需要驗證）
+  if (PUBLIC_ADMIN_PATHS.some((p) => path === p || path.startsWith(p + "/"))) {
+    return NextResponse.next();
+  }
+
+  // 2. 只保護 /admin 開頭的路由
   if (!path.startsWith("/admin")) {
     return NextResponse.next();
   }
 
-  // 開發環境允許直接進入（Codespace、本地）
-  if (process.env.NODE_ENV === "development") {
+  // 3. 只在 production 或設定 ADMIN_PROTECT=1 時強制驗證
+  const enforce =
+    process.env.NODE_ENV === "production" ||
+    process.env.ADMIN_PROTECT === "1";
+  if (!enforce) {
     return NextResponse.next();
   }
 
-  // Production → Basic Auth
-  const authHeader = req.headers.get("authorization");
-  const USER = process.env.ADMIN_BASIC_USER;
-  const PASS = process.env.ADMIN_BASIC_PASS;
-
-  if (!USER || !PASS) {
-    return new NextResponse("Admin credentials not set", { status: 500 });
-  }
-
-  // 沒認證
-  if (!authHeader) {
-    return new NextResponse("Auth required", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": `Basic realm="MB Admin"`,
-      },
+  // 4. 驗證 session cookie
+  const cookie = req.headers.get("cookie") || "";
+  try {
+    const validateUrl = new URL("/api/admin/session/validate", req.url);
+    const res = await fetch(validateUrl.toString(), {
+      method: "GET",
+      headers: { cookie },
     });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.valid) {
+        return NextResponse.next();
+      }
+    }
+  } catch (e) {
+    console.error("Session validate fetch error:", e);
   }
 
-  // 解析 Base64
-  const encoded = authHeader.split(" ")[1];
-  const decoded = Buffer.from(encoded, "base64").toString();
-  const [reqUser, reqPass] = decoded.split(":");
-
-  // 驗證錯誤
-  if (reqUser !== USER || reqPass !== PASS) {
-    return new NextResponse("Invalid credentials", {
-      status: 401,
-      headers: {
-        "WWW-Authenticate": `Basic realm="MB Admin"`,
-      },
-    });
-  }
-
-  return NextResponse.next();
-  */
+  // 5. 驗證失敗，重導向到登入頁
+  const loginUrl = new URL("/admin/login", req.url);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
-  // 不匹配任何路徑，完全停用 middleware
-  matcher: [],
+  // 匹配 /admin 和 /api/admin 路徑
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };
