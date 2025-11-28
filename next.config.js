@@ -29,6 +29,11 @@ const nextConfig = {
         hostname: "img.mbpack.co",
         pathname: "/**",
       },
+      // Google Charts API (for QR codes)
+      {
+        protocol: "https",
+        hostname: "chart.googleapis.com",
+      },
     ],
   },
 

@@ -13,12 +13,47 @@ export function TagForm({ tag }: TagFormProps) {
   const [formData, setFormData] = useState({
     slug: tag?.slug || "",
     name: tag?.name || "",
+    name_en: tag?.name_en || "",
+    name_zh: tag?.name_zh || "",
     subtitle: tag?.subtitle || "",
+    subtitle_en: tag?.subtitle_en || "",
+    subtitle_zh: tag?.subtitle_zh || "",
     color: tag?.color || "#3b82f6",
   });
 
+  // 自動生成 slug
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  // 從英文名稱生成 slug
+  const handleNameEnChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      name_en: value,
+      // 如果 slug 是空的或是之前自動生成的，則自動更新
+      slug: !prev.slug || prev.slug === generateSlug(prev.name_en) 
+        ? generateSlug(value) 
+        : prev.slug,
+      // 同步更新 name（保留向下相容）
+      name: value || prev.name_zh,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 驗證必填欄位
+    if (!formData.name_en || !formData.name_zh) {
+      alert("請填寫中文名稱和英文名稱！");
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -28,10 +63,18 @@ export function TagForm({ tag }: TagFormProps) {
       
       const method = tag ? "PUT" : "POST";
 
+      // 確保 name 欄位有值（用於向下相容）
+      const submitData = {
+        ...formData,
+        name: formData.name || formData.name_zh || formData.name_en,
+        subtitle: formData.subtitle || formData.subtitle_zh || formData.subtitle_en,
+        version: 2,
+      };
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, version: 2 }),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -76,50 +119,93 @@ export function TagForm({ tag }: TagFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* 基本資訊 */}
+      {/* 中英文名稱 */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">基本資訊</h2>
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">🌐 標籤名稱（中英文）</h2>
         
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              標籤名稱 *
+              英文名稱 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              value={formData.name_en}
+              onChange={(e) => handleNameEnChange(e.target.value)}
               className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-              placeholder="紙盒包裝"
+              placeholder="Paper Box"
+            />
+            <p className="mt-1 text-xs text-zinc-500">會自動生成 URL Slug</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              中文名稱 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={formData.name_zh}
+              onChange={(e) => setFormData({ ...formData, name_zh: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="紙盒"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 中英文副標題 */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">📝 副標題（選填）</h2>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              英文副標題
+            </label>
+            <input
+              type="text"
+              value={formData.subtitle_en}
+              onChange={(e) => setFormData({ ...formData, subtitle_en: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="Paper Box Packaging"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-zinc-700">
-              URL Slug *
+              中文副標題
+            </label>
+            <input
+              type="text"
+              value={formData.subtitle_zh}
+              onChange={(e) => setFormData({ ...formData, subtitle_zh: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="紙盒包裝"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* URL Slug 和顏色 */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">⚙️ 進階設定</h2>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              URL Slug <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               required
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm"
               placeholder="paper-box"
             />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-700">
-              副標題
-            </label>
-            <input
-              type="text"
-              value={formData.subtitle}
-              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-              placeholder="Paper Box Packaging"
-            />
+            <p className="mt-1 text-xs text-zinc-500">用於 URL，只能使用小寫英文、數字和連字號</p>
           </div>
 
           <div>
@@ -131,15 +217,21 @@ export function TagForm({ tag }: TagFormProps) {
                 type="color"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="h-10 w-20 rounded-lg border border-zinc-300 cursor-pointer"
+                className="h-10 w-14 rounded-lg border border-zinc-300 cursor-pointer"
               />
-              <input
-                type="text"
-                value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="flex-1 rounded-lg border border-zinc-300 px-3 py-2"
-                placeholder="#3b82f6"
-              />
+              <div className="flex gap-1">
+                {["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#6B7280"].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, color: c })}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      formData.color === c ? "border-zinc-800 scale-110" : "border-transparent"
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -147,19 +239,42 @@ export function TagForm({ tag }: TagFormProps) {
 
       {/* 預覽 */}
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">預覽</h2>
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-white"
-            style={{ backgroundColor: formData.color }}
-          >
-            {formData.name || "標籤名稱"}
-          </span>
-          {formData.subtitle && (
-            <span className="text-sm text-zinc-500">
-              {formData.subtitle}
-            </span>
-          )}
+        <h2 className="mb-4 text-lg font-semibold text-zinc-900">👁️ 預覽</h2>
+        
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <p className="text-xs text-zinc-500 mb-2">英文版</p>
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-white"
+                style={{ backgroundColor: formData.color }}
+              >
+                {formData.name_en || "Tag Name"}
+              </span>
+              {formData.subtitle_en && (
+                <span className="text-sm text-zinc-500">
+                  {formData.subtitle_en}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div>
+            <p className="text-xs text-zinc-500 mb-2">中文版</p>
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-white"
+                style={{ backgroundColor: formData.color }}
+              >
+                {formData.name_zh || "標籤名稱"}
+              </span>
+              {formData.subtitle_zh && (
+                <span className="text-sm text-zinc-500">
+                  {formData.subtitle_zh}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

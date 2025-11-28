@@ -7,6 +7,7 @@ import { TranslateButton } from "../../components/TranslateButton";
 import { AboutEditor } from "./AboutEditor";
 import { FactoryEditor } from "./FactoryEditor";
 import { ContactEditor } from "./ContactEditor";
+import { CaseEditor } from "./CaseEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +101,11 @@ export default async function EditPagePage({ params }: { params: { id: string } 
         {page.type === "CONTACT" && (
           <div className="mt-6">
             <ContactEditor pageId={page.id} pageData={page.pageData} />
+          </div>
+        )}
+        {page.type === "CASE" && (
+          <div className="mt-6">
+            <CaseEditor pageId={page.id} />
           </div>
         )}
         {page.type === "CUSTOM" && (

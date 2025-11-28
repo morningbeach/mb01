@@ -65,9 +65,6 @@ export function GridAnimationGallery({
         })}
       </div>
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        網格動畫進場效果
-      </div>
     </div>
   );
 }

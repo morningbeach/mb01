@@ -134,6 +134,21 @@ export default function AdminDashboardPage() {
               前往分類管理 V2 →
             </a>
           </section>
+
+          <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-zinc-900">
+              頁腳編輯器 🦶
+            </h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              管理公司資訊、聯絡方式、客戶名單與 QR Code 設定
+            </p>
+            <a
+              href="/admin/footer"
+              className="mt-3 inline-flex text-xs font-medium text-zinc-900 underline underline-offset-4"
+            >
+              前往頁腳編輯器 →
+            </a>
+          </section>
         </div>
       </div>
 

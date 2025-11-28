@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
-/** 預設 HERO 內容：payload 沒填時用這組 fallback */
+/** 預設 HERO 內容 */
 const defaultHeroPayload = {
   titleLine1_en: "Premium Gift Box Manufacturing",
   titleLine2_en: "for Global Brands",
@@ -104,7 +102,7 @@ export default async function AdminHeroEditPage({
     where: { id },
   });
 
-  if (!hero || hero.type !== "hero") {
+  if (!hero || hero.type !== "HERO") {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10 md:px-6">
         <h1 className="text-2xl font-semibold tracking-tight">

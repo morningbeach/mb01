@@ -78,9 +78,9 @@ export async function POST(request: NextRequest) {
 
 只回覆 JSON，不要其他說明文字。`;
 
-    // 呼叫 Gemini API
+    // 呼叫 Gemini 2.0 Flash API
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {
@@ -125,8 +125,9 @@ export async function POST(request: NextRequest) {
     const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!responseText) {
+      console.error("Gemini 回覆結構:", JSON.stringify(geminiData, null, 2));
       return NextResponse.json(
-        { error: "Gemini 未返回有效回覆" },
+        { error: "Gemini 未返回有效回覆，可能是模型過載，請稍後重試" },
         { status: 500 }
       );
     }
@@ -134,7 +135,13 @@ export async function POST(request: NextRequest) {
     // 嘗試解析 JSON（移除可能的 markdown 標記）
     let productData;
     try {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      // 清理 markdown 標記
+      let cleanedText = responseText
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
+      
+      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         productData = JSON.parse(jsonMatch[0]);
       } else {

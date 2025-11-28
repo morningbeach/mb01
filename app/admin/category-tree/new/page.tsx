@@ -1,10 +1,11 @@
 // app/admin/category-tree/new/page.tsx
 import { prisma } from "@/lib/prisma";
 import { CategoryNodeForm } from "../components/CategoryNodeForm";
+import { CategoryTreeView } from "../components/CategoryTreeView";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewCategoryNodePage() {
+export default async function NewCategoryNodePage({ searchParams }: { searchParams?: { parentId?: string } }) {
   // 獲取所有節點供選擇父節點
   const allNodes = await prisma.categoryNode.findMany({
     where: { isActive: true },
@@ -15,8 +16,28 @@ export default async function NewCategoryNodePage() {
       name_zh: true,
       name_en: true,
       depth: true,
+      parentId: true,
     },
   });
+
+  // 構建樹狀結構
+  function buildTree(nodes) {
+    const nodeMap = {};
+    nodes.forEach(n => nodeMap[n.id] = { ...n, children: [] });
+    const roots = [];
+    nodes.forEach(n => {
+      if (n.parentId && nodeMap[n.parentId]) {
+        nodeMap[n.parentId].children.push(nodeMap[n.id]);
+      } else {
+        roots.push(nodeMap[n.id]);
+      }
+    });
+    return roots;
+  }
+  const treeNodes = buildTree(allNodes);
+
+  // 取得 parentId query
+  const parentId = searchParams?.parentId || "";
 
   return (
     <div>
@@ -27,7 +48,12 @@ export default async function NewCategoryNodePage() {
         </p>
       </div>
 
-      <CategoryNodeForm allNodes={allNodes} />
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-2">目前分類樹狀結構</h2>
+        <CategoryTreeView nodes={treeNodes} />
+      </div>
+
+      <CategoryNodeForm allNodes={allNodes.map(n => ({ ...n, parentId: n.parentId }))} node={undefined} initialParentId={parentId} />
     </div>
   );
 }

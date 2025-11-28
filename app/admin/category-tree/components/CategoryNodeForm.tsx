@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import ImagePicker from "../../components/ImagePicker";
 
 type NodeFormProps = {
   node?: any;
@@ -34,12 +33,14 @@ const displayModes = [
   { value: "product-detail", label: "商品詳細" },
 ];
 
-export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
+export function CategoryNodeForm({ node, allNodes, initialParentId }: NodeFormProps & { initialParentId?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [loadingTags, setLoadingTags] = useState(true);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [openAiKey, setOpenAiKey] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     slug: node?.slug || "",
@@ -47,7 +48,7 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
     name_en: node?.name_en || "",
     description_zh: node?.description_zh || "",
     description_en: node?.description_en || "",
-    parentId: node?.parentId || null,
+    parentId: node?.parentId || initialParentId || null,
     displayMode: node?.displayMode || "grid",
     order: node?.order || 0,
     coverImage: node?.coverImage || "",
@@ -64,6 +65,56 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
     seoDescription_zh: node?.seoDescription_zh || "",
     seoDescription_en: node?.seoDescription_en || "",
   });
+  // 使用 OpenAI 生成 slug 和英文名稱
+  async function handleAiTranslate() {
+    if (!formData.name_zh) {
+      alert("請先輸入中文名稱");
+      return;
+    }
+    if (!openAiKey) {
+      alert("請輸入 OpenAI API Key");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const prompt = `請將以下中文分類名稱翻譯成簡潔專業的英文（20字以內），並生成一個 url-friendly slug（小寫英文、連字號分隔）。\n\n中文名稱：${formData.name_zh}\n\n請以 JSON 格式回覆：{\"name_en\": \"英文名稱\", \"slug\": \"slug\"}`;
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openAiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("OpenAI API 錯誤");
+      }
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content || "";
+      let result;
+      try {
+        result = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || text);
+      } catch {
+        alert("AI 回覆解析失敗: " + text);
+        setAiLoading(false);
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        name_en: result.name_en || prev.name_en,
+        slug: result.slug || prev.slug,
+      }));
+      alert("AI 生成成功！");
+    } catch (err) {
+      alert("AI 生成失敗: " + err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   // 載入所有 TAG
   useEffect(() => {
@@ -101,6 +152,21 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 驗證必填欄位
+    if (!formData.name_zh.trim()) {
+      alert("請輸入中文名稱");
+      return;
+    }
+    if (!formData.name_en.trim()) {
+      alert("請輸入英文名稱");
+      return;
+    }
+    if (!node && !formData.slug.trim()) {
+      alert("請輸入 Slug");
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -112,8 +178,8 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
 
       // 構建 payload
       const payload: any = {
-        name_zh: formData.name_zh,
-        name_en: formData.name_en,
+        name_zh: formData.name_zh.trim(),
+        name_en: formData.name_en.trim(),
         displayMode: formData.displayMode,
         tagIds: formData.tagIds,
         isActive: formData.isActive,
@@ -124,7 +190,7 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
       
       // slug - 新建時必須
       if (!node) {
-        payload.slug = formData.slug;
+        payload.slug = formData.slug.trim();
       }
       
       // parentId - 新建時必須
@@ -273,6 +339,26 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
             />
           </div>
 
+          {/* AI 翻譯功能 */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-zinc-700">OpenAI API Key（前台輸入）</label>
+            <input
+              type="password"
+              value={openAiKey}
+              onChange={e => setOpenAiKey(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="sk-..."
+            />
+            <button
+              type="button"
+              className="mt-2 rounded bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 disabled:bg-blue-300"
+              onClick={handleAiTranslate}
+              disabled={aiLoading}
+            >
+              {aiLoading ? "AI 生成中..." : "AI 生成英文名稱與 Slug"}
+            </button>
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-zinc-700">
               中文描述
@@ -349,21 +435,26 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-zinc-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-700">
               封面圖片
             </label>
-            <ImagePicker
+            <input
+              type="url"
               value={formData.coverImage}
-              onChange={(url) => setFormData({ ...formData, coverImage: url })}
+              onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="https://..."
             />
             {formData.coverImage && (
-              <input
-                type="url"
-                value={formData.coverImage}
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                placeholder="或直接輸入 URL"
-              />
+              <div className="mt-2">
+                <Image
+                  src={formData.coverImage}
+                  alt="封面圖片預覽"
+                  width={200}
+                  height={120}
+                  className="rounded-lg border object-cover"
+                />
+              </div>
             )}
           </div>
 
@@ -380,21 +471,26 @@ export function CategoryNodeForm({ node, allNodes }: NodeFormProps) {
           </div>
 
           <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-zinc-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-700">
               Hero 橫幅圖片
             </label>
-            <ImagePicker
+            <input
+              type="url"
               value={formData.heroImage}
-              onChange={(url) => setFormData({ ...formData, heroImage: url })}
+              onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+              placeholder="https://..."
             />
             {formData.heroImage && (
-              <input
-                type="url"
-                value={formData.heroImage}
-                onChange={(e) => setFormData({ ...formData, heroImage: e.target.value })}
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                placeholder="或直接輸入 URL"
-              />
+              <div className="mt-2">
+                <Image
+                  src={formData.heroImage}
+                  alt="Hero 圖片預覽"
+                  width={300}
+                  height={150}
+                  className="rounded-lg border object-cover"
+                />
+              </div>
             )}
           </div>
         </div>

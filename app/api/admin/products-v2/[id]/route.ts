@@ -108,10 +108,6 @@ export async function DELETE(
     // 檢查產品是否存在
     const product = await prisma.product.findUnique({
       where: { id: params.id },
-      include: {
-        giftSet: true,
-        giftSetItems: true,
-      },
     });
 
     if (!product) {
@@ -121,18 +117,28 @@ export async function DELETE(
       );
     }
 
-    // 檢查是否有關聯資料
-    if (product.giftSet || product.giftSetItems.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "此產品有關聯的禮品組資料，無法刪除。請先解除關聯。",
-        },
-        { status: 400 }
-      );
-    }
+    // 依序刪除關聯資料
+    // 1. 刪除產品標籤關聯
+    await prisma.productTag.deleteMany({
+      where: { productId: params.id },
+    });
 
-    // 刪除產品
+    // 2. 刪除產品圖片關聯
+    await prisma.productImage.deleteMany({
+      where: { productId: params.id },
+    });
+
+    // 3. 刪除禮盒組合項目
+    await prisma.giftSetItem.deleteMany({
+      where: { productId: params.id },
+    });
+
+    // 4. 刪除禮盒組合
+    await prisma.giftSet.deleteMany({
+      where: { productId: params.id },
+    });
+
+    // 5. 最後刪除產品
     await prisma.product.delete({
       where: { id: params.id },
     });

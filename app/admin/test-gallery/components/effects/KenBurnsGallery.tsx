@@ -119,9 +119,6 @@ export function KenBurnsGallery({
         onDotClick={setCurrentIndex}
       />
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        Ken Burns 緩慢縮放平移效果
-      </div>
     </div>
   );
 }

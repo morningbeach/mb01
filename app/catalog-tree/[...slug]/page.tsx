@@ -57,20 +57,23 @@ export default async function TreeCatalogPage({
     },
   });
 
-  // 如果是葉節點，查詢產品（根據 tagIds）
-  let products = [];
+  // 查詢產品
+  let products: any[] = [];
+  let childrenWithProducts: any[] = [];
+  
   if (currentNode.isLeaf && currentNode.tagIds && currentNode.tagIds.length > 0) {
+    // 葉節點：直接查詢產品（需要包含所有TAG）
     products = await prisma.product.findMany({
       where: {
         version: 2,
         status: "ACTIVE",
-        tags: {
-          some: {
-            tagId: {
-              in: currentNode.tagIds,
+        AND: currentNode.tagIds.map(tagId => ({
+          tags: {
+            some: {
+              tagId: tagId,
             },
           },
-        },
+        })),
       },
       include: {
         tags: {
@@ -83,15 +86,104 @@ export default async function TreeCatalogPage({
         name: 'asc',
       },
     });
+  } else if (!currentNode.isLeaf && effectiveChildren.length > 0) {
+    // 非葉節點：遞迴查詢所有子節點下的葉節點產品
+    // 先獲取所有子孫節點
+    const allDescendants = await prisma.categoryNode.findMany({
+      where: {
+        isActive: true,
+        isHidden: false,
+        path: {
+          has: currentNode.slug, // 路徑包含當前節點
+        },
+        NOT: {
+          slug: currentNode.slug, // 排除當前節點本身
+        },
+      },
+      orderBy: [
+        { depth: 'asc' },
+        { order: 'asc' },
+      ],
+    });
+    
+    // 為每個直接子節點查詢其下所有葉節點的產品
+    for (const child of effectiveChildren) {
+      // 找出該子節點下的所有葉節點（包含自己如果是葉節點）
+      const leafNodes = [];
+      
+      // 如果子節點本身是葉節點
+      if (child.isLeaf && child.tagIds && child.tagIds.length > 0) {
+        leafNodes.push(child);
+      }
+      
+      // 找出該子節點下的所有後代葉節點
+      const childDescendants = allDescendants.filter(
+        (d) => d.path.includes(child.slug) && d.slug !== child.slug && d.isLeaf
+      );
+      leafNodes.push(...childDescendants.filter(d => d.tagIds && d.tagIds.length > 0));
+      
+      // 收集所有葉節點的產品
+      let childProducts: any[] = [];
+      const productIds = new Set<string>(); // 用於去重
+      
+      for (const leafNode of leafNodes) {
+        if (leafNode.tagIds && leafNode.tagIds.length > 0) {
+          // 每個葉節點查詢需要包含其所有TAG的產品
+          const leafProducts = await prisma.product.findMany({
+            where: {
+              version: 2,
+              status: "ACTIVE",
+              AND: leafNode.tagIds.map(tagId => ({
+                tags: {
+                  some: {
+                    tagId: tagId,
+                  },
+                },
+              })),
+            },
+            include: {
+              tags: {
+                include: {
+                  tag: true,
+                },
+              },
+            },
+            orderBy: {
+              name: 'asc',
+            },
+          });
+          
+          // 去重並合併產品
+          for (const product of leafProducts) {
+            if (!productIds.has(product.id)) {
+              productIds.add(product.id);
+              childProducts.push(product);
+            }
+          }
+        }
+      }
+      
+      // 加入子節點及其產品
+      childrenWithProducts.push({
+        ...child,
+        products: childProducts,
+      });
+    }
   }
 
-  // 允許前台臨時切換展示模式（未來會移除）
-  const displayMode = searchParams.displayMode || currentNode.displayMode;
+  // 只允許後台設定展示方式，最上層維持五格（HeroCardsLayout），其餘預設瀑布流
+  let displayMode = currentNode.displayMode;
+  if (currentNode.depth === 0) {
+    displayMode = "hero-cards";
+  } else if (!displayMode) {
+    displayMode = "masonry";
+  }
 
-  // 建立有效的節點物件（如果是葉節點，清空 children）
+  // 建立有效的節點物件
+  // 如果是非葉節點且有子節點產品資料，使用 childrenWithProducts
   const effectiveNode = {
     ...currentNode,
-    children: effectiveChildren,
+    children: childrenWithProducts.length > 0 ? childrenWithProducts : effectiveChildren,
   };
 
   return (
@@ -102,6 +194,7 @@ export default async function TreeCatalogPage({
         displayMode={displayMode}
         currentPath={params.slug.join('/')}
         products={products}
+        childrenWithProducts={childrenWithProducts}
       />
     </SiteShell>
   );

@@ -1,25 +1,21 @@
-// app/page.tsx
+﻿// app/page.tsx
 import { prisma } from "@/lib/prisma";
 import { SiteShell } from "../components/SiteShell";
-import { HomeClient } from "./HomeClient";
+import HomeClient from "./HomeClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  // 載入所有區塊
   const sections = await prisma.homeSection.findMany({
     orderBy: { order: "asc" },
   });
   const visibleSections = sections.filter((s) => s.enabled);
 
-  // 載入產品區塊的產品
-  const productsSection = visibleSections.find(
-    (s) => s.type === "PRODUCTS",
-  );
+  const productsSection = visibleSections.find((s) => s.type === "PRODUCTS");
 
   let productsForHomepage: any[] = [];
-  let productsPayload: any = undefined;
-  let productsLayout: any = undefined;
+  let productsPayload: any = {};
+  let productsLayout: any = {};
 
   if (productsSection) {
     productsPayload = (productsSection.payload as any) || {};
@@ -49,6 +45,20 @@ export default async function Home() {
         where: { status: "ACTIVE" },
         orderBy: { createdAt: "desc" },
         take: limit,
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          name_en: true,
+          name_zh: true,
+          shortDesc: true,
+          shortDesc_en: true,
+          shortDesc_zh: true,
+          coverImage: true,
+          priceHint: true,
+          priceHint_en: true,
+          priceHint_zh: true,
+        },
       });
     } else if (mode === "manual") {
       const rawIds: any[] = Array.isArray(source.manualProductIds)
@@ -60,25 +70,30 @@ export default async function Home() {
 
       if (productIds.length > 0) {
         const rows = await prisma.product.findMany({
-          where: {
-            id: { in: productIds },
-            status: "ACTIVE",
+          where: { id: { in: productIds }, status: "ACTIVE" },
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            name_en: true,
+            name_zh: true,
+            shortDesc: true,
+            shortDesc_en: true,
+            shortDesc_zh: true,
+            coverImage: true,
+            priceHint: true,
+            priceHint_en: true,
+            priceHint_zh: true,
           },
         });
 
         const orderMap = new Map<string, number>();
         productIds.forEach((id, index) => orderMap.set(id, index));
-        rows.sort(
-          (a, b) =>
-            (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0),
-        );
-
+        rows.sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
         productsForHomepage = rows.slice(0, limit);
       }
     } else {
-      const rawTagIds: any[] = Array.isArray(source.tagIds)
-        ? source.tagIds
-        : [];
+      const rawTagIds: any[] = Array.isArray(source.tagIds) ? source.tagIds : [];
       const tagIds: string[] = rawTagIds
         .map((id) => (id ?? "").toString())
         .filter((id) => id.length > 0);
@@ -89,18 +104,27 @@ export default async function Home() {
           select: { productId: true },
         });
 
-        const productIdSet = new Set<string>(
-          mappings.map((m) => m.productId),
-        );
+        const productIdSet = new Set<string>(mappings.map((m) => m.productId));
 
         if (productIdSet.size > 0) {
           productsForHomepage = await prisma.product.findMany({
-            where: {
-              id: { in: Array.from(productIdSet) },
-              status: "ACTIVE",
-            },
+            where: { id: { in: Array.from(productIdSet) }, status: "ACTIVE" },
             orderBy: { createdAt: "desc" },
             take: limit,
+            select: {
+              id: true,
+              slug: true,
+              name: true,
+              name_en: true,
+              name_zh: true,
+              shortDesc: true,
+              shortDesc_en: true,
+              shortDesc_zh: true,
+              coverImage: true,
+              priceHint: true,
+              priceHint_en: true,
+              priceHint_zh: true,
+            },
           });
         }
       }
@@ -110,55 +134,78 @@ export default async function Home() {
           where: { status: "ACTIVE" },
           orderBy: { createdAt: "desc" },
           take: limit,
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            name_en: true,
+            name_zh: true,
+            shortDesc: true,
+            shortDesc_en: true,
+            shortDesc_zh: true,
+            coverImage: true,
+            priceHint: true,
+            priceHint_en: true,
+            priceHint_zh: true,
+          },
         });
       }
     }
   }
 
-  // 預載入所有 GALLERY 區塊的相簿資料
-  const gallerySections = visibleSections.filter((s) => s.type === "GALLERY");
-  const galleryDataMap: Record<string, any> = {};
+  // 預先載入 Gallery 資料
+  const galleryData: Record<string, { images: any[]; effect: string }> = {};
+  
+  for (const section of visibleSections) {
+    if (section.type === "GALLERY") {
+      const payload = (section.payload as any) || {};
+      const albumId = payload.albumId;
+      const effect = payload.effect || "masonry";
+      const imageLimit = payload.imageLimit;
 
-  for (const section of gallerySections) {
-    const payload = (section.payload as any) || {};
-    const albumId = payload.albumId;
-    const imageLimit = payload.imageLimit;
-
-    if (albumId) {
-      const album = await prisma.album.findUnique({
-        where: { id: albumId },
-        include: {
-          items: {
-            include: { image: true },
-            orderBy: { position: "asc" },
-            ...(imageLimit ? { take: imageLimit } : {}),
+      if (albumId) {
+        const album = await prisma.album.findUnique({
+          where: { id: albumId },
+          include: {
+            items: {
+              include: { image: true },
+              orderBy: { position: "asc" },
+              ...(imageLimit ? { take: imageLimit } : {}),
+            },
           },
-        },
-      });
+        });
 
-      if (album && album.items.length > 0) {
-        galleryDataMap[albumId] = {
-          images: album.items.map((item) => ({
-            id: item.image.id,
-            url: item.image.url,
-            label: item.image.title || album.name,
-            title: item.image.title || album.name,
-            subtitle: item.image.alt || "",
-          })),
-        };
+        if (album && album.items.length > 0) {
+          galleryData[albumId] = {
+            effect,
+            images: album.items.map((item) => ({
+              id: item.image.id,
+              url: item.image.url,
+              label: item.image.title || album.name,
+              title: item.image.title || album.name,
+              subtitle: item.image.alt || "",
+            })),
+          };
+        }
       }
     }
   }
 
+  // 序列化資料給客戶端
+  const serializedSections = JSON.parse(JSON.stringify(visibleSections));
+  const serializedProducts = JSON.parse(JSON.stringify(productsForHomepage));
+  const serializedPayload = JSON.parse(JSON.stringify(productsPayload));
+  const serializedLayout = JSON.parse(JSON.stringify(productsLayout));
+  const serializedGalleryData = JSON.parse(JSON.stringify(galleryData));
+
   return (
     <SiteShell>
       <HomeClient
-        sections={visibleSections}
-        productsSection={productsSection}
-        productsPayload={productsPayload}
-        productsLayout={productsLayout}
-        productsForHomepage={productsForHomepage}
-        galleryDataMap={galleryDataMap}
+        sections={serializedSections}
+        productsPayload={serializedPayload}
+        productsLayout={serializedLayout}
+        productsForHomepage={serializedProducts}
+        galleryData={serializedGalleryData}
       />
     </SiteShell>
   );

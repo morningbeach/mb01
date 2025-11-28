@@ -74,9 +74,6 @@ export function WaterfallGallery({ images, objectFit = "object-cover" }: Waterfa
         ))}
       </div>
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        Pinterest 風格瀑布流佈局
-      </div>
     </div>
   );
 }

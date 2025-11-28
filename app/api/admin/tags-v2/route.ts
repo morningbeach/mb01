@@ -6,6 +6,20 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // 檢查 slug 是否重複
+    if (body.slug) {
+      const existingTag = await prisma.tag.findFirst({
+        where: { slug: body.slug }
+      });
+      
+      if (existingTag) {
+        return NextResponse.json(
+          { success: false, message: `標籤 slug "${body.slug}" 已存在，請使用其他名稱` },
+          { status: 400 }
+        );
+      }
+    }
+
     const tagData = {
       ...body,
       version: 2,

@@ -110,9 +110,6 @@ export function CoverflowCarousel({
         />
       )}
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        iTunes 風格 Coverflow 效果
-      </div>
     </div>
   );
 }

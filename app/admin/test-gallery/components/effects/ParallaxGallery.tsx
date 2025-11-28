@@ -83,9 +83,6 @@ export function ParallaxGallery({
         </div>
       </div>
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        ↓ 向下滾動體驗視差效果 ↓
-      </div>
     </div>
   );
 }

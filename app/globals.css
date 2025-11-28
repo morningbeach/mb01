@@ -112,4 +112,13 @@ video {
   .admin-page-stack {
     @apply space-y-8;
   }
+
+  /* 隱藏捲軸但保留捲動功能 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }

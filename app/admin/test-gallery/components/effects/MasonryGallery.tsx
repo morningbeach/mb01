@@ -109,9 +109,6 @@ export function MasonryGallery({
         </div>
       </div>
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        ← 拖曳滾動查看更多 →
-      </div>
     </div>
   );
 }

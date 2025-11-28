@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useLanguage } from "./contexts/LanguageContext";
 import { ProductsCarousel } from "./admin/components/ProductsCarousel";
 import { GalleryClient } from "./components/GalleryClient";
 
@@ -16,38 +16,24 @@ type CtaActionType =
   | "telegram"
   | "wechat";
 
-/* 共用小工具 */
-function t(
-  lang: Lang,
-  en?: string | null,
-  zh?: string | null,
-  fallback?: string,
-) {
-  const v = lang === "en" ? en : zh;
-  return (v && v.trim().length > 0 ? v : null) ?? fallback ?? "";
-}
-
-function Divider() {
-  return <div className="my-20 border-t border-zinc-200" />;
-}
-
-// 主要的 Client 組件
-export function HomeClient({
-  sections,
-  productsSection,
-  productsPayload,
-  productsLayout,
-  productsForHomepage,
-  galleryDataMap,
-}: {
+interface HomeClientProps {
   sections: any[];
-  productsSection: any;
   productsPayload: any;
   productsLayout: any;
   productsForHomepage: any[];
-  galleryDataMap: Record<string, any>;
-}) {
+  galleryData: Record<string, { images: any[]; effect: string }>;
+}
+
+export default function HomeClient({
+  sections,
+  productsPayload,
+  productsLayout,
+  productsForHomepage,
+  galleryData,
+}: HomeClientProps) {
   const { lang } = useLanguage();
+
+  const productsSection = sections.find((s) => s.type === "PRODUCTS");
 
   return (
     <>
@@ -112,27 +98,11 @@ export function HomeClient({
             );
           case "GALLERY":
             return (
-              <GallerySection
+              <GallerySectionClient
                 key={section.id}
                 lang={lang}
                 payload={payload}
-                galleryData={galleryDataMap[payload.albumId]}
-              />
-            );
-          case "EMBED":
-            return (
-              <EmbedSection
-                key={section.id}
-                lang={lang}
-                payload={payload}
-              />
-            );
-          case "VIDEO":
-            return (
-              <VideoSection
-                key={section.id}
-                lang={lang}
-                payload={payload}
+                galleryData={galleryData[payload.albumId]}
               />
             );
           default:
@@ -143,7 +113,24 @@ export function HomeClient({
   );
 }
 
+/* 共用小工具 */
+
+function t(
+  lang: Lang,
+  en?: string | null,
+  zh?: string | null,
+  fallback?: string,
+) {
+  const v = lang === "en" ? en : zh;
+  return (v && v.trim().length > 0 ? v : null) ?? fallback ?? "";
+}
+
+function Divider() {
+  return <div className="my-20 border-t border-zinc-200" />;
+}
+
 /* HERO */
+
 function HeroSection({
   lang,
   payload,
@@ -247,6 +234,7 @@ function HeroSection({
 }
 
 /* WHY */
+
 function WhySection({
   lang,
   payload,
@@ -268,12 +256,7 @@ function WhySection({
 
   const cards = rawCards
     .map((c) => {
-      const cardTitle = t(
-        lang,
-        c.title_en,
-        c.title_zh,
-        "",
-      );
+      const cardTitle = t(lang, c.title_en, c.title_zh, "");
       const cardBody = t(lang, c.body_en, c.body_zh, "");
       return { title: cardTitle, body: cardBody };
     })
@@ -340,6 +323,7 @@ function WhySection({
 }
 
 /* PRODUCTS */
+
 function ProductsSection({
   lang,
   payload,
@@ -359,15 +343,11 @@ function ProductsSection({
       ? "scroll"
       : "grid";
 
-  const showSectionTitle =
-    rawLayout.showSectionTitle !== false;
-  const showProductName =
-    rawLayout.showProductName !== false;
-  const showSubtitle =
-    rawLayout.showSubtitle !== false;
+  const showSectionTitle = rawLayout.showSectionTitle !== false;
+  const showProductName = rawLayout.showProductName !== false;
+  const showSubtitle = rawLayout.showSubtitle !== false;
   const showPriceHint = !!rawLayout.showPriceHint;
-  const clickable =
-    rawLayout.clickable !== false;
+  const clickable = rawLayout.clickable !== false;
 
   const carouselConfig = rawLayout.carousel || {};
   const itemsPerViewRaw = carouselConfig.itemsPerView;
@@ -383,8 +363,7 @@ function ProductsSection({
   const carouselProps = {
     itemsPerView,
     autoPlay: !!carouselConfig.autoPlay,
-    showArrows:
-      carouselConfig.showArrows !== false,
+    showArrows: carouselConfig.showArrows !== false,
     clickable,
     showProductName,
     showSubtitle,
@@ -392,15 +371,9 @@ function ProductsSection({
   };
 
   const title = t(lang, payload.title_en, payload.title_zh, "");
-  const subtitle = t(
-    lang,
-    payload.subtitle_en,
-    payload.subtitle_zh,
-    "",
-  );
+  const subtitle = t(lang, payload.subtitle_en, payload.subtitle_zh, "");
 
-  const hasProducts =
-    Array.isArray(products) && products.length > 0;
+  const hasProducts = Array.isArray(products) && products.length > 0;
 
   let items: {
     id: string;
@@ -418,7 +391,7 @@ function ProductsSection({
       subtitle: t(lang, p.shortDesc_en, p.shortDesc_zh, p.shortDesc || ""),
       image: p.coverImage || "",
       href: p.slug ? `/products/${p.slug}` : undefined,
-      priceHint: t(lang, p.priceHint_en, p.priceHint_zh, p.priceHint ?? null),
+      priceHint: t(lang, p.priceHint_en, p.priceHint_zh, p.priceHint) || null,
     }));
   }
 
@@ -447,10 +420,7 @@ function ProductsSection({
         <div className="mt-6 -mx-4 overflow-x-auto pb-2">
           <div className="flex gap-4 px-4">
             {items.map((item) => (
-              <div
-                key={item.id}
-                className="w-64 flex-shrink-0"
-              >
+              <div key={item.id} className="w-64 flex-shrink-0">
                 <ProductCard
                   title={showProductName ? item.title : ""}
                   subtitle={showSubtitle ? item.subtitle : ""}
@@ -483,6 +453,7 @@ function ProductsSection({
 }
 
 /* FACTORY */
+
 function FactorySection({
   lang,
   payload,
@@ -491,12 +462,7 @@ function FactorySection({
   payload: any;
 }) {
   const title = t(lang, payload.title_en, payload.title_zh, "");
-  const subtitle = t(
-    lang,
-    payload.subtitle_en,
-    payload.subtitle_zh,
-    "",
-  );
+  const subtitle = t(lang, payload.subtitle_en, payload.subtitle_zh, "");
 
   const rawCards: any[] = Array.isArray(payload.cards)
     ? payload.cards
@@ -504,15 +470,9 @@ function FactorySection({
 
   const cards = rawCards
     .map((c) => {
-      const cardTitle = t(
-        lang,
-        c.title_en,
-        c.title_zh,
-        "",
-      );
+      const cardTitle = t(lang, c.title_en, c.title_zh, "");
       const cardBody = t(lang, c.body_en, c.body_zh, "");
-      const image =
-        c.imageUrl || c.image || c.coverImage || "";
+      const image = c.imageUrl || c.image || c.coverImage || "";
       return { title: cardTitle, body: cardBody, image };
     })
     .filter((c) => c.title || c.image);
@@ -568,6 +528,7 @@ function FactorySection({
 }
 
 /* CTA */
+
 function resolveCtaHref(type: CtaActionType, value: string) {
   if (!value) return "#";
   switch (type) {
@@ -603,8 +564,7 @@ function CTASection({
   const style = (payload.style as any) || {};
   const backgroundMode: "color" | "image" =
     style.backgroundMode === "image" ? "image" : "color";
-  const backgroundColor: string =
-    style.backgroundColor ?? "#000000";
+  const backgroundColor: string = style.backgroundColor ?? "#000000";
   const backgroundImageUrl: string | undefined =
     style.backgroundImageUrl || undefined;
   const overlayOpacityRaw = style.overlayOpacity;
@@ -614,8 +574,7 @@ function CTASection({
       : 0.4;
   const textTone: "light" | "dark" =
     style.textTone === "dark" ? "dark" : "light";
-  const useImageBg =
-    backgroundMode === "image" && !!backgroundImageUrl;
+  const useImageBg = backgroundMode === "image" && !!backgroundImageUrl;
 
   const buttonsRaw: any[] = Array.isArray(payload.buttons)
     ? payload.buttons
@@ -652,9 +611,7 @@ function CTASection({
   const textColorClass =
     textTone === "light" ? "text-white" : "text-zinc-900";
   const subTextColorClass =
-    textTone === "light"
-      ? "text-zinc-100/80"
-      : "text-zinc-600";
+    textTone === "light" ? "text-zinc-100/80" : "text-zinc-600";
 
   return (
     <section id="contact" className="mt-10 md:mt-16">
@@ -687,9 +644,7 @@ function CTASection({
               </h2>
             )}
             {subtitle && (
-              <p
-                className={`mt-3 text-base md:text-lg ${subTextColorClass}`}
-              >
+              <p className={`mt-3 text-base md:text-lg ${subTextColorClass}`}>
                 {subtitle}
               </p>
             )}
@@ -733,6 +688,7 @@ function CTASection({
 }
 
 /* RICH TEXT */
+
 function RichTextSection({
   lang,
   payload,
@@ -762,21 +718,21 @@ function RichTextSection({
   );
 }
 
-/* GALLERY */
-function GallerySection({
+/* GALLERY (Client version) */
+
+function GallerySectionClient({
   lang,
   payload,
   galleryData,
 }: {
   lang: Lang;
   payload: any;
-  galleryData?: any;
+  galleryData?: { images: any[]; effect: string };
 }) {
   const title = t(lang, payload.title_en, payload.title_zh, "");
   const subtitle = t(lang, payload.subtitle_en, payload.subtitle_zh, "");
-  const effect = payload.effect || "masonry";
 
-  if (!galleryData || !galleryData.images || galleryData.images.length === 0) return null;
+  if (!galleryData || galleryData.images.length === 0) return null;
 
   return (
     <section id="gallery" className="mt-6 md:mt-8">
@@ -795,189 +751,7 @@ function GallerySection({
         </div>
       )}
 
-      <GalleryClient images={galleryData.images} effect={effect} />
-
-      <Divider />
-    </section>
-  );
-}
-
-/* EMBED SECTION */
-function EmbedSection({
-  lang,
-  payload,
-}: {
-  lang: Lang;
-  payload: any;
-}) {
-  const title = t(lang, payload.title_en, payload.title_zh, "");
-  const embedCode = payload.embedCode || "";
-  const embedType = payload.embedType || "custom";
-  const aspectRatio = payload.aspectRatio || "16:9";
-  const customHeight = payload.customHeight;
-  const maxWidth = payload.maxWidth || "800";
-  const showTitle = payload.showTitle;
-
-  if (!embedCode) return null;
-
-  let renderedEmbed: React.ReactNode = null;
-
-  if (embedType === "youtube" || embedCode.includes("youtube.com") || embedCode.includes("youtu.be")) {
-    let videoId = "";
-    
-    const youtubeMatch = embedCode.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (youtubeMatch) {
-      videoId = youtubeMatch[1];
-    }
-    
-    if (embedCode.includes("<iframe")) {
-      renderedEmbed = (
-        <div 
-          className="w-full"
-          dangerouslySetInnerHTML={{ __html: embedCode }}
-        />
-      );
-    } else if (videoId) {
-      renderedEmbed = (
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}`}
-          className="w-full h-full absolute inset-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      );
-    }
-  }
-  else if (embedType === "vimeo" || embedCode.includes("vimeo.com")) {
-    const vimeoMatch = embedCode.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) {
-      const videoId = vimeoMatch[1];
-      renderedEmbed = (
-        <iframe
-          src={`https://player.vimeo.com/video/${videoId}`}
-          className="w-full h-full absolute inset-0"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
-        />
-      );
-    } else if (embedCode.includes("<iframe")) {
-      renderedEmbed = (
-        <div 
-          className="w-full"
-          dangerouslySetInnerHTML={{ __html: embedCode }}
-        />
-      );
-    }
-  }
-  else if (embedType === "google_map" || embedCode.includes("google.com/maps")) {
-    if (embedCode.includes("<iframe")) {
-      renderedEmbed = (
-        <div 
-          className="w-full h-full"
-          dangerouslySetInnerHTML={{ __html: embedCode }}
-        />
-      );
-    }
-  }
-  else {
-    if (embedCode.includes("<iframe") || embedCode.includes("<script") || embedCode.includes("<div")) {
-      renderedEmbed = (
-        <div 
-          className="w-full"
-          dangerouslySetInnerHTML={{ __html: embedCode }}
-        />
-      );
-    } else {
-      renderedEmbed = (
-        <iframe
-          src={embedCode}
-          className="w-full h-full absolute inset-0"
-          allowFullScreen
-        />
-      );
-    }
-  }
-
-  if (!renderedEmbed) return null;
-
-  const getAspectRatioClass = () => {
-    switch (aspectRatio) {
-      case "16:9": return "aspect-video";
-      case "4:3": return "aspect-[4/3]";
-      case "1:1": return "aspect-square";
-      case "9:16": return "aspect-[9/16]";
-      default: return "";
-    }
-  };
-
-  const aspectClass = getAspectRatioClass();
-  const hasCustomHeight = aspectRatio === "custom" && customHeight;
-
-  return (
-    <section className="mt-6 md:mt-8">
-      {showTitle && title && (
-        <h2 className="mb-6 text-3xl font-semibold tracking-tight text-zinc-900">
-          {title}
-        </h2>
-      )}
-
-      <div 
-        className="mx-auto"
-        style={{ maxWidth: `${maxWidth}px` }}
-      >
-        <div 
-          className={`relative overflow-hidden rounded-xl bg-zinc-100 ${aspectClass}`}
-          style={hasCustomHeight ? { height: `${customHeight}px` } : undefined}
-        >
-          {renderedEmbed}
-        </div>
-      </div>
-
-      <Divider />
-    </section>
-  );
-}
-
-/* VIDEO SECTION */
-function VideoSection({
-  lang,
-  payload,
-}: {
-  lang: Lang;
-  payload: any;
-}) {
-  const title = t(lang, payload.title_en, payload.title_zh, "");
-  const videoUrl = payload.videoUrl || "";
-  const posterImage = payload.posterImage || "";
-  const autoplay = payload.autoplay || false;
-  const loop = payload.loop || false;
-  const muted = payload.muted !== false;
-  const showTitle = payload.showTitle;
-
-  if (!videoUrl) return null;
-
-  return (
-    <section className="mt-6 md:mt-8">
-      {showTitle && title && (
-        <h2 className="mb-6 text-3xl font-semibold tracking-tight text-zinc-900">
-          {title}
-        </h2>
-      )}
-
-      <div className="mx-auto max-w-4xl">
-        <div className="relative aspect-video overflow-hidden rounded-xl bg-zinc-100">
-          <video
-            src={videoUrl}
-            poster={posterImage}
-            autoPlay={autoplay}
-            loop={loop}
-            muted={muted}
-            controls
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        </div>
-      </div>
+      <GalleryClient images={galleryData.images} effect={galleryData.effect} />
 
       <Divider />
     </section>
@@ -985,6 +759,7 @@ function VideoSection({
 }
 
 /* 卡片元件 */
+
 type ProductCardProps = {
   title: string;
   subtitle: string;
@@ -1014,17 +789,13 @@ function ProductCard({
         )}
       </div>
       {title && (
-        <h3 className="mt-4 text-lg font-medium text-zinc-900">
-          {title}
-        </h3>
+        <h3 className="mt-4 text-lg font-medium text-zinc-900">{title}</h3>
       )}
       {bodyHasContent && (
         <p className="mt-1 text-sm text-zinc-600">
           {subtitle}
           {priceHint && (
-            <span className="block text-xs text-zinc-500">
-              {priceHint}
-            </span>
+            <span className="block text-xs text-zinc-500">{priceHint}</span>
           )}
         </p>
       )}
@@ -1062,13 +833,9 @@ function FactoryCard({
         )}
       </div>
       {title && (
-        <h3 className="mt-4 text-lg font-medium text-zinc-900">
-          {title}
-        </h3>
+        <h3 className="mt-4 text-lg font-medium text-zinc-900">{title}</h3>
       )}
-      {body && (
-        <p className="text-sm text-zinc-600">{body}</p>
-      )}
+      {body && <p className="text-sm text-zinc-600">{body}</p>}
     </div>
   );
 }

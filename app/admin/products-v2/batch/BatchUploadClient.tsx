@@ -10,6 +10,11 @@ interface Tag {
   name_zh?: string;
 }
 
+interface ExtraImage {
+  file: File;
+  previewUrl: string;
+}
+
 interface ProductItem {
   id: string;
   file: File;
@@ -21,30 +26,67 @@ interface ProductItem {
   newTags: string[];
   customHint?: string;
   showAllFields?: boolean; // 是否展開所有欄位
+  extraImages?: ExtraImage[]; // 額外子圖片
 }
 
 export default function BatchUploadClient() {
   const [apiKey, setApiKey] = useState("");
+  const [gptApiKey, setGptApiKey] = useState(""); // GPT API Key for translation
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [existingTags, setExistingTags] = useState<Tag[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showNewTagModal, setShowNewTagModal] = useState(false);
-  const [newTagInput, setNewTagInput] = useState({ name_zh: "", name_en: "" });
+  const [newTagInput, setNewTagInput] = useState({ name_zh: "", name_en: "", color: "#3B82F6" });
   const [currentProductForTag, setCurrentProductForTag] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [aiHint, setAiHint] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isTranslating, setIsTranslating] = useState<string | null>(null); // 正在翻譯的產品 ID
   
   // 批次數量控制
   const [maxBatchSize, setMaxBatchSize] = useState(10);
   const [unlockPassword, setUnlockPassword] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  
+  // TAG 展開控制
+  const [expandedTagProducts, setExpandedTagProducts] = useState<Set<string>>(new Set());
+  const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
+  
+  // 時間追蹤
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // 計時器更新
+  useEffect(() => {
+    if (startTime) {
+      timerRef.current = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [startTime]);
+  
+  // 格式化時間顯示
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins} 分 ${secs} 秒` : `${secs} 秒`;
+  };
 
   // 載入 API Key 從 localStorage
   useEffect(() => {
     const savedKey = localStorage.getItem("gemini_api_key");
     if (savedKey) {
       setApiKey(savedKey);
+    }
+    // 載入 GPT API Key
+    const savedGptKey = localStorage.getItem("gpt_api_key");
+    if (savedGptKey) {
+      setGptApiKey(savedGptKey);
     }
     // 檢查是否已解鎖
     const unlocked = localStorage.getItem("batch_unlocked");
@@ -69,7 +111,78 @@ export default function BatchUploadClient() {
   // 儲存 API Key
   const handleSaveApiKey = () => {
     localStorage.setItem("gemini_api_key", apiKey);
-    alert("API Key 已儲存");
+    alert("Gemini API Key 已儲存");
+  };
+
+  // 儲存 GPT API Key
+  const handleSaveGptApiKey = () => {
+    localStorage.setItem("gpt_api_key", gptApiKey);
+    alert("GPT API Key 已儲存");
+  };
+
+  // GPT 翻譯函數
+  const translateWithGPT = async (text: string, fromLang: "zh" | "en", toLang: "zh" | "en"): Promise<string> => {
+    if (!gptApiKey || !text.trim()) return "";
+    
+    const langNames = { zh: "Traditional Chinese", en: "English" };
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${gptApiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional translator for product descriptions. Translate the following text from ${langNames[fromLang]} to ${langNames[toLang]}. Keep the translation natural and suitable for e-commerce product listings. Only output the translation, nothing else.`
+          },
+          {
+            role: "user",
+            content: text
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("翻譯失敗");
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || "";
+  };
+
+  // 同步翻譯產品欄位
+  const syncTranslate = async (productId: string, field: string, value: string, sourceLang: "zh" | "en") => {
+    if (!gptApiKey || !value.trim()) return;
+    
+    setIsTranslating(productId);
+    
+    try {
+      const targetLang = sourceLang === "zh" ? "en" : "zh";
+      const targetField = field.replace(`_${sourceLang}`, `_${targetLang}`);
+      
+      const translated = await translateWithGPT(value, sourceLang, targetLang);
+      
+      if (translated) {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === productId
+              ? { ...p, productData: { ...p.productData, [targetField]: translated } }
+              : p
+          )
+        );
+      }
+    } catch (error) {
+      console.error("翻譯錯誤:", error);
+    } finally {
+      setIsTranslating(null);
+    }
   };
 
   // 解鎖大批次功能
@@ -109,9 +222,16 @@ export default function BatchUploadClient() {
       newTags: [],
       customHint: "",
       showAllFields: false,
+      extraImages: [], // 初始化為空陣列
     }));
 
     setProducts((prev) => [...prev, ...newProducts].slice(0, maxBatchSize));
+    
+    // 第一次上傳檔案時開始計時
+    if (!startTime) {
+      setStartTime(Date.now());
+    }
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -146,20 +266,44 @@ export default function BatchUploadClient() {
         throw new Error(data.error || "分析失敗");
       }
 
-      // 匹配建議標籤
+      // 匹配建議標籤（改進：分別檢查中英文是否存在）
       const suggestedTags = data.productData.suggestedTags || [];
       const matchedTags: Tag[] = [];
       const unmatchedTags: string[] = [];
 
       suggestedTags.forEach((tagName: string) => {
-        const found = existingTags.find(
+        // 先嘗試完全匹配
+        let found = existingTags.find(
           (t) =>
             t.name === tagName ||
             t.name_zh === tagName ||
             t.name_en?.toLowerCase() === tagName.toLowerCase()
         );
+        
+        // 如果沒找到，嘗試拆分中英文分別匹配
+        if (!found) {
+          // 嘗試匹配中文部分（去除括號內的英文）
+          const zhMatch = tagName.match(/^([^(（]+)/)?.[1]?.trim();
+          // 嘗試匹配英文部分（括號內的內容）
+          const enMatch = tagName.match(/[（(]([^)）]+)[)）]/)?.[1]?.trim();
+          
+          if (zhMatch) {
+            found = existingTags.find(
+              (t) => t.name === zhMatch || t.name_zh === zhMatch
+            );
+          }
+          if (!found && enMatch) {
+            found = existingTags.find(
+              (t) => t.name_en?.toLowerCase() === enMatch.toLowerCase()
+            );
+          }
+        }
+        
         if (found) {
-          matchedTags.push(found);
+          // 避免重複添加
+          if (!matchedTags.some(mt => mt.id === found!.id)) {
+            matchedTags.push(found);
+          }
         } else {
           unmatchedTags.push(tagName);
         }
@@ -197,10 +341,85 @@ export default function BatchUploadClient() {
     }
   };
 
-  // 上傳圖片到 R2
+  // 壓縮圖片到適合網頁的大小
+  const compressImage = async (
+    file: File,
+    maxWidth: number = 1920,
+    maxHeight: number = 1920,
+    quality: number = 0.85
+  ): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement("img");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      img.onload = () => {
+        let { width, height } = img;
+
+        // 計算縮放比例
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        if (!ctx) {
+          reject(new Error("無法建立 canvas context"));
+          return;
+        }
+
+        // 繪製壓縮後的圖片
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 轉換為 Blob
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("圖片壓縮失敗"));
+              return;
+            }
+
+            // 建立新的 File 物件
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+
+            console.log(
+              `圖片壓縮: ${(file.size / 1024).toFixed(1)}KB → ${(compressedFile.size / 1024).toFixed(1)}KB (${Math.round((1 - compressedFile.size / file.size) * 100)}% 減少)`
+            );
+
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+
+      img.onerror = () => reject(new Error("無法載入圖片"));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // 上傳圖片到 R2（含壓縮）
   const uploadImageToR2 = async (file: File): Promise<string> => {
+    // 先壓縮圖片
+    let fileToUpload = file;
+    
+    // 只壓縮超過 500KB 的圖片
+    if (file.size > 500 * 1024) {
+      try {
+        fileToUpload = await compressImage(file);
+      } catch (err) {
+        console.warn("圖片壓縮失敗，使用原圖上傳:", err);
+      }
+    }
+    
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileToUpload);
 
     const res = await fetch("/api/upload-image", {
       method: "POST",
@@ -216,7 +435,7 @@ export default function BatchUploadClient() {
   };
 
   // 建立新標籤
-  const createNewTag = async (name_zh: string, name_en: string): Promise<Tag> => {
+  const createNewTag = async (name_zh: string, name_en: string, color?: string): Promise<Tag> => {
     const baseSlug = name_en
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -224,12 +443,12 @@ export default function BatchUploadClient() {
       .replace(/-+/g, '-')
       .trim() || 'tag';
     
-    const slug = `${baseSlug}-${Date.now()}`;
+    const slug = baseSlug;
 
     const res = await fetch("/api/admin/tags-v2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name_zh, name_zh, name_en, slug }),
+      body: JSON.stringify({ name: name_zh, name_zh, name_en, slug, color }),
     });
 
     const data = await res.json();
@@ -259,7 +478,20 @@ export default function BatchUploadClient() {
         setExistingTags((prev) => [...prev, newTag]);
       }
 
-      // 3. 建立產品
+      // 3. 上傳額外子圖片
+      const allImageUrls = [imageUrl];
+      if (product.extraImages && product.extraImages.length > 0) {
+        for (const extra of product.extraImages) {
+          try {
+            const extraUrl = await uploadImageToR2(extra.file);
+            allImageUrls.push(extraUrl);
+          } catch (err) {
+            console.warn("額外圖片上傳失敗:", err);
+          }
+        }
+      }
+
+      // 4. 建立產品
       const sku = `MB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
       
       const {
@@ -270,9 +502,15 @@ export default function BatchUploadClient() {
         ...cleanProductData
       } = product.productData || {};
       
+      // 確保 slug 唯一：加上簡化時間戳 (MMDD-HHMM)
+      const baseSlug = cleanProductData.slug || 'product';
+      const now = new Date();
+      const timeStamp = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+      const uniqueSlug = `${baseSlug}-${timeStamp}`;
+      
       const productPayload = {
         name: cleanProductData.name_zh || cleanProductData.name_en || "未命名產品",
-        slug: cleanProductData.slug || `product-${Date.now()}`,
+        slug: uniqueSlug,
         category: cleanProductData.category || "GIFT_BOX",
         
         name_en: cleanProductData.name_en,
@@ -299,7 +537,7 @@ export default function BatchUploadClient() {
         seoDescription_zh: cleanProductData.seoDescription_zh,
         
         coverImage: imageUrl,
-        images: [imageUrl],
+        images: allImageUrls, // 包含所有圖片
         
         sku: sku,
         
@@ -344,6 +582,22 @@ export default function BatchUploadClient() {
       await uploadProduct(product);
     }
     setIsUploading(false);
+    
+    // 停止計時並顯示完成提示
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    const totalTime = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    const successCount = products.filter(p => p.status === "done").length + readyProducts.length;
+    const errorCount = products.filter(p => p.status === "error").length;
+    
+    alert(
+      `🎉 批次上架完成！\n\n` +
+      `⏱️ 總耗時：${formatTime(totalTime)}\n` +
+      `✅ 成功：${successCount} 個產品\n` +
+      (errorCount > 0 ? `❌ 失敗：${errorCount} 個產品\n` : '') +
+      `\n平均每個產品：${successCount > 0 ? formatTime(Math.round(totalTime / successCount)) : '0 秒'}`
+    );
   };
 
   // 移除產品
@@ -397,28 +651,51 @@ export default function BatchUploadClient() {
   const handleAddNewTag = async () => {
     if (!newTagInput.name_zh || !currentProductForTag) return;
 
+    // 檢查是否有重複的標籤名稱
+    const duplicateTag = existingTags.find(
+      (t) => 
+        t.name?.toLowerCase() === newTagInput.name_zh.toLowerCase() ||
+        t.name_zh?.toLowerCase() === newTagInput.name_zh.toLowerCase() ||
+        (newTagInput.name_en && t.name_en?.toLowerCase() === newTagInput.name_en.toLowerCase())
+    );
+
+    if (duplicateTag) {
+      setDuplicateWarning(`標籤「${duplicateTag.name || duplicateTag.name_zh}」已存在！請使用現有標籤或更改名稱。`);
+      return;
+    }
+
     try {
       const newTag = await createNewTag(
         newTagInput.name_zh,
-        newTagInput.name_en || newTagInput.name_zh
+        newTagInput.name_en || newTagInput.name_zh,
+        newTagInput.color
       );
       
+      // 更新 existingTags，讓所有產品都可以選擇這個新標籤
       setExistingTags((prev) => [...prev, newTag]);
       
+      // 只將標籤加到當前產品，其他產品可從 existingTags 中自行選擇
       setProducts((prev) =>
         prev.map((p) => {
-          if (p.id !== currentProductForTag) return p;
+          if (p.id === currentProductForTag) {
+            return {
+              ...p,
+              selectedTags: [...p.selectedTags, newTag],
+              newTags: p.newTags.filter((t) => t !== newTagInput.name_zh),
+            };
+          }
+          // 清除其他產品的 newTags 中相同名稱的項目（因為已建立為正式標籤）
           return {
             ...p,
-            selectedTags: [...p.selectedTags, newTag],
             newTags: p.newTags.filter((t) => t !== newTagInput.name_zh),
           };
         })
       );
 
       setShowNewTagModal(false);
-      setNewTagInput({ name_zh: "", name_en: "" });
+      setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
       setCurrentProductForTag(null);
+      setDuplicateWarning(null);
     } catch (error: any) {
       alert(error.message);
     }
@@ -649,34 +926,79 @@ export default function BatchUploadClient() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* 標題區 */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">AI 批次產品上架</h1>
-        <p className="text-gray-500 mt-1">
-          使用 Google Gemini AI 自動分析產品圖片，產生中英文產品資訊
-        </p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">AI 批次產品上架</h1>
+          <p className="text-gray-500 mt-1">
+            使用 Google Gemini AI 自動分析產品圖片，產生中英文產品資訊
+          </p>
+        </div>
+        
+        {/* 計時器顯示 */}
+        {startTime && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-right">
+            <div className="text-xs text-blue-600 font-medium">⏱️ 作業時間</div>
+            <div className="text-xl font-bold text-blue-700">{formatTime(elapsedTime)}</div>
+            <button
+              onClick={() => {
+                if (timerRef.current) clearInterval(timerRef.current);
+                setStartTime(null);
+                setElapsedTime(0);
+              }}
+              className="text-xs text-blue-500 hover:text-blue-700 mt-1"
+            >
+              重新計時
+            </button>
+          </div>
+        )}
       </div>
 
       {/* API Key 設定 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-3">Google API Key 設定</h2>
-        <div className="flex gap-3">
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="輸入您的 Google Gemini API Key"
-            className="flex-1 border rounded-lg px-4 py-2 text-sm"
-          />
-          <button
-            onClick={handleSaveApiKey}
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm"
-          >
-            儲存
-          </button>
+        <h2 className="text-lg font-semibold mb-3">🔑 API Key 設定</h2>
+        
+        {/* Gemini API Key */}
+        <div className="mb-4">
+          <label className="text-sm text-gray-600 font-medium mb-1 block">Google Gemini API Key（圖片分析用）</label>
+          <div className="flex gap-3">
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="輸入您的 Google Gemini API Key"
+              className="flex-1 border rounded-lg px-4 py-2 text-sm"
+            />
+            <button
+              onClick={handleSaveApiKey}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 text-sm"
+            >
+              儲存
+            </button>
+          </div>
         </div>
-        <p className="text-xs text-gray-400 mt-2">
-          API Key 將儲存在您的瀏覽器中，不會上傳到伺服器
-        </p>
+        
+        {/* GPT API Key */}
+        <div>
+          <label className="text-sm text-gray-600 font-medium mb-1 block">OpenAI GPT API Key（翻譯同步用）</label>
+          <div className="flex gap-3">
+            <input
+              type="password"
+              value={gptApiKey}
+              onChange={(e) => setGptApiKey(e.target.value)}
+              placeholder="輸入您的 OpenAI API Key（選填，用於編輯時自動翻譯）"
+              className="flex-1 border rounded-lg px-4 py-2 text-sm"
+            />
+            <button
+              onClick={handleSaveGptApiKey}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm"
+            >
+              儲存
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            {gptApiKey ? "✅ 已設定 GPT Key，編輯欄位時會自動同步翻譯" : "💡 設定後，編輯中文會自動翻譯成英文，反之亦然"}
+          </p>
+        </div>
       </div>
 
       {/* 批次數量設定 */}
@@ -855,27 +1177,61 @@ export default function BatchUploadClient() {
                   {/* 分析結果 */}
                   {product.productData && (
                     <div className="space-y-3">
+                      {/* 翻譯狀態提示 */}
+                      {isTranslating === product.id && (
+                        <div className="flex items-center gap-2 text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                          翻譯中...
+                        </div>
+                      )}
+                      
                       {/* 產品名稱 */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-gray-500">中文名稱</label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs text-gray-500">中文名稱</label>
+                            {gptApiKey && (
+                              <button
+                                onClick={() => syncTranslate(product.id, "name_zh", product.productData.name_zh, "zh")}
+                                disabled={isTranslating === product.id}
+                                className="text-xs text-blue-500 hover:text-blue-700"
+                                title="翻譯成英文"
+                              >
+                                → EN
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="text"
                             value={product.productData.name_zh || ""}
                             onChange={(e) =>
                               updateProductData(product.id, "name_zh", e.target.value)
                             }
+                            onBlur={(e) => gptApiKey && e.target.value && syncTranslate(product.id, "name_zh", e.target.value, "zh")}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">英文名稱</label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs text-gray-500">英文名稱</label>
+                            {gptApiKey && (
+                              <button
+                                onClick={() => syncTranslate(product.id, "name_en", product.productData.name_en, "en")}
+                                disabled={isTranslating === product.id}
+                                className="text-xs text-blue-500 hover:text-blue-700"
+                                title="翻譯成中文"
+                              >
+                                → 中
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="text"
                             value={product.productData.name_en || ""}
                             onChange={(e) =>
                               updateProductData(product.id, "name_en", e.target.value)
                             }
+                            onBlur={(e) => gptApiKey && e.target.value && syncTranslate(product.id, "name_en", e.target.value, "en")}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
                         </div>
@@ -884,24 +1240,50 @@ export default function BatchUploadClient() {
                       {/* 簡短描述 */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-xs text-gray-500">中文簡述</label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs text-gray-500">中文簡述</label>
+                            {gptApiKey && (
+                              <button
+                                onClick={() => syncTranslate(product.id, "shortDesc_zh", product.productData.shortDesc_zh, "zh")}
+                                disabled={isTranslating === product.id}
+                                className="text-xs text-blue-500 hover:text-blue-700"
+                                title="翻譯成英文"
+                              >
+                                → EN
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="text"
                             value={product.productData.shortDesc_zh || ""}
                             onChange={(e) =>
                               updateProductData(product.id, "shortDesc_zh", e.target.value)
                             }
+                            onBlur={(e) => gptApiKey && e.target.value && syncTranslate(product.id, "shortDesc_zh", e.target.value, "zh")}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">英文簡述</label>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs text-gray-500">英文簡述</label>
+                            {gptApiKey && (
+                              <button
+                                onClick={() => syncTranslate(product.id, "shortDesc_en", product.productData.shortDesc_en, "en")}
+                                disabled={isTranslating === product.id}
+                                className="text-xs text-blue-500 hover:text-blue-700"
+                                title="翻譯成中文"
+                              >
+                                → 中
+                              </button>
+                            )}
+                          </div>
                           <input
                             type="text"
                             value={product.productData.shortDesc_en || ""}
                             onChange={(e) =>
                               updateProductData(product.id, "shortDesc_en", e.target.value)
                             }
+                            onBlur={(e) => gptApiKey && e.target.value && syncTranslate(product.id, "shortDesc_en", e.target.value, "en")}
                             className="w-full border rounded px-2 py-1 text-sm"
                           />
                         </div>
@@ -921,6 +1303,81 @@ export default function BatchUploadClient() {
                           <option value="GIFT_BOX">GIFT_BOX - 禮盒</option>
                           <option value="GIFT_SET">GIFT_SET - 禮品組</option>
                         </select>
+                      </div>
+
+                      {/* 新增子圖片 */}
+                      <div className="py-2">
+                        <label className="text-xs text-gray-500 mb-2 block">
+                          📸 子圖片（可選）
+                        </label>
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {/* 已添加的子圖片預覽 */}
+                          {(product.extraImages || []).map((extra, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={extra.previewUrl}
+                                alt={`子圖 ${idx + 1}`}
+                                className="w-16 h-16 object-cover rounded border"
+                              />
+                              <button
+                                onClick={() => {
+                                  URL.revokeObjectURL(extra.previewUrl);
+                                  setProducts((prev) =>
+                                    prev.map((p) =>
+                                      p.id === product.id
+                                        ? {
+                                            ...p,
+                                            extraImages: (p.extraImages || []).filter(
+                                              (_, i) => i !== idx
+                                            ),
+                                          }
+                                        : p
+                                    )
+                                  );
+                                }}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          {/* 添加子圖片按鈕 */}
+                          <label className="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                const newExtras = files.map((file) => ({
+                                  file,
+                                  previewUrl: URL.createObjectURL(file),
+                                }));
+                                setProducts((prev) =>
+                                  prev.map((p) =>
+                                    p.id === product.id
+                                      ? {
+                                          ...p,
+                                          extraImages: [
+                                            ...(p.extraImages || []),
+                                            ...newExtras,
+                                          ],
+                                        }
+                                      : p
+                                  )
+                                );
+                                e.target.value = "";
+                              }}
+                            />
+                            <span className="text-2xl text-gray-400">+</span>
+                          </label>
+                        </div>
+                        {(product.extraImages?.length || 0) > 0 && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            已新增 {product.extraImages?.length} 張子圖片
+                          </p>
+                        )}
                       </div>
 
                       {/* 展開/收起更多欄位按鈕 */}
@@ -962,7 +1419,7 @@ export default function BatchUploadClient() {
                               key={tagName}
                               onClick={() => {
                                 setCurrentProductForTag(product.id);
-                                setNewTagInput({ name_zh: tagName, name_en: tagName });
+                                setNewTagInput({ name_zh: tagName, name_en: tagName, color: "#3B82F6" });
                                 setShowNewTagModal(true);
                               }}
                               className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs cursor-pointer hover:bg-yellow-200"
@@ -973,7 +1430,7 @@ export default function BatchUploadClient() {
                           <button
                             onClick={() => {
                               setCurrentProductForTag(product.id);
-                              setNewTagInput({ name_zh: "", name_en: "" });
+                              setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
                               setShowNewTagModal(true);
                             }}
                             className="text-gray-400 hover:text-gray-600 text-xs"
@@ -983,21 +1440,63 @@ export default function BatchUploadClient() {
                         </div>
 
                         {/* 現有標籤選擇 */}
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {existingTags
-                            .filter(
-                              (t) => !product.selectedTags.some((st) => st.id === t.id)
-                            )
-                            .slice(0, 15)
-                            .map((tag) => (
-                              <span
-                                key={tag.id}
-                                onClick={() => toggleTag(product.id, tag)}
-                                className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs cursor-pointer hover:bg-gray-200"
-                              >
-                                {tag.name_zh || tag.name}
-                              </span>
-                            ))}
+                        <div className="mt-2">
+                          {/* 標籤搜尋 */}
+                          <div className="mb-2">
+                            <input
+                              type="text"
+                              placeholder="🔍 搜尋標籤..."
+                              value={tagSearchTerms[product.id] || ""}
+                              onChange={(e) => setTagSearchTerms(prev => ({ ...prev, [product.id]: e.target.value }))}
+                              className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
+                            />
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {existingTags
+                              .filter(
+                                (t) => !product.selectedTags.some((st) => st.id === t.id)
+                              )
+                              .filter((t) => {
+                                const searchTerm = (tagSearchTerms[product.id] || "").toLowerCase();
+                                if (!searchTerm) return true;
+                                return (
+                                  (t.name_zh || "").toLowerCase().includes(searchTerm) ||
+                                  (t.name_en || "").toLowerCase().includes(searchTerm) ||
+                                  (t.name || "").toLowerCase().includes(searchTerm)
+                                );
+                              })
+                              .slice(0, expandedTagProducts.has(product.id) || tagSearchTerms[product.id] ? undefined : 10)
+                              .map((tag) => (
+                                <span
+                                  key={tag.id}
+                                  onClick={() => toggleTag(product.id, tag)}
+                                  className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs cursor-pointer hover:bg-gray-200"
+                                >
+                                  {tag.name_zh || tag.name}
+                                </span>
+                              ))}
+                          </div>
+                          {!tagSearchTerms[product.id] && existingTags.filter(t => !product.selectedTags.some(st => st.id === t.id)).length > 10 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedTagProducts(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(product.id)) {
+                                    next.delete(product.id);
+                                  } else {
+                                    next.add(product.id);
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                            >
+                              {expandedTagProducts.has(product.id) 
+                                ? "收合標籤 ▲" 
+                                : `查看更多標籤 (${existingTags.filter(t => !product.selectedTags.some(st => st.id === t.id)).length - 10} 個) ▼`}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1073,36 +1572,161 @@ export default function BatchUploadClient() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">新增標籤</h3>
+            
+            {/* 重複警告 */}
+            {duplicateWarning && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                ⚠️ {duplicateWarning}
+              </div>
+            )}
+            
             <div className="space-y-3">
               <div>
                 <label className="text-sm text-gray-600">中文名稱 *</label>
-                <input
-                  type="text"
-                  value={newTagInput.name_zh}
-                  onChange={(e) =>
-                    setNewTagInput((prev) => ({ ...prev, name_zh: e.target.value }))
-                  }
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={newTagInput.name_zh}
+                    onChange={(e) => {
+                      setNewTagInput((prev) => ({ ...prev, name_zh: e.target.value }));
+                      setDuplicateWarning(null);
+                    }}
+                    className="flex-1 border rounded px-3 py-2"
+                    placeholder="輸入中文名稱"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!gptApiKey || !newTagInput.name_zh) return;
+                      try {
+                        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${gptApiKey}`,
+                          },
+                          body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [{ 
+                              role: "user", 
+                              content: `Translate this Chinese tag name to English (keep it short, 1-3 words): ${newTagInput.name_zh}` 
+                            }],
+                            temperature: 0.3,
+                          }),
+                        });
+                        const data = await res.json();
+                        const translated = data.choices?.[0]?.message?.content?.trim() || "";
+                        if (translated) {
+                          setNewTagInput(prev => ({ ...prev, name_en: translated }));
+                        }
+                      } catch (err) {
+                        console.error("翻譯失敗:", err);
+                      }
+                    }}
+                    disabled={!gptApiKey || !newTagInput.name_zh}
+                    className="px-3 py-2 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 text-sm whitespace-nowrap"
+                    title="使用 GPT 翻譯成英文"
+                  >
+                    → EN
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="text-sm text-gray-600">英文名稱</label>
-                <input
-                  type="text"
-                  value={newTagInput.name_en}
-                  onChange={(e) =>
-                    setNewTagInput((prev) => ({ ...prev, name_en: e.target.value }))
-                  }
-                  className="w-full border rounded px-3 py-2 mt-1"
-                />
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={newTagInput.name_en}
+                    onChange={(e) => {
+                      setNewTagInput((prev) => ({ ...prev, name_en: e.target.value }));
+                      setDuplicateWarning(null);
+                    }}
+                    className="flex-1 border rounded px-3 py-2"
+                    placeholder="輸入英文名稱"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!gptApiKey || !newTagInput.name_en) return;
+                      try {
+                        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${gptApiKey}`,
+                          },
+                          body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [{ 
+                              role: "user", 
+                              content: `Translate this English tag name to Traditional Chinese (keep it short, 1-4 characters): ${newTagInput.name_en}` 
+                            }],
+                            temperature: 0.3,
+                          }),
+                        });
+                        const data = await res.json();
+                        const translated = data.choices?.[0]?.message?.content?.trim() || "";
+                        if (translated) {
+                          setNewTagInput(prev => ({ ...prev, name_zh: translated }));
+                        }
+                      } catch (err) {
+                        console.error("翻譯失敗:", err);
+                      }
+                    }}
+                    disabled={!gptApiKey || !newTagInput.name_en}
+                    className="px-3 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 text-sm whitespace-nowrap"
+                    title="使用 GPT 翻譯成中文"
+                  >
+                    → 中
+                  </button>
+                </div>
+              </div>
+              
+              {/* Slug 預覽 */}
+              <div>
+                <label className="text-sm text-gray-600">Slug（自動生成，需唯一）</label>
+                <div className="mt-1 px-3 py-2 bg-gray-50 border rounded text-sm text-gray-600 font-mono">
+                  {(newTagInput.name_en || newTagInput.name_zh || 'tag')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .trim() || 'tag'}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm text-gray-600">標籤顏色</label>
+                <div className="flex items-center gap-3 mt-1">
+                  <input
+                    type="color"
+                    value={newTagInput.color}
+                    onChange={(e) =>
+                      setNewTagInput((prev) => ({ ...prev, color: e.target.value }))
+                    }
+                    className="w-12 h-10 border rounded cursor-pointer"
+                  />
+                  <div className="flex gap-2">
+                    {["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#6B7280"].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNewTagInput((prev) => ({ ...prev, color: c }))}
+                        className={`w-8 h-8 rounded-full border-2 ${newTagInput.color === c ? "border-gray-800" : "border-transparent"}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setShowNewTagModal(false);
-                  setNewTagInput({ name_zh: "", name_en: "" });
+                  setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
                   setCurrentProductForTag(null);
+                  setDuplicateWarning(null);
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { SiteShell } from "@/components/SiteShell";
 import { useLanguage } from "../contexts/LanguageContext";
 
-const caseData = [
+// 預設靜態資料（作為 fallback）
+const defaultCaseData = [
   {
     id: 1,
     title_en: "Luxury Watch Gift Box Collection",
@@ -107,7 +108,56 @@ const caseData = [
 export default function CasePage() {
   const { lang } = useLanguage();
   const [activeStyle, setActiveStyle] = useState<"grid" | "masonry" | "minimal" | "magazine">("grid");
-  const [selectedCase, setSelectedCase] = useState<typeof caseData[0] | null>(null);
+  const [selectedCase, setSelectedCase] = useState<any>(null);
+  const [caseData, setCaseData] = useState<any[]>([]);
+  const [pageData, setPageData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // 載入頁面設定
+        const pageRes = await fetch("/api/pages/case");
+        if (pageRes.ok) {
+          const pageInfo = await pageRes.json();
+          setPageData(pageInfo);
+        }
+
+        // 載入案例資料
+        const caseRes = await fetch("/api/admin/cases");
+        if (caseRes.ok) {
+          const cases = await caseRes.json();
+          // 只顯示已發布的案例，並按精選狀態和排序排列
+          const publishedCases = cases.filter((c: any) => c.isPublished)
+            .sort((a: any, b: any) => {
+              if (a.isFeatured !== b.isFeatured) return b.isFeatured ? 1 : -1;
+              return a.order - b.order;
+            })
+            .map((c: any) => ({
+              ...c,
+              // 轉換資料格式以兼容現有組件
+              description_zh: c.desc_zh,
+              description_en: c.desc_en,
+              image: c.coverImage,
+              results_zh: [],  // CaseProject 目前沒有 results 欄位
+              results_en: [],
+              tags: []  // CaseProject 目前沒有 tags 欄位
+            }));
+          setCaseData(publishedCases.length > 0 ? publishedCases : defaultCaseData);
+        } else {
+          // 如果 API 失敗，使用預設資料
+          setCaseData(defaultCaseData);
+        }
+      } catch (error) {
+        console.error('Failed to load case data:', error);
+        setCaseData(defaultCaseData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const styles = [
     { id: "grid", name_en: "Grid Layout", name_zh: "網格佈局", icon: "▦" },
@@ -117,13 +167,26 @@ export default function CasePage() {
   ];
 
   const content = {
-    title_en: "Our Portfolio",
-    title_zh: "成功案例",
-    subtitle_en: "Explore how we've helped brands elevate their packaging and gifting experience",
-    subtitle_zh: "探索我們如何幫助品牌提升包裝與送禮體驗",
+    title_en: pageData?.title_en || "Our Portfolio",
+    title_zh: pageData?.title_zh || "成功案例",
+    subtitle_en: pageData?.desc_en || "Explore how we've helped brands elevate their packaging and gifting experience",
+    subtitle_zh: pageData?.desc_zh || "探索我們如何幫助品牌提升包裝與送禮體驗",
     viewStyle_en: "View Style:",
     viewStyle_zh: "顯示風格：",
   };
+
+  if (loading) {
+    return (
+      <SiteShell>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900 mx-auto"></div>
+            <p className="text-sm text-zinc-600">載入案例中...</p>
+          </div>
+        </div>
+      </SiteShell>
+    );
+  }
 
   return (
     <SiteShell>
@@ -183,7 +246,7 @@ export default function CasePage() {
 }
 
 // 網格佈局
-function GridLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSelect: (c: any) => void; lang: "en" | "zh" }) {
+function GridLayout({ cases, onSelect, lang }: { cases: any[]; onSelect: (c: any) => void; lang: "en" | "zh" }) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {cases.map((item, index) => (
@@ -234,7 +297,7 @@ function GridLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSelec
 }
 
 // 瀑布流佈局
-function MasonryLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSelect: (c: any) => void; lang: "en" | "zh" }) {
+function MasonryLayout({ cases, onSelect, lang }: { cases: any[]; onSelect: (c: any) => void; lang: "en" | "zh" }) {
   const columns = [
     cases.filter((_, i) => i % 2 === 0),
     cases.filter((_, i) => i % 2 === 1),
@@ -286,7 +349,7 @@ function MasonryLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSe
 }
 
 // 極簡佈局 (MUJI)
-function MinimalLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSelect: (c: any) => void; lang: "en" | "zh" }) {
+function MinimalLayout({ cases, onSelect, lang }: { cases: any[]; onSelect: (c: any) => void; lang: "en" | "zh" }) {
   return (
     <div className="space-y-20">
       {cases.map((item, index) => (
@@ -334,7 +397,7 @@ function MinimalLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSe
 }
 
 // 雜誌佈局
-function MagazineLayout({ cases, onSelect, lang }: { cases: typeof caseData; onSelect: (c: any) => void; lang: "en" | "zh" }) {
+function MagazineLayout({ cases, onSelect, lang }: { cases: any[]; onSelect: (c: any) => void; lang: "en" | "zh" }) {
   return (
     <div className="space-y-12">
       {cases.map((item, index) => {
@@ -428,7 +491,7 @@ function MagazineLayout({ cases, onSelect, lang }: { cases: typeof caseData; onS
 }
 
 // 詳細資訊 Modal
-function CaseDetailModal({ case: item, onClose, lang }: { case: typeof caseData[0]; onClose: () => void; lang: "en" | "zh" }) {
+function CaseDetailModal({ case: item, onClose, lang }: { case: any; onClose: () => void; lang: "en" | "zh" }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-2xl">

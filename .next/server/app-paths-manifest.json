@@ -1,8 +1,0 @@
-{
-  "/contact/page": "app/contact/page.js",
-  "/about/page": "app/about/page.js",
-  "/page": "app/page.js",
-  "/admin/products-v2/batch/page": "app/admin/products-v2/batch/page.js",
-  "/admin/catalog-v2/page": "app/admin/catalog-v2/page.js",
-  "/admin/images/page": "app/admin/images/page.js"
-}

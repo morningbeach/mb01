@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SiteShell } from "@/components/SiteShell";
 import { useLanguage } from "../contexts/LanguageContext";
 

@@ -149,9 +149,6 @@ export function StackCarousel({
         />
       )}
 
-      <div className="mt-4 text-center text-sm text-zinc-500">
-        卡片堆疊滑動效果
-      </div>
     </div>
   );
 }

@@ -55,6 +55,7 @@ function getSubNav(pathname: string): SubNavItem[] | null {
   ) {
     return [
       { href: "/admin/products-v2", label: "商品管理 V2" },
+      { href: "/admin/products-v2/batch", label: "🤖 AI Studio" },
       { href: "/admin/catalog-v2", label: "分類管理 V2" },
       { href: "/admin/tags-v2", label: "標籤管理 V2" },
     ];
