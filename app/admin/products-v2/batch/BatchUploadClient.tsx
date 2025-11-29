@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 
 interface Tag {
-  id: number;
+  id: string;  // cuid string from database
   name: string;
   name_en?: string;
   name_zh?: string;
@@ -469,13 +469,28 @@ export default function BatchUploadClient() {
       // 1. 上傳圖片
       const imageUrl = await uploadImageToR2(product.file);
 
-      // 2. 建立新標籤（如果有）
-      const allTagIds = [...product.selectedTags.map((t) => t.id)];
+      // 2. 建立新標籤（如果有）並收集所有 tagIds
+      const allTagIds: string[] = [];
       
+      // 從已選擇的標籤收集 id（確保是有效字串）
+      for (const t of product.selectedTags) {
+        if (t.id && typeof t.id === 'string' && t.id.trim()) {
+          allTagIds.push(t.id);
+        }
+      }
+      
+      // 建立新標籤
       for (const newTagName of product.newTags) {
-        const newTag = await createNewTag(newTagName, newTagName);
-        allTagIds.push(newTag.id);
-        setExistingTags((prev) => [...prev, newTag]);
+        if (!newTagName || !newTagName.trim()) continue;
+        try {
+          const newTag = await createNewTag(newTagName, newTagName);
+          if (newTag && newTag.id) {
+            allTagIds.push(String(newTag.id));
+            setExistingTags((prev) => [...prev, newTag]);
+          }
+        } catch (tagError) {
+          console.warn(`建立標籤「${newTagName}」失敗:`, tagError);
+        }
       }
 
       // 3. 上傳額外子圖片
@@ -541,7 +556,8 @@ export default function BatchUploadClient() {
         
         sku: sku,
         
-        tagIds: allTagIds,
+        // 過濾並確保 tagIds 為有效字串陣列
+        tagIds: allTagIds.filter(id => id && typeof id === 'string' && id.trim()),
       };
 
       const res = await fetch("/api/admin/products-v2", {
