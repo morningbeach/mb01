@@ -493,13 +493,13 @@ export default function BatchUploadClient() {
         }
       }
 
-      // 3. 上傳額外子圖片
-      const allImageUrls = [imageUrl];
+      // 3. 上傳額外子圖片（不包含封面圖）
+      const extraImageUrls: string[] = [];
       if (product.extraImages && product.extraImages.length > 0) {
         for (const extra of product.extraImages) {
           try {
             const extraUrl = await uploadImageToR2(extra.file);
-            allImageUrls.push(extraUrl);
+            extraImageUrls.push(extraUrl);
           } catch (err) {
             console.warn("額外圖片上傳失敗:", err);
           }
@@ -556,7 +556,7 @@ export default function BatchUploadClient() {
         seoDescription_zh: cleanProductData.seoDescription_zh,
         
         coverImage: imageUrl,
-        images: allImageUrls, // 包含所有圖片
+        images: extraImageUrls, // 只包含額外子圖片，不包含封面圖
         
         sku: sku,
         
