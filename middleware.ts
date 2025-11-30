@@ -19,8 +19,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. 只保護 /admin 開頭的路由
-  if (!path.startsWith("/admin")) {
+  // 2. 只保護 /admin 和 /api/admin 開頭的路由
+  const isAdminPage = path.startsWith("/admin");
+  const isAdminApi = path.startsWith("/api/admin");
+  
+  if (!isAdminPage && !isAdminApi) {
     return NextResponse.next();
   }
 
@@ -51,7 +54,16 @@ export async function middleware(req: NextRequest) {
     console.error("Session validate fetch error:", e);
   }
 
-  // 5. 驗證失敗，重導向到登入頁
+  // 5. 驗證失敗
+  // - API 路由：返回 401 JSON
+  // - 頁面：重導向到登入頁
+  if (isAdminApi) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized - Please login" },
+      { status: 401 }
+    );
+  }
+
   const loginUrl = new URL("/admin/login", req.url);
   return NextResponse.redirect(loginUrl);
 }
