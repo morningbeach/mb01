@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const { apiKey, imageUrl, prompt, model } = await request.json();
 
     if (!apiKey) {
+      console.error("[Gemini Edit] Missing API key");
       return NextResponse.json(
         { success: false, error: "請提供 Gemini API Key" },
         { status: 400 }
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!imageUrl || !prompt) {
+      console.error("[Gemini Edit] Missing imageUrl or prompt");
       return NextResponse.json(
         { success: false, error: "請提供圖片網址和提示詞" },
         { status: 400 }
@@ -23,9 +25,12 @@ export async function POST(request: NextRequest) {
 
     // 下載原始圖片
     console.log("[Gemini Edit] Fetching image:", imageUrl);
-    const imageResponse = await fetch(imageUrl);
+    const imageResponse = await fetch(imageUrl, {
+      signal: AbortSignal.timeout(30000), // 30 second timeout for image download
+    });
     if (!imageResponse.ok) {
-      throw new Error("無法下載原始圖片");
+      console.error("[Gemini Edit] Image fetch failed:", imageResponse.status, imageResponse.statusText);
+      throw new Error(`無法下載原始圖片 (HTTP ${imageResponse.status})`);
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -41,6 +46,7 @@ export async function POST(request: NextRequest) {
     console.log("[Gemini Edit] Using model:", selectedModel);
 
     // 調用 Gemini API
+    console.log("[Gemini Edit] Calling Gemini API...");
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
       {
@@ -74,13 +80,20 @@ Generate the edited image directly.`,
             responseModalities: ["image", "text"],
           },
         }),
+        signal: AbortSignal.timeout(90000), // 90 second timeout for Gemini API
       }
     );
 
     if (!geminiResponse.ok) {
-      const errorData = await geminiResponse.json();
-      console.error("[Gemini Edit] API Error:", errorData);
-      throw new Error(errorData.error?.message || "Gemini API 呼叫失敗");
+      const errorText = await geminiResponse.text();
+      console.error("[Gemini Edit] API Error:", geminiResponse.status, errorText);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        throw new Error(`Gemini API 錯誤 (HTTP ${geminiResponse.status}): ${errorText.substring(0, 200)}`);
+      }
+      throw new Error(errorData.error?.message || `Gemini API 呼叫失敗 (HTTP ${geminiResponse.status})`);
     }
 
     const geminiData = await geminiResponse.json();

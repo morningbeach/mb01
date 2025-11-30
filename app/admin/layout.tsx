@@ -1,6 +1,7 @@
 // app/admin/layout.tsx
 import type { ReactNode } from "react";
 import { AdminNav } from "./components/AdminNav";
+import GuideButton from "./components/GuideButton";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
         {children}
       </main>
+
+      {/* 系統技術文件浮動按鈕 */}
+      <GuideButton />
     </div>
   );
 }

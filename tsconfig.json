@@ -36,6 +36,7 @@
     ".next/types/**/*.ts"
 , "app/api/admin/products/_image"  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "apify"
   ]
 }

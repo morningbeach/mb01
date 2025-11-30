@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 type Lang = "en" | "zh";
 
-function t(lang: Lang, en?: string | null, zh?: string | null, fallback?: string) {
+function t(lang: Lang, en?: string | null | undefined, zh?: string | null | undefined, fallback?: string | null | undefined) {
   const v = lang === "en" ? en : zh;
   return (v && v.trim().length > 0 ? v : null) ?? fallback ?? "";
 }

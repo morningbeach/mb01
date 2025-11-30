@@ -456,3 +456,47 @@ enum TrendReportStatus {
   COMPLETED
   FAILED
 }
+
+model ContactInquiry {
+  id           String              @id @default(cuid())
+  name         String
+  email        String
+  company      String?
+  phone        String?
+  inquiryType  InquiryType         @default(GENERAL)
+  productType  String?
+  quantity     String?
+  timeline     String?
+  budget       String?
+  message      String
+  status       InquiryStatus       @default(NEW)
+  notes        String?
+  assignedTo   String?
+  source       String              @default("website")
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  repliedAt    DateTime?
+}
+
+enum InquiryType {
+  GENERAL
+  QUOTE
+  SAMPLE
+  CUSTOM_DESIGN
+  BULK_ORDER
+  PARTNERSHIP
+  COMPLAINT
+  OTHER
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  REPLIED
+  QUOTED
+  CONVERTED
+  CLOSED
+  SPAM
+}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import Image from "next/image";
 import Link from "next/link";
+import ContactForm from "@/app/contact/ContactForm";
 
 type FooterData = {
   companyInfo: {
@@ -190,6 +191,28 @@ export function SiteFooter() {
           )}
         </div>
 
+        {/* 詢價表單區塊 */}
+        <div className="mt-12 border-t border-zinc-200 pt-12">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-zinc-900 mb-2">
+                {lang === 'zh' ? '📦 立即詢價' : '📦 Request a Quote'}
+              </h3>
+              <p className="text-zinc-600">
+                {lang === 'zh' 
+                  ? '填寫表單，我們將在 24 小時內回覆您' 
+                  : 'Fill out the form and we\'ll respond within 24 hours'}
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 md:p-8 shadow-lg">
+              <ContactForm 
+                variant="compact" 
+                source="footer-form"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* 客戶 Logo 牆 */}
         <div className="mt-12 border-t border-zinc-200 pt-8">
           <h3 className="mb-6 text-center text-sm font-semibold uppercase tracking-wider text-zinc-900">
@@ -237,6 +260,7 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
+
     </footer>
   );
 }

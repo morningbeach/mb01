@@ -1,0 +1,17 @@
+[
+  {
+    "query": "packaging",
+    "pins": [],
+    "error": "SERPAPI_KEY not configured in .env.local"
+  },
+  {
+    "query": "gift box",
+    "pins": [],
+    "error": "SERPAPI_KEY not configured in .env.local"
+  },
+  {
+    "query": "eco packaging",
+    "pins": [],
+    "error": "SERPAPI_KEY not configured in .env.local"
+  }
+]

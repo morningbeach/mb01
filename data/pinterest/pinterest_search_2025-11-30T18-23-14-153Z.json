@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "totalQueries": 3,
+    "totalPins": 0,
+    "scrapedAt": "2025-11-30T18:23:14.154Z"
+  },
+  "results": [
+    {
+      "query": "packaging",
+      "pins": [],
+      "totalCount": 0,
+      "actorRunId": "lP7nPdt8wSMN1LXv1",
+      "datasetId": "YLHtgFpH5BPY9sPlr"
+    },
+    {
+      "query": "gift box",
+      "pins": [],
+      "totalCount": 0,
+      "actorRunId": "9zo0ZKIWwwHqVwF8S",
+      "datasetId": "Uwge2rW9Y2FErOFQ5"
+    },
+    {
+      "query": "eco packaging",
+      "pins": [],
+      "totalCount": 0,
+      "actorRunId": "fBbZU3bHg41qgYAZP",
+      "datasetId": "nIZhmHTqf14GyNsW0"
+    }
+  ]
+}

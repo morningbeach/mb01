@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "../app/contexts/LanguageContext";
 
 type ContactButtonsSettings = {
@@ -16,9 +17,15 @@ const defaultSettings: ContactButtonsSettings = {
 };
 
 export function FloatingQuoteButton() {
+  const pathname = usePathname();
   const { lang } = useLanguage();
   const [settings, setSettings] = useState<ContactButtonsSettings>(defaultSettings);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // 不在後台顯示
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   useEffect(() => {
     fetch("/api/contact-buttons")

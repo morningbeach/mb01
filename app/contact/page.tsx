@@ -3,6 +3,7 @@
 import { SiteShell } from "../../components/SiteShell";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useEffect, useState } from "react";
+import ContactForm from "./ContactForm";
 
 export default function ContactPage() {
   const { lang } = useLanguage();
@@ -103,79 +104,8 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Form */}
-        <div>
-          <form className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.name}
-              </label>
-              <input
-                type="text"
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.email}
-              </label>
-              <input
-                type="email"
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.company}
-              </label>
-              <input
-                type="text"
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.quantity}
-              </label>
-              <input
-                type="text"
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.timeline}
-              </label>
-              <input
-                type="text"
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">
-                {formLabels.details}
-              </label>
-              <textarea
-                rows={4}
-                className="mt-2 w-full rounded-lg border border-zinc-300 px-4 py-2.5 text-[15px] focus:border-black focus:outline-none"
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-black px-6 py-3 text-sm font-medium text-white hover:bg-zinc-800"
-            >
-              {formLabels.submit}
-            </button>
-
-            <p className="text-xs text-zinc-500">
-              {formLabels.emailNote}
-            </p>
-          </form>
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <ContactForm variant="full" source="contact-page" />
         </div>
       </section>
     </SiteShell>
