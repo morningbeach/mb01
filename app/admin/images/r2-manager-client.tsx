@@ -43,7 +43,8 @@ export function R2ManagerClient() {
     if (files.length > 0 && virtualFolders.size > 0) {
       const existingFolderPaths = new Set<string>();
       files.forEach(file => {
-        const displayKey = file.key.replace(/^uploads\//, "");
+        // 直接使用 key（不移除前綴）
+        const displayKey = file.key;
         const parts = displayKey.split("/");
         // 收集所有路徑
         for (let i = 1; i < parts.length; i++) {
@@ -115,8 +116,8 @@ export function R2ManagerClient() {
 
     // 先處理實際檔案
     files.forEach((file) => {
-      // 移除 uploads/ 前綴顯示
-      const displayKey = file.key.replace(/^uploads\//, "");
+      // 直接使用 key，不再移除前綴（讓 uploads/, AItrend/ 等都顯示為根目錄資料夾）
+      const displayKey = file.key;
       const parts = displayKey.split("/");
       let current = root;
 

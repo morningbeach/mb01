@@ -58,6 +58,14 @@ export default function BatchUploadClient() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
+  // AItrend 圖庫相關
+  const [showAItrendModal, setShowAItrendModal] = useState(false);
+  const [aitrendFolders, setAitrendFolders] = useState<string[]>([]);
+  const [selectedAItrendFolder, setSelectedAItrendFolder] = useState('');
+  const [aitrendImages, setAitrendImages] = useState<string[]>([]);
+  const [selectedAItrendImages, setSelectedAItrendImages] = useState<string[]>([]);
+  const [loadingAItrend, setLoadingAItrend] = useState(false);
+  
   // 計時器更新
   useEffect(() => {
     if (startTime) {
@@ -107,6 +115,25 @@ export default function BatchUploadClient() {
       })
       .catch(console.error);
   }, []);
+  
+  // 檢查是否有來自 trend-scanner 的待分析圖片
+  useEffect(() => {
+    const pendingAnalysis = localStorage.getItem("pending_product_analysis");
+    if (pendingAnalysis) {
+      try {
+        const data = JSON.parse(pendingAnalysis);
+        // 檢查是否在 5 分鐘內
+        if (Date.now() - data.timestamp < 5 * 60 * 1000) {
+          // 將圖片加入到產品列表並自動分析
+          handleImageUrlAnalysis(data.imageUrl, data.title);
+        }
+        // 清除 localStorage
+        localStorage.removeItem("pending_product_analysis");
+      } catch (error) {
+        console.error("解析待分析圖片錯誤:", error);
+      }
+    }
+  }, [apiKey]); // 依賴 apiKey，確保有 API Key 才執行
 
   // 儲存 API Key
   const handleSaveApiKey = () => {
@@ -236,6 +263,168 @@ export default function BatchUploadClient() {
       fileInputRef.current.value = "";
     }
   };
+  
+  // 從 URL 載入圖片並分析（用於 trend-scanner 整合）
+  const handleImageUrlAnalysis = async (imageUrl: string, title: string) => {
+    if (!apiKey) {
+      alert("請先設定 Gemini API Key");
+      return;
+    }
+    
+    try {
+      // 下載圖片並轉換為 File 對象
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], title || "image.jpg", { type: blob.type });
+      
+      const newProduct: ProductItem = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        file,
+        imageUrl,
+        status: "pending",
+        selectedTags: [],
+        newTags: [],
+        customHint: "",
+        showAllFields: false,
+        extraImages: [],
+      };
+      
+      setProducts((prev) => [newProduct, ...prev]);
+      
+      // 自動開始分析
+      setTimeout(() => {
+        analyzeImage(newProduct.id);
+      }, 500);
+      
+      // 開始計時
+      if (!startTime) {
+        setStartTime(Date.now());
+      }
+    } catch (error) {
+      console.error("載入圖片失敗:", error);
+      alert("載入圖片失敗，請確認圖片 URL 是否有效");
+    }
+  };
+  
+  // 載入 AItrend 資料夾
+  const loadAItrendFolders = async () => {
+    try {
+      const response = await fetch('/api/admin/ai-image-editor?action=folders');
+      const data = await response.json();
+      if (data.folders) {
+        setAitrendFolders(data.folders);
+        if (data.folders.length > 0) {
+          setSelectedAItrendFolder(data.folders[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading AItrend folders:', error);
+      alert('載入 AItrend 資料夾失敗');
+    }
+  };
+  
+  // 載入 AItrend 圖片
+  const loadAItrendImages = async () => {
+    if (!selectedAItrendFolder) {
+      alert('請選擇資料夾');
+      return;
+    }
+    
+    setLoadingAItrend(true);
+    try {
+      const response = await fetch(
+        `/api/admin/ai-image-editor?action=images&folder=${encodeURIComponent(selectedAItrendFolder)}`
+      );
+      const data = await response.json();
+      
+      if (data.images && data.images.length > 0) {
+        setAitrendImages(data.images);
+      } else {
+        alert('此資料夾沒有圖片');
+      }
+    } catch (error) {
+      console.error('Error loading AItrend images:', error);
+      alert('載入圖片失敗');
+    } finally {
+      setLoadingAItrend(false);
+    }
+  };
+  
+  // 切換 AItrend 圖片選擇
+  const toggleAItrendImage = (imageUrl: string) => {
+    setSelectedAItrendImages(prev =>
+      prev.includes(imageUrl)
+        ? prev.filter(url => url !== imageUrl)
+        : [...prev, imageUrl]
+    );
+  };
+  
+  // 從 AItrend 匯入選中的圖片
+  const importFromAItrend = async () => {
+    if (selectedAItrendImages.length === 0) {
+      alert('請至少選擇一張圖片');
+      return;
+    }
+    
+    if (products.length + selectedAItrendImages.length > maxBatchSize) {
+      alert(`最多只能匯入 ${maxBatchSize - products.length} 張圖片`);
+      return;
+    }
+    
+    setLoadingAItrend(true);
+    
+    try {
+      // 下載選中的圖片並轉換為 File 物件
+      const newProducts: ProductItem[] = [];
+      
+      for (const imageUrl of selectedAItrendImages) {
+        try {
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const filename = imageUrl.split('/').pop() || 'image.jpg';
+          const file = new File([blob], filename, { type: blob.type });
+          
+          newProducts.push({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+            file,
+            imageUrl: URL.createObjectURL(file),
+            status: "pending",
+            selectedTags: [],
+            newTags: [],
+            customHint: "",
+            showAllFields: false,
+            extraImages: [],
+          });
+        } catch (error) {
+          console.error(`Failed to import ${imageUrl}:`, error);
+        }
+      }
+      
+      setProducts((prev) => [...prev, ...newProducts].slice(0, maxBatchSize));
+      
+      // 第一次匯入時開始計時
+      if (!startTime) {
+        setStartTime(Date.now());
+      }
+      
+      // 關閉 modal 並重置選擇
+      setShowAItrendModal(false);
+      setSelectedAItrendImages([]);
+      alert(`成功匯入 ${newProducts.length} 張圖片`);
+    } catch (error) {
+      console.error('Error importing from AItrend:', error);
+      alert('匯入失敗');
+    } finally {
+      setLoadingAItrend(false);
+    }
+  };
+  
+  // 開啟 AItrend modal 時載入資料夾
+  useEffect(() => {
+    if (showAItrendModal && aitrendFolders.length === 0) {
+      loadAItrendFolders();
+    }
+  }, [showAItrendModal]);
 
   // AI 分析單張圖片
   const analyzeImage = async (productId: string) => {
@@ -1106,35 +1295,44 @@ export default function BatchUploadClient() {
         </div>
 
         {/* 操作按鈕 */}
-        {products.length > 0 && (
-          <div className="flex gap-3 mt-4">
+        <div className="flex gap-3 mt-4">
+          {products.length > 0 ? (
+            <>
+              <button
+                onClick={analyzeAllImages}
+                disabled={!apiKey || products.every((p) => p.status !== "pending")}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                🤖 AI 分析全部
+              </button>
+              <button
+                onClick={uploadAllProducts}
+                disabled={
+                  isUploading || products.every((p) => p.status !== "ready")
+                }
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              >
+                {isUploading ? "上架中..." : "🚀 一鍵批次上架"}
+              </button>
+              <button
+                onClick={() => {
+                  products.forEach((p) => URL.revokeObjectURL(p.imageUrl));
+                  setProducts([]);
+                }}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm"
+              >
+                清空全部
+              </button>
+            </>
+          ) : (
             <button
-              onClick={analyzeAllImages}
-              disabled={!apiKey || products.every((p) => p.status !== "pending")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              onClick={() => setShowAItrendModal(true)}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm"
             >
-              🤖 AI 分析全部
+              📁 從 AItrend 圖庫選擇
             </button>
-            <button
-              onClick={uploadAllProducts}
-              disabled={
-                isUploading || products.every((p) => p.status !== "ready")
-              }
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              {isUploading ? "上架中..." : "🚀 一鍵批次上架"}
-            </button>
-            <button
-              onClick={() => {
-                products.forEach((p) => URL.revokeObjectURL(p.imageUrl));
-                setProducts([]);
-              }}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm"
-            >
-              清空全部
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* 產品列表 */}
@@ -1800,6 +1998,127 @@ export default function BatchUploadClient() {
               >
                 解鎖
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AItrend 圖庫 Modal */}
+      {showAItrendModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b">
+              <h3 className="text-lg font-semibold mb-4">📁 從 AItrend 圖庫選擇</h3>
+              
+              {/* Folder Selection */}
+              <div className="flex gap-3">
+                <select
+                  value={selectedAItrendFolder}
+                  onChange={(e) => setSelectedAItrendFolder(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">請選擇日期資料夾</option>
+                  {aitrendFolders.map(folder => (
+                    <option key={folder} value={folder}>
+                      {folder}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={loadAItrendImages}
+                  disabled={loadingAItrend || !selectedAItrendFolder}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {loadingAItrend ? '載入中...' : '載入圖片'}
+                </button>
+              </div>
+              
+              {aitrendImages.length > 0 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-gray-600">
+                    找到 {aitrendImages.length} 張圖片
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        const allSelected = selectedAItrendImages.length === aitrendImages.length;
+                        setSelectedAItrendImages(allSelected ? [] : [...aitrendImages]);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      {selectedAItrendImages.length === aitrendImages.length ? '取消全選' : '全選'}
+                    </button>
+                    <span className="text-sm text-gray-600">
+                      已選擇: {selectedAItrendImages.length} 張
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Image Grid */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {aitrendImages.length > 0 ? (
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {aitrendImages.map((imageUrl, index) => {
+                    const isSelected = selectedAItrendImages.includes(imageUrl);
+                    return (
+                      <div
+                        key={index}
+                        className={`relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-blue-500 shadow-lg'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => toggleAItrendImage(imageUrl)}
+                      >
+                        <div className="aspect-square relative">
+                          <img
+                            src={imageUrl}
+                            alt={`Image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 py-12">
+                  請選擇資料夾並載入圖片
+                </div>
+              )}
+            </div>
+            
+            {/* Footer Actions */}
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowAItrendModal(false);
+                    setSelectedAItrendImages([]);
+                    setAitrendImages([]);
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={importFromAItrend}
+                  disabled={selectedAItrendImages.length === 0 || loadingAItrend}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {loadingAItrend ? '匯入中...' : `匯入選中的圖片 (${selectedAItrendImages.length})`}
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const prefix = searchParams.get("prefix") || "uploads/";
+    const prefix = searchParams.get("prefix") || "";  // 預設讀取所有檔案（包括 uploads/, AItrend/ 等）
 
-    // 1. 從 R2 列出所有檔案（預設從 uploads/ 開始）
+    // 1. 從 R2 列出所有檔案
     const r2Files = await listR2Objects({ prefix, maxKeys: 1000 });
 
     // 2. 從資料庫取得軟刪除標記
