@@ -506,8 +506,10 @@ export default function BatchUploadClient() {
         }
       }
 
-      // 4. 建立產品
-      const sku = `MB-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+      // 4. 建立產品 - 使用更精確的唯一識別碼
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const sku = `MB-${timestamp.toString(36).toUpperCase()}-${randomSuffix}`;
       
       const {
         suggestedTags,
@@ -517,11 +519,13 @@ export default function BatchUploadClient() {
         ...cleanProductData
       } = product.productData || {};
       
-      // 確保 slug 唯一：加上簡化時間戳 (MMDD-HHMM)
-      const baseSlug = cleanProductData.slug || 'product';
-      const now = new Date();
-      const timeStamp = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-      const uniqueSlug = `${baseSlug}-${timeStamp}`;
+      // 確保 slug 唯一：使用毫秒時間戳 + 隨機字串
+      const baseSlug = (cleanProductData.slug || 'product')
+        .toLowerCase()
+        .replace(/[^a-z0-9\u4e00-\u9fff-]/g, '-')  // 保留中文、英文、數字、連字號
+        .replace(/-+/g, '-')  // 移除多餘連字號
+        .replace(/^-|-$/g, ''); // 移除首尾連字號
+      const uniqueSlug = `${baseSlug}-${timestamp.toString(36)}-${randomSuffix.toLowerCase()}`;
       
       const productPayload = {
         name: cleanProductData.name_zh || cleanProductData.name_en || "未命名產品",

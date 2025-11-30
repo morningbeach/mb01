@@ -56,9 +56,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, product });
   } catch (error: any) {
     console.error("建立產品失敗:", error);
+    
+    // 提供更詳細的錯誤訊息
+    let errorMessage = error.message || "建立產品失敗";
+    let statusCode = 500;
+    
+    // Prisma 唯一約束錯誤
+    if (error.code === 'P2002') {
+      const field = error.meta?.target?.[0] || '欄位';
+      errorMessage = `${field} 已存在，請使用不同的值`;
+      statusCode = 400;
+    }
+    // Prisma 外鍵約束錯誤
+    else if (error.code === 'P2003') {
+      errorMessage = `關聯資料不存在（可能是無效的 tagId）`;
+      statusCode = 400;
+    }
+    // 資料驗證錯誤
+    else if (error.code === 'P2025') {
+      errorMessage = `找不到相關資料`;
+      statusCode = 400;
+    }
+    
     return NextResponse.json(
-      { success: false, message: error.message || "建立產品失敗" },
-      { status: 500 }
+      { success: false, message: errorMessage, code: error.code },
+      { status: statusCode }
     );
   }
 }
