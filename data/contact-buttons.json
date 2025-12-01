@@ -1,0 +1,21 @@
+{
+  "line": {
+    "enabled": true,
+    "url": "https://lin.ee/JRPBhOm",
+    "label_zh": "LINE 詢價",
+    "label_en": "LINE Quote"
+  },
+  "whatsapp": {
+    "enabled": true,
+    "number": "+886976189703",
+    "label_zh": "WhatsApp",
+    "label_en": "WhatsApp"
+  },
+  "email": {
+    "enabled": true,
+    "address": "morningbeachtw@gmail.com",
+    "label_zh": "Email",
+    "label_en": "Email"
+  },
+  "updatedAt": "2025-12-01T12:54:12.790Z"
+}

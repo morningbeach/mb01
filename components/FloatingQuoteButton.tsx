@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../app/contexts/LanguageContext";
+import { fireContactConversion } from "@/lib/analytics";
 
 type ContactButtonsSettings = {
   line: { enabled: boolean; url: string; label_zh: string; label_en: string };
@@ -39,15 +40,18 @@ export function FloatingQuoteButton() {
   }, []);
 
   const handleLineClick = () => {
+    fireContactConversion();
     window.open(settings.line.url, "_blank");
   };
 
   const handleWhatsAppClick = () => {
     const cleanNumber = settings.whatsapp.number.replace(/[^0-9+]/g, "");
+    fireContactConversion();
     window.open(`https://wa.me/${cleanNumber.replace("+", "")}`, "_blank");
   };
 
   const handleEmailClick = () => {
+    fireContactConversion();
     window.location.href = `mailto:${settings.email.address}`;
   };
 

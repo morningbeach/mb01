@@ -5,7 +5,17 @@ import { prisma } from "@/lib/prisma";
 const FOOTER_KEY = "footer";
 
 // 預設頁腳資料（新結構）
-const defaultFooterData = {
+function normalizeFooterData(data: any) {
+  if (!data) return data;
+  const fallbackLogos = Array.isArray(data.clientLogos) ? data.clientLogos : [];
+  return {
+    ...data,
+    clientLogosZh: Array.isArray(data.clientLogosZh) ? data.clientLogosZh : fallbackLogos,
+    clientLogosEn: Array.isArray(data.clientLogosEn) ? data.clientLogosEn : fallbackLogos,
+  };
+}
+
+const defaultFooterData = normalizeFooterData({
   id: "main-footer",
   companyInfo: {
     taiwan: {
@@ -29,7 +39,8 @@ const defaultFooterData = {
     mobile: "0963581855",
     email: "morningbeachtw@gmail.com"
   },
-  clientLogos: [],
+  clientLogosZh: [],
+  clientLogosEn: [],
   qrCodes: {
     line: {
       enabled: true,
@@ -52,7 +63,7 @@ const defaultFooterData = {
     instagram: "",
     facebook: ""
   }
-};
+});
 
 export async function GET() {
   try {
@@ -61,7 +72,7 @@ export async function GET() {
     });
 
     if (setting) {
-      return NextResponse.json({ success: true, footer: setting.value });
+      return NextResponse.json({ success: true, footer: normalizeFooterData(setting.value) });
     }
 
     // 如果資料庫沒有，返回預設資料
@@ -89,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     // 添加更新時間
     const dataToSave = {
-      ...footerData,
+      ...normalizeFooterData(footerData),
       updatedAt: new Date().toISOString()
     };
 

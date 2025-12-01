@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { fireContactConversion } from "@/lib/analytics";
 
 type FormData = {
   name: string;
@@ -64,6 +65,7 @@ export default function ContactForm({ variant = "full", source = "website", onSu
       const data = await res.json();
 
       if (data.success) {
+        fireContactConversion();
         setSuccess(true);
         setFormData({
           name: "",
