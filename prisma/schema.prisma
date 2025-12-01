@@ -7,6 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// 網站設定（頁腳、聯絡按鈕等全站設定）
+model SiteSetting {
+  id        String   @id @default("main")
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Product {
   id                String         @id @default(cuid())
   slug              String         @unique

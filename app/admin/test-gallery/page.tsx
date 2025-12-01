@@ -502,10 +502,31 @@ function ImagePickerModal({
   const [selected, setSelected] = useState<any[]>(currentSelection);
 
   useEffect(() => {
-    fetch("/api/images")
+    fetch("/api/admin/images?prefix=uploads/")
       .then((res) => res.json())
       .then((data) => {
-        setAllImages(data.images || []);
+        const files = data.files || [];
+        // 過濾已刪除並按時間排序
+        const sorted = files
+          .filter((f: any) => !f.isDeleted)
+          .sort((a: any, b: any) => {
+            const aTime = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+            const bTime = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+            return bTime - aTime;
+          });
+        // 轉換為圖片格式
+        const images = sorted.map((file: any) => {
+          const parts = file.key.split("/");
+          const filename = parts.pop() ?? file.key;
+          return {
+            id: file.key,
+            url: file.url,
+            label: filename,
+            title: filename,
+            subtitle: "",
+          };
+        });
+        setAllImages(images);
         setLoading(false);
       });
   }, []);

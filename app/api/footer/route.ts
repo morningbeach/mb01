@@ -1,57 +1,71 @@
 // app/api/footer/route.ts - 前台 API
 import { NextResponse } from "next/server";
-import { promises as fs } from 'fs';
-import { join } from 'path';
+import { prisma } from "@/lib/prisma";
 
-const FOOTER_FILE_PATH = join(process.cwd(), 'data', 'footer.json');
+const FOOTER_KEY = "footer";
 
-// 預設頁腳資料
+// 預設頁腳資料（新結構）
 const defaultFooterData = {
   id: "main-footer",
   companyInfo: {
     taiwan: {
       name: "明日島嶼有限公司",
+      nameEn: "Morning Beach Co., Ltd.",
       taxId: "89188386"
     },
     china: {
-      name: "天玎纸品包装有限公司"
+      name: "天玎纸品包装有限公司",
+      nameEn: "Tianding Paper Packaging Co., Ltd."
     }
   },
   addresses: {
     taiwan: "台灣高雄市左營區立大路377巷6弄3號 (來訪請先預約)",
-    china: "广东省深圳市龙岗区平湖镇峨公岭湖田路16号盈冠工业园1栋3楼"
+    taiwanEn: "No. 3, Aly. 6, Ln. 377, Lida Rd., Zuoying Dist., Kaohsiung City, Taiwan (By appointment only)",
+    china: "广东省深圳市龙岗区平湖镇峨公岭湖田路16号盈冠工业园1栋3楼",
+    chinaEn: "3F, Building 1, Yingguan Industrial Park, No.16 Hutian Road, Egongling, Pinghu Town, Longgang District, Shenzhen, Guangdong, China"
   },
   contact: {
     phone: ["(07)3450928"],
     mobile: "0963581855",
     email: "morningbeachtw@gmail.com"
   },
-  clients: [
-    "碳佐麻里", "斑鳩的窩", "鮮乳坊", "喫茶小舖", "老牛皮La New", 
-    "91app", "四皇國際有限公司", "誠品生活", "迪卡儂", "薰衣草森林",
-    "新北市政府文化局", "余靜萍工作室有限公司", "統一棒球隊股份有限公司"
-  ],
-  qrCode: {
-    enabled: true,
-    url: "https://lin.ee/JRPBhOm",
-    imageUrl: "https://img.mbpack.co/uploads/homepage/1764300510856-73b4be9a.png",
-    description: "掃碼加 LINE 好友"
+  clientLogos: [],
+  qrCodes: {
+    line: {
+      enabled: true,
+      url: "https://lin.ee/JRPBhOm",
+      imageUrl: "https://img.mbpack.co/uploads/1764581109210-2d829e59.png",
+      description: "掃碼加 LINE 好友",
+      descriptionEn: "Scan to add LINE friend"
+    },
+    whatsapp: {
+      enabled: true,
+      url: "https://wa.me/886963581855",
+      imageUrl: "",
+      description: "掃碼聯絡 WhatsApp",
+      descriptionEn: "Scan to contact via WhatsApp"
+    }
   },
   socialLinks: {
-    line: "https://lin.ee/JRPBhOm"
+    youtube: "",
+    pinterest: "",
+    instagram: "",
+    facebook: ""
   }
 };
 
 export async function GET() {
   try {
-    try {
-      const fileContent = await fs.readFile(FOOTER_FILE_PATH, 'utf-8');
-      const footerData = JSON.parse(fileContent);
-      return NextResponse.json({ success: true, footer: footerData });
-    } catch (error) {
-      // 如果檔案不存在，返回預設資料
-      return NextResponse.json({ success: true, footer: defaultFooterData });
+    const setting = await prisma.siteSetting.findUnique({
+      where: { key: FOOTER_KEY }
+    });
+
+    if (setting) {
+      return NextResponse.json({ success: true, footer: setting.value });
     }
+
+    // 如果資料庫沒有，返回預設資料
+    return NextResponse.json({ success: true, footer: defaultFooterData });
   } catch (error) {
     console.error("載入頁腳資料失敗:", error);
     return NextResponse.json(

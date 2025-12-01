@@ -3,7 +3,6 @@
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import Link from "next/link";
 import Image from "next/image";
-import { DisplayModeToggle } from "./DisplayModeToggle";
 import { useRef, useMemo } from "react";
 
 // 雙語文字輔助函數
@@ -16,14 +15,12 @@ export function CatalogPageClient({
   node,
   breadcrumbs,
   displayMode,
-  currentPath,
   products = [],
   childrenWithProducts = [],
 }: {
   node: any;
   breadcrumbs: any[];
   displayMode: string;
-  currentPath: string;
   products?: any[];
   childrenWithProducts?: any[];
 }) {
@@ -57,11 +54,6 @@ export function CatalogPageClient({
             </span>
           ))}
       </nav>
-
-      {/* 展示模式切換器 - 流式佈局時隱藏 */}
-      {!isStreamLayout && (
-        <DisplayModeToggle currentMode={displayMode} currentPath={currentPath} />
-      )}
 
       {/* 主要內容 */}
       <div className="mt-8">

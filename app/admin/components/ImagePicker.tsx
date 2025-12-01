@@ -49,10 +49,37 @@ export default function ImagePicker({
   const loadImages = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/images?limit=200");
+      // 使用 admin API 取得完整圖片列表並按最新時間排序
+      const res = await fetch("/api/admin/images?prefix=uploads/");
       if (!res.ok) throw new Error("Failed to fetch images");
       const data = await res.json();
-      setImages(data.images || []);
+      
+      // 轉換格式並排序（新的在前）
+      const files = data.files || [];
+      const sorted = files
+        .filter((f: any) => !f.isDeleted)
+        .sort((a: any, b: any) => {
+          const aTime = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+          const bTime = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+          return bTime - aTime;
+        });
+      
+      const images: ImageRecord[] = sorted.map((file: any) => {
+        const parts = file.key.split("/");
+        const filename = parts.pop() ?? file.key;
+        const folder = parts.length > 1 ? parts.slice(1).join("/") : (parts[0] || "root");
+        return {
+          id: file.key,
+          url: file.url,
+          alt: filename,
+          title: filename,
+          folder: folder || "root",
+          width: null,
+          height: null,
+        };
+      });
+      
+      setImages(images);
     } catch (error) {
       console.error("載入圖片失敗:", error);
     } finally {

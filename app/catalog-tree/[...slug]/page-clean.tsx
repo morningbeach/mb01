@@ -6,10 +6,8 @@ import { CatalogPageClient } from "./CatalogPageClient";
 
 export default async function TreeCatalogPage({
   params,
-  searchParams,
 }: {
   params: { slug: string[] };
-  searchParams: { displayMode?: string };
 }) {
   
   // 取得最後一個 slug（當前節點）
@@ -53,8 +51,7 @@ export default async function TreeCatalogPage({
     },
   });
 
-  // 允許前台臨時切換展示模式（未來會移除）
-  const displayMode = searchParams.displayMode || currentNode.displayMode;
+  const displayMode = currentNode.displayMode;
 
   return (
     <SiteShell>
@@ -62,7 +59,6 @@ export default async function TreeCatalogPage({
         node={currentNode}
         breadcrumbs={breadcrumbs}
         displayMode={displayMode}
-        currentPath={params.slug.join('/')}
       />
     </SiteShell>
   );

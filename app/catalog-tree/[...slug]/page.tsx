@@ -6,10 +6,8 @@ import { CatalogPageClient } from "./CatalogPageClient";
 
 export default async function TreeCatalogPage({
   params,
-  searchParams,
 }: {
   params: { slug: string[] };
-  searchParams: { displayMode?: string };
 }) {
   
   // 取得最後一個 slug（當前節點）
@@ -192,7 +190,6 @@ export default async function TreeCatalogPage({
         node={effectiveNode}
         breadcrumbs={breadcrumbs}
         displayMode={displayMode}
-        currentPath={params.slug.join('/')}
         products={products}
         childrenWithProducts={childrenWithProducts}
       />

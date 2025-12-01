@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { GalleryShowcase } from "@/app/admin/test-gallery/components/GalleryShowcase";
 
@@ -18,6 +18,40 @@ type Section = {
   payload: any;
 };
 
+type AlbumImageItem = {
+  storageKey: string;
+  url: string;
+  title?: string;
+  subtitle?: string;
+  imageId?: string;
+};
+
+type LibraryImageOption = {
+  id: string;
+  url: string;
+  label: string;
+  folder?: string;
+  size?: number;
+  lastModified?: string;
+};
+
+const mapAlbumItems = (items: any[] = []): AlbumImageItem[] => {
+  return items.map((item: any, index: number) => {
+    const image = item.image || item;
+    const storageKey = image?.storageKey || image?.url || `image-${index}`;
+    return {
+      storageKey,
+      url: image?.url || "",
+      title:
+        image?.title ||
+        image?.storageKey?.split("/").pop() ||
+        `Image ${index + 1}`,
+      subtitle: image?.alt || "",
+      imageId: image?.id,
+    };
+  });
+};
+
 export default function GalleryEditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -28,6 +62,12 @@ export default function GalleryEditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showCreateAlbum, setShowCreateAlbum] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState<any | null>(null);
+  const [albumImages, setAlbumImages] = useState<AlbumImageItem[]>([]);
+  const [albumImagesLoading, setAlbumImagesLoading] = useState(false);
+  const [albumImagesDirty, setAlbumImagesDirty] = useState(false);
+  const [albumImagesSaving, setAlbumImagesSaving] = useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   // Form state
   const [title_zh, setTitleZh] = useState("");
@@ -72,6 +112,130 @@ export default function GalleryEditorPage() {
     } catch (error) {
       console.error("Failed to load data:", error);
       setLoading(false);
+    }
+  };
+
+  const fetchAlbumDetails = async (targetAlbumId: string) => {
+    if (!targetAlbumId) {
+      setSelectedAlbum(null);
+      setAlbumImages([]);
+      setAlbumImagesDirty(false);
+      return;
+    }
+
+    setAlbumImagesLoading(true);
+    try {
+      const response = await fetch(`/api/admin/albums/${targetAlbumId}`);
+      if (!response.ok) throw new Error("Failed to fetch album");
+      const data = await response.json();
+      if (!data.album) throw new Error("Album not found");
+
+      setSelectedAlbum(data.album);
+      setAlbumImages(mapAlbumItems(data.album.items || []));
+      setAlbumImagesDirty(false);
+    } catch (error) {
+      console.error("Failed to load album details:", error);
+      alert("載入相簿圖片失敗，請稍後再試");
+      setSelectedAlbum(null);
+      setAlbumImages([]);
+    } finally {
+      setAlbumImagesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!albumId) {
+      setSelectedAlbum(null);
+      setAlbumImages([]);
+      setAlbumImagesDirty(false);
+      return;
+    }
+    fetchAlbumDetails(albumId);
+  }, [albumId]);
+
+  const moveAlbumImage = (fromIndex: number, toIndex: number) => {
+    setAlbumImages((prev) => {
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= prev.length ||
+        toIndex >= prev.length
+      ) {
+        return prev;
+      }
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      setAlbumImagesDirty(true);
+      return next;
+    });
+  };
+
+  const removeAlbumImage = (index: number) => {
+    setAlbumImages((prev) => {
+      if (index < 0 || index >= prev.length) return prev;
+      const next = prev.filter((_, idx) => idx !== index);
+      setAlbumImagesDirty(true);
+      return next;
+    });
+  };
+
+  const addAlbumImages = (imagesToAdd: LibraryImageOption[]) => {
+    if (!imagesToAdd || imagesToAdd.length === 0) return;
+    setAlbumImages((prev) => {
+      const existing = new Set(prev.map((img) => img.storageKey));
+      const additions = imagesToAdd
+        .filter((img) => !existing.has(img.id))
+        .map((img) => ({
+          storageKey: img.id,
+          url: img.url,
+          title: img.label,
+          subtitle: img.folder || "",
+        }));
+      if (additions.length === 0) return prev;
+      setAlbumImagesDirty(true);
+      return [...prev, ...additions];
+    });
+  };
+
+  const handleSaveAlbumImages = async () => {
+    if (!albumId) return;
+    if (albumImages.length === 0) {
+      alert("請至少保留一張圖片");
+      return;
+    }
+
+    setAlbumImagesSaving(true);
+    try {
+      const payload = {
+        images: albumImages.map((img, index) => ({
+          imageId: img.storageKey,
+          position: index,
+        })),
+      };
+
+      const response = await fetch(`/api/admin/albums/${albumId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("更新相簿圖片失敗");
+      }
+
+      const data = await response.json();
+      if (data.album) {
+        setSelectedAlbum(data.album);
+        setAlbumImages(mapAlbumItems(data.album.items || []));
+        setAlbumImagesDirty(false);
+      }
+    } catch (error) {
+      console.error("Failed to save album images:", error);
+      alert("儲存相簿圖片失敗，請稍後再試");
+    } finally {
+      setAlbumImagesSaving(false);
     }
   };
 
@@ -234,6 +398,116 @@ export default function GalleryEditorPage() {
           )}
         </div>
 
+        {albumId && (
+          <div className="rounded-lg border border-zinc-200 bg-white p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900">
+                  圖片清單管理
+                </h2>
+                <p className="text-sm text-zinc-500">
+                  調整順序、移除或加入新的圖片。
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowImagePicker(true)}
+                  className="rounded-lg border border-green-500 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
+                >
+                  ➕ 新增圖片
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fetchAlbumDetails(albumId)}
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                >
+                  重新載入相簿
+                </button>
+              </div>
+            </div>
+
+            {albumImagesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
+              </div>
+            ) : albumImages.length === 0 ? (
+              <div className="rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 p-10 text-center text-sm text-zinc-600">
+                此相簿沒有圖片，請加入圖片。
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {albumImages.map((img, index) => (
+                  <li
+                    key={`${img.storageKey}-${index}`}
+                    className="flex items-center gap-4 rounded-lg border border-zinc-200 p-3"
+                  >
+                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md bg-zinc-100">
+                      {img.url ? (
+                        <img src={img.url} alt={img.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-xs text-zinc-500">無預覽</span>
+                      )}
+                    </div>
+                    <div className="w-10 text-center text-xs font-semibold text-zinc-500">
+                      #{index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-zinc-900">{img.title}</p>
+                      <p className="text-xs text-zinc-500 break-all">{img.storageKey}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveAlbumImage(index, index - 1)}
+                        disabled={index === 0}
+                        className="rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 disabled:opacity-40"
+                      >
+                        ↑ 上移
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveAlbumImage(index, index + 1)}
+                        disabled={index === albumImages.length - 1}
+                        className="rounded-md border border-zinc-300 px-2 py-1 text-xs text-zinc-700 disabled:opacity-40"
+                      >
+                        ↓ 下移
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeAlbumImage(index)}
+                        className="rounded-md border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                      >
+                        ✕ 移除
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-sm text-zinc-500">
+                {albumImagesDirty ? (
+                  <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-800">
+                    尚未儲存
+                  </span>
+                ) : (
+                  <span className="text-zinc-400">已與相簿同步</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveAlbumImages}
+                disabled={!albumImagesDirty || albumImagesSaving}
+                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-400"
+              >
+                {albumImagesSaving ? "儲存中..." : "儲存圖片排序"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 展示效果 */}
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-lg font-semibold text-zinc-900">
@@ -306,7 +580,11 @@ export default function GalleryEditorPage() {
               即時預覽
             </h2>
             <div className="rounded-lg bg-zinc-50 p-4">
-              <GalleryPreview albumId={albumId} effect={effect} />
+              <GalleryPreview
+                images={albumImages}
+                effect={effect}
+                loading={albumImagesLoading}
+              />
             </div>
           </div>
         )}
@@ -340,11 +618,233 @@ export default function GalleryEditorPage() {
           }}
         />
       )}
+
+      {/* Image Picker for existing album */}
+      {showImagePicker && (
+        <ImagePickerModal
+          existingKeys={new Set(albumImages.map((img) => img.storageKey))}
+          onClose={() => setShowImagePicker(false)}
+          onConfirm={(images) => {
+            addAlbumImages(images);
+            setShowImagePicker(false);
+          }}
+        />
+      )}
     </main>
   );
 }
 
 // Quick Album Creator Component
+
+function ImagePickerModal({
+  existingKeys,
+  onClose,
+  onConfirm,
+}: {
+  existingKeys: Set<string>;
+  onClose: () => void;
+  onConfirm: (images: LibraryImageOption[]) => void;
+}) {
+  const [allImages, setAllImages] = useState<LibraryImageOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetch("/api/admin/images?prefix=")
+      .then((res) => res.json())
+      .then((data) => {
+        const files = data.files || [];
+        const normalized: LibraryImageOption[] = files.map((file: any) => {
+          const parts = file.key.split("/");
+          const filename = parts.pop() || file.key;
+          return {
+            id: file.key,
+            url: file.url,
+            label: filename,
+            folder: parts.join("/") || "root",
+            size: file.size,
+            lastModified: file.lastModified,
+          };
+        });
+        normalized.sort((a, b) => {
+          const aTs = a.lastModified ? Date.parse(a.lastModified) : 0;
+          const bTs = b.lastModified ? Date.parse(b.lastModified) : 0;
+          return bTs - aTs;
+        });
+        setAllImages(normalized);
+      })
+      .catch((error) => {
+        console.error("Failed to load images:", error);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredImages = useMemo(() => {
+    if (!searchText.trim()) return allImages;
+    const keyword = searchText.toLowerCase();
+    return allImages.filter(
+      (img) =>
+        img.label.toLowerCase().includes(keyword) ||
+        (img.folder && img.folder.toLowerCase().includes(keyword))
+    );
+  }, [allImages, searchText]);
+
+  const toggleSelect = (img: LibraryImageOption) => {
+    if (existingKeys.has(img.id)) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(img.id)) {
+        next.delete(img.id);
+      } else {
+        next.add(img.id);
+      }
+      return next;
+    });
+  };
+
+  const handleConfirm = () => {
+    if (selectedIds.size === 0) {
+      alert("請先選擇要加入的圖片");
+      return;
+    }
+    const selectedImages = allImages.filter((img) => selectedIds.has(img.id));
+    onConfirm(selectedImages);
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-zinc-200 p-5">
+          <div>
+            <h2 className="text-lg font-semibold text-zinc-900">從圖片庫新增</h2>
+            <p className="text-sm text-zinc-500">
+              已在相簿內的圖片會顯示為不可選取狀態。
+            </p>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 hover:bg-zinc-100">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="border-b border-zinc-100 bg-zinc-50 px-5 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <input
+              type="search"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="搜尋檔名或資料夾"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+            />
+            <div className="text-sm text-zinc-600">
+              已選擇 {selectedIds.size} 張
+            </div>
+          </div>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-5">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-3">
+              {filteredImages.map((img) => {
+                const isExisting = existingKeys.has(img.id);
+                const isSelected = selectedIds.has(img.id);
+                return (
+                  <button
+                    key={img.id}
+                    type="button"
+                    disabled={isExisting}
+                    onClick={() => toggleSelect(img)}
+                    className={`relative aspect-square overflow-hidden rounded-lg border-2 text-left transition-all ${
+                      isExisting
+                        ? "cursor-not-allowed border-zinc-200 opacity-40"
+                        : isSelected
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : "border-zinc-200 hover:border-zinc-300"
+                    }`}
+                  >
+                    <img src={img.url} alt={img.label} className="h-full w-full object-cover" />
+                    <div className="absolute left-1 right-1 top-1 rounded bg-black/40 px-1 text-[10px] font-medium text-white">
+                      {img.folder}
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-[10px] text-white">
+                      <div className="flex justify-between">
+                        <span>{formatFileSize(img.size)}</span>
+                        <span>{formatDateLabel(img.lastModified)}</span>
+                      </div>
+                    </div>
+                    {isExisting && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs font-semibold text-white">
+                        已在相簿
+                      </div>
+                    )}
+                    {isSelected && !isExisting && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20">
+                        <div className="rounded-full bg-blue-500 p-1">
+                          <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+
+              {filteredImages.length === 0 && (
+                <div className="col-span-4 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 py-10 text-center text-sm text-zinc-500">
+                  找不到符合的圖片
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-zinc-200 p-5">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            加入所選圖片
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function formatFileSize(bytes?: number | null) {
+  if (!bytes || bytes <= 0) return "-";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
+
+function formatDateLabel(iso?: string | null) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("zh-TW", {
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
 function QuickAlbumCreator({
   onClose,
   onSuccess,
@@ -359,15 +859,40 @@ function QuickAlbumCreator({
   const [allImages, setAllImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
-    fetch("/api/images")
+    fetch("/api/admin/images?prefix=")
       .then((res) => res.json())
       .then((data) => {
-        setAllImages(data.images || []);
+        const files = data.files || [];
+        const normalized = files.map((file: any) => {
+          const segments = file.key.split("/");
+          const filename = segments.pop() || file.key;
+          return {
+            id: file.key,
+            url: file.url,
+            label: filename,
+            folder: segments.join("/") || "root",
+            size: file.size ?? null,
+            lastModified: file.lastModified ?? null,
+            modifiedTs: file.lastModified ? Date.parse(file.lastModified) : 0,
+          };
+        });
+        normalized.sort((a: any, b: any) => (b.modifiedTs || 0) - (a.modifiedTs || 0));
+        setAllImages(normalized);
         setLoading(false);
       });
   }, []);
+
+  const filteredImages = useMemo(() => {
+    if (!searchText.trim()) return allImages;
+    const keyword = searchText.toLowerCase();
+    return allImages.filter((img) =>
+      img.label.toLowerCase().includes(keyword) ||
+      (img.folder && img.folder.toLowerCase().includes(keyword))
+    );
+  }, [allImages, searchText]);
 
   const toggleImage = (img: any) => {
     setSelectedImages((prev) => {
@@ -497,23 +1022,32 @@ function QuickAlbumCreator({
 
           {/* 圖片選擇 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-zinc-700">
-              選擇圖片 ({selectedImages.length} 張已選)
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label className="text-sm font-medium text-zinc-700">
+                選擇圖片 ({selectedImages.length} 張已選)
+              </label>
+              <input
+                type="search"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="輸入檔名或資料夾"
+                className="w-48 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
+              />
+            </div>
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-900"></div>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-3 max-h-96 overflow-y-auto rounded-lg border border-zinc-200 p-3">
-                {allImages.map((img) => {
+                {filteredImages.map((img) => {
                   const isSelected = selectedImages.find((i) => i.id === img.id);
                   return (
                     <button
                       key={img.id}
                       type="button"
                       onClick={() => toggleImage(img)}
-                      className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                      className={`relative aspect-square overflow-hidden rounded-lg border-2 text-left transition-all ${
                         isSelected
                           ? "border-blue-500 ring-2 ring-blue-200"
                           : "border-zinc-200 hover:border-zinc-300"
@@ -524,6 +1058,15 @@ function QuickAlbumCreator({
                         alt={img.label}
                         className="h-full w-full object-cover"
                       />
+                      <div className="absolute left-1 right-1 top-1 rounded bg-black/40 px-1 text-[10px] font-medium text-white">
+                        {img.folder}
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-[10px] text-white">
+                        <div className="flex justify-between">
+                          <span>{formatFileSize(img.size)}</span>
+                          <span>{formatDateLabel(img.lastModified)}</span>
+                        </div>
+                      </div>
                       {isSelected && (
                         <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20">
                           <div className="rounded-full bg-blue-500 p-1">
@@ -536,6 +1079,12 @@ function QuickAlbumCreator({
                     </button>
                   );
                 })}
+
+                {filteredImages.length === 0 && (
+                  <div className="col-span-4 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 py-10 text-center text-sm text-zinc-500">
+                    找不到符合的圖片，試試其他關鍵字
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -562,35 +1111,15 @@ function QuickAlbumCreator({
 }
 
 // Gallery Preview Component
-function GalleryPreview({ albumId, effect }: { albumId: string; effect: string }) {
-  const [images, setImages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadAlbum = async () => {
-      try {
-        const response = await fetch(`/api/admin/albums/${albumId}`);
-        const data = await response.json();
-        if (data.album) {
-          const albumImages = data.album.items.map((item: any) => ({
-            id: item.image.id,
-            url: item.image.url,
-            label: item.image.title || data.album.name,
-            title: item.image.title || data.album.name,
-            subtitle: item.image.alt || "",
-          }));
-          setImages(albumImages);
-        }
-      } catch (error) {
-        console.error("Failed to load album:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAlbum();
-  }, [albumId]);
-
+function GalleryPreview({
+  images,
+  effect,
+  loading,
+}: {
+  images: AlbumImageItem[];
+  effect: string;
+  loading: boolean;
+}) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -599,7 +1128,7 @@ function GalleryPreview({ albumId, effect }: { albumId: string; effect: string }
     );
   }
 
-  if (images.length === 0) {
+  if (!images || images.length === 0) {
     return (
       <div className="rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 p-12 text-center">
         <p className="text-sm text-zinc-600">此相簿沒有圖片</p>
@@ -607,10 +1136,13 @@ function GalleryPreview({ albumId, effect }: { albumId: string; effect: string }
     );
   }
 
-  return (
-    <GalleryShowcase 
-      images={images} 
-      selectedEffect={effect}
-    />
-  );
+  const showcaseImages = images.map((img, index) => ({
+    id: img.storageKey || `preview-${index}`,
+    url: img.url,
+    label: img.title || `Image ${index + 1}`,
+    title: img.title || `Image ${index + 1}`,
+    subtitle: img.subtitle || "",
+  }));
+
+  return <GalleryShowcase images={showcaseImages} selectedEffect={effect} />;
 }
