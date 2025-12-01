@@ -12,6 +12,7 @@ const mainNav = [
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/pages", label: "Pages" },
   { href: "/admin/images", label: "Images" },
+  { href: "/admin/contact-buttons", label: "Contact Buttons" },
 ];
 
 type SubNavItem = { href: string; label: string };
