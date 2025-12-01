@@ -828,7 +828,11 @@ export default function FooterEditorPage() {
               )}
 
               {footerData.clientLogos.length < 10 && (
-                <ImagePicker onChange={(url) => addClientLogo(url)} />
+                <ImagePicker 
+                  onChange={(url) => addClientLogo(url)} 
+                  folder="footerlogo"
+                  showUpload
+                />
               )}
             </div>
           </div>

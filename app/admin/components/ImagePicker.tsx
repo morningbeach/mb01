@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 interface ImagePickerProps {
@@ -9,6 +9,9 @@ interface ImagePickerProps {
   multiple?: boolean; // 是否多選
   onMultiChange?: (urls: string[]) => void;
   multiValue?: string[]; // 多選的當前值
+  folder?: string; // 限制只顯示特定資料夾（例如 "footerlogo"）
+  uploadFolder?: string; // 上傳目標資料夾（例如 "uploads/footerlogo"）
+  showUpload?: boolean; // 是否顯示上傳功能
 }
 
 interface ImageRecord {
@@ -27,12 +30,17 @@ export default function ImagePicker({
   multiple = false,
   onMultiChange,
   multiValue = [],
+  folder,
+  uploadFolder,
+  showUpload = false,
 }: ImagePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<string[]>(multiValue);
-  const [selectedFolder, setSelectedFolder] = useState<string>("all");
+  const [selectedFolder, setSelectedFolder] = useState<string>(folder || "all");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 載入圖片列表
   useEffect(() => {
@@ -49,8 +57,9 @@ export default function ImagePicker({
   const loadImages = async () => {
     setLoading(true);
     try {
-      // 使用 admin API 取得完整圖片列表並按最新時間排序
-      const res = await fetch("/api/admin/images?prefix=uploads/");
+      // 根據 folder 參數決定要載入的路徑
+      const prefix = folder ? `uploads/${folder}/` : "uploads/";
+      const res = await fetch(`/api/admin/images?prefix=${encodeURIComponent(prefix)}`);
       if (!res.ok) throw new Error("Failed to fetch images");
       const data = await res.json();
       
@@ -67,13 +76,13 @@ export default function ImagePicker({
       const images: ImageRecord[] = sorted.map((file: any) => {
         const parts = file.key.split("/");
         const filename = parts.pop() ?? file.key;
-        const folder = parts.length > 1 ? parts.slice(1).join("/") : (parts[0] || "root");
+        const folderPath = parts.length > 1 ? parts.slice(1).join("/") : (parts[0] || "root");
         return {
           id: file.key,
           url: file.url,
           alt: filename,
           title: filename,
-          folder: folder || "root",
+          folder: folderPath || "root",
           width: null,
           height: null,
         };
@@ -84,6 +93,52 @@ export default function ImagePicker({
       console.error("載入圖片失敗:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 上傳圖片
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const file = files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // 使用指定的上傳資料夾（API 會自動加上 uploads/ 前綴）
+      // 如果有 uploadFolder 使用它，否則使用 folder，都沒有就上傳到根目錄
+      const targetFolder = uploadFolder || folder || "";
+      if (targetFolder) {
+        formData.append("folder", targetFolder);
+      }
+
+      const res = await fetch("/api/admin/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      const data = await res.json();
+      if (data.url) {
+        // 重新載入圖片列表
+        await loadImages();
+        // 如果是單選模式，直接選中上傳的圖片
+        if (!multiple && onChange) {
+          onChange(data.url);
+          setIsOpen(false);
+        }
+      }
+    } catch (error) {
+      console.error("上傳失敗:", error);
+      alert("上傳失敗，請重試");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -168,17 +223,49 @@ export default function ImagePicker({
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-lg font-semibold">
                   {multiple ? "選擇圖片（多選）" : "選擇圖片"}
+                  {folder && <span className="text-sm font-normal text-gray-500 ml-2">📁 {folder}</span>}
                 </h3>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* 上傳按鈕 */}
+                  {showUpload && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUpload}
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 text-sm flex items-center gap-1"
+                      >
+                        {uploading ? (
+                          <>
+                            <span className="animate-spin">⏳</span>
+                            上傳中...
+                          </>
+                        ) : (
+                          <>
+                            <span>📤</span>
+                            上傳圖片
+                          </>
+                        )}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               
-              {/* 資料夾過濾 */}
-              {folders.length > 1 && (
+              {/* 資料夾過濾 - 只有在沒有指定 folder 時才顯示 */}
+              {!folder && folders.length > 1 && (
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => setSelectedFolder("all")}
@@ -190,17 +277,17 @@ export default function ImagePicker({
                   >
                     全部 ({images.length})
                   </button>
-                  {folders.map(folder => (
+                  {folders.map(folderName => (
                     <button
-                      key={folder}
-                      onClick={() => setSelectedFolder(folder)}
+                      key={folderName}
+                      onClick={() => setSelectedFolder(folderName)}
                       className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                        selectedFolder === folder
+                        selectedFolder === folderName
                           ? "bg-blue-500 text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      📁 {folder} ({images.filter(img => (img.folder || "root") === folder).length})
+                      📁 {folderName} ({images.filter(img => (img.folder || "root") === folderName).length})
                     </button>
                   ))}
                 </div>

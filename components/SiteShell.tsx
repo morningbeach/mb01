@@ -180,8 +180,20 @@ function MobileMenu({
 // Language Switcher Component
 // ========================
 function LanguageSwitcher() {
-  const { lang, setLang } = useLanguage();
+  const { lang, setLang, isTaiwan } = useLanguage();
 
+  // 境外用戶：只顯示英文，不顯示切換按鈕
+  if (!isTaiwan) {
+    return (
+      <div className="flex items-center gap-1 rounded-full border border-zinc-300 p-0.5">
+        <span className="px-2.5 py-1 text-xs font-medium bg-zinc-900 text-white rounded-full">
+          EN
+        </span>
+      </div>
+    );
+  }
+
+  // 台灣境內：顯示完整切換按鈕
   return (
     <div className="flex items-center gap-1 rounded-full border border-zinc-300 p-0.5">
       <LanguageButton

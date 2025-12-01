@@ -13,10 +13,35 @@ const PUBLIC_ADMIN_PATHS = [
 
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
+  const response = NextResponse.next();
+
+  // ========================================
+  // 地區偵測：台灣境內顯示中文，境外強制英文
+  // ========================================
+  // Vercel 會自動設定 x-vercel-ip-country header
+  // Cloudflare 會設定 cf-ipcountry header
+  const country = 
+    req.headers.get("x-vercel-ip-country") || 
+    req.headers.get("cf-ipcountry") || 
+    req.geo?.country || 
+    "";
+  
+  const isTaiwan = country.toUpperCase() === "TW";
+  
+  // 設定地區 cookie（供前端讀取）
+  // 只有在非 admin 路徑時設定（避免干擾 admin session）
+  if (!path.startsWith("/admin") && !path.startsWith("/api/admin")) {
+    response.cookies.set("geo-region", isTaiwan ? "TW" : "INTL", {
+      httpOnly: false, // 前端需要讀取
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24, // 24 小時
+    });
+  }
 
   // 1. 檢查是否為公開路徑（不需要驗證）
   if (PUBLIC_ADMIN_PATHS.some((p) => path === p || path.startsWith(p + "/"))) {
-    return NextResponse.next();
+    return response;
   }
 
   // 2. 只保護 /admin 和 /api/admin 開頭的路由
@@ -24,7 +49,7 @@ export async function middleware(req: NextRequest) {
   const isAdminApi = path.startsWith("/api/admin");
   
   if (!isAdminPage && !isAdminApi) {
-    return NextResponse.next();
+    return response;
   }
 
   // 3. 只在 production 或設定 ADMIN_PROTECT=1 時強制驗證
@@ -32,7 +57,7 @@ export async function middleware(req: NextRequest) {
     process.env.NODE_ENV === "production" ||
     process.env.ADMIN_PROTECT === "1";
   if (!enforce) {
-    return NextResponse.next();
+    return response;
   }
 
   // 4. 驗證 session cookie
@@ -47,7 +72,7 @@ export async function middleware(req: NextRequest) {
     if (res.ok) {
       const data = await res.json();
       if (data?.valid) {
-        return NextResponse.next();
+        return response;
       }
     }
   } catch (e) {
@@ -69,6 +94,14 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // 匹配 /admin 和 /api/admin 路徑
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  // 匹配所有路徑（用於地區偵測），排除靜態資源
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
