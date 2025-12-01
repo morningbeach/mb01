@@ -28,8 +28,8 @@ function getCookie(name: string): string | null {
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [region, setRegion] = useState<Region>("TW"); // 預設台灣
-  const [lang, setLangState] = useState<Language>("zh");
+  const [region, setRegion] = useState<Region>("INTL"); // 預設境外（英文）
+  const [lang, setLangState] = useState<Language>("en"); // 預設英文
   const [initialized, setInitialized] = useState(false);
 
   // 初始化時讀取地區 cookie
@@ -38,15 +38,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const geoRegion = getCookie("geo-region");
       console.log("[GeoRegion] Cookie value:", geoRegion); // 除錯用
       
-      if (geoRegion === "INTL") {
-        setRegion("INTL");
-        setLangState("en"); // 境外強制英文
-      } else {
-        // TW 或沒有 cookie（預設台灣）
+      if (geoRegion === "TW") {
+        // 偵測到台灣 → 顯示中文，可切換
         setRegion("TW");
         if (!initialized) {
-          setLangState("zh"); // 只在初始化時設定，之後允許用戶切換
+          setLangState("zh"); // 台灣預設中文
         }
+      } else {
+        // INTL 或沒有 cookie → 預設境外，強制英文
+        setRegion("INTL");
+        setLangState("en"); // 境外強制英文
       }
       setInitialized(true);
     };
@@ -80,8 +81,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    // 提供後備值而不是拋出錯誤
-    return { lang: "zh" as Language, setLang: () => {}, region: "TW" as Region, isTaiwan: true };
+    // 提供後備值：預設英文（境外）
+    return { lang: "en" as Language, setLang: () => {}, region: "INTL" as Region, isTaiwan: false };
   }
   return context;
 }

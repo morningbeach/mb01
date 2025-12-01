@@ -27,9 +27,8 @@ export async function middleware(req: NextRequest) {
     "";
   
   // 台灣 = TW，其他地區或無法偵測 = 視為境外
-  // 注意：本地開發時 req.geo 可能為空，預設當作台灣處理方便測試
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const isTaiwan = country.toUpperCase() === "TW" || (isDevelopment && !country);
+  // 只有明確偵測到 TW 才視為台灣，其他一律視為境外（包括本地開發）
+  const isTaiwan = country.toUpperCase() === "TW";
   
   // 設定地區 cookie（供前端讀取）
   // 所有路徑都設定，確保前端能讀取
