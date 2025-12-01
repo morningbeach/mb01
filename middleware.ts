@@ -18,26 +18,28 @@ export async function middleware(req: NextRequest) {
   // ========================================
   // 地區偵測：台灣境內顯示中文，境外強制英文
   // ========================================
-  // Vercel 會自動設定 x-vercel-ip-country header
-  // Cloudflare 會設定 cf-ipcountry header
+  // Vercel Edge Runtime 會提供 req.geo 物件
+  // 也可以透過 header 取得（備用）
   const country = 
+    req.geo?.country ||
     req.headers.get("x-vercel-ip-country") || 
     req.headers.get("cf-ipcountry") || 
-    req.geo?.country || 
     "";
   
-  const isTaiwan = country.toUpperCase() === "TW";
+  // 台灣 = TW，其他地區或無法偵測 = 視為境外
+  // 注意：本地開發時 req.geo 可能為空，預設當作台灣處理方便測試
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isTaiwan = country.toUpperCase() === "TW" || (isDevelopment && !country);
   
   // 設定地區 cookie（供前端讀取）
-  // 只有在非 admin 路徑時設定（避免干擾 admin session）
-  if (!path.startsWith("/admin") && !path.startsWith("/api/admin")) {
-    response.cookies.set("geo-region", isTaiwan ? "TW" : "INTL", {
-      httpOnly: false, // 前端需要讀取
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24, // 24 小時
-    });
-  }
+  // 所有路徑都設定，確保前端能讀取
+  response.cookies.set("geo-region", isTaiwan ? "TW" : "INTL", {
+    httpOnly: false, // 前端需要讀取
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24, // 24 小時
+    path: "/", // 確保所有路徑都能存取
+  });
 
   // 1. 檢查是否為公開路徑（不需要驗證）
   if (PUBLIC_ADMIN_PATHS.some((p) => path === p || path.startsWith(p + "/"))) {
