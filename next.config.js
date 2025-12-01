@@ -56,6 +56,15 @@ const nextConfig = {
       ],
     },
   },
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/catalog/facebook.csv",
+        destination: "/api/catalog/facebook",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

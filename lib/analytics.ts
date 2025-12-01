@@ -1,5 +1,6 @@
 const GOOGLE_ADS_CONTACT_CONVERSION = "AW-16682749587/yrKJCKbG6JsaEJOd-pI-";
 const GOOGLE_ADS_EXTERNAL_CONVERSION = "AW-16682749587/QTWHCLb1kcobEJOd-pI-";
+const META_PIXEL_CONTACT_EVENT = "Contact";
 
 export function fireContactConversion(sendTo: string = GOOGLE_ADS_CONTACT_CONVERSION) {
   if (typeof window === "undefined") return;
@@ -28,4 +29,16 @@ export function reportExternalConversion(url?: string, value = 1, currency = "TW
   return true;
 }
 
-export { GOOGLE_ADS_CONTACT_CONVERSION, GOOGLE_ADS_EXTERNAL_CONVERSION };
+export function fireMetaContactEvent(eventName: string = META_PIXEL_CONTACT_EVENT) {
+  if (typeof window === "undefined") return;
+  const fbq = (window as any).fbq;
+  if (typeof fbq === "function") {
+    fbq("track", eventName);
+  }
+}
+
+export {
+  GOOGLE_ADS_CONTACT_CONVERSION,
+  GOOGLE_ADS_EXTERNAL_CONVERSION,
+  META_PIXEL_CONTACT_EVENT,
+};

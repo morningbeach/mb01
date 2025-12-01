@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { fireContactConversion } from "@/lib/analytics";
+import { fireContactConversion, fireMetaContactEvent } from "@/lib/analytics";
 
 type FormData = {
   name: string;
@@ -66,6 +66,7 @@ export default function ContactForm({ variant = "full", source = "website", onSu
 
       if (data.success) {
         fireContactConversion();
+        fireMetaContactEvent("Lead");
         setSuccess(true);
         setFormData({
           name: "",
