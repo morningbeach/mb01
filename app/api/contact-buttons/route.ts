@@ -1,9 +1,6 @@
 // app/api/contact-buttons/route.ts - 前台取得聯絡按鈕設定
 import { NextResponse } from "next/server";
-import { promises as fs } from 'fs';
-import { join } from 'path';
-
-const SETTINGS_FILE_PATH = join(process.cwd(), 'data', 'contact-buttons.json');
+import { prisma } from "@/lib/prisma";
 
 // 預設聯絡按鈕設定
 const defaultSettings = {
@@ -30,19 +27,18 @@ const defaultSettings = {
 
 export async function GET() {
   try {
-    try {
-      const fileContent = await fs.readFile(SETTINGS_FILE_PATH, 'utf-8');
-      const settings = JSON.parse(fileContent);
-      return NextResponse.json({ success: true, settings });
-    } catch (error) {
-      // 如果檔案不存在，返回預設資料
-      return NextResponse.json({ success: true, settings: defaultSettings });
+    const setting = await prisma.siteSetting.findUnique({
+      where: { key: "contact-buttons" },
+    });
+
+    if (setting && setting.value) {
+      return NextResponse.json({ success: true, settings: setting.value });
     }
+
+    return NextResponse.json({ success: true, settings: defaultSettings });
   } catch (error) {
     console.error("載入聯絡按鈕設定失敗:", error);
-    return NextResponse.json(
-      { success: false, error: "載入失敗" },
-      { status: 500 }
-    );
+    // 發生錯誤時返回預設值，避免前台壞掉
+    return NextResponse.json({ success: true, settings: defaultSettings });
   }
 }

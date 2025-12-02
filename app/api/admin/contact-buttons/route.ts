@@ -1,19 +1,6 @@
 // app/api/admin/contact-buttons/route.ts - 後台管理聯絡按鈕設定
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from 'fs';
-import { join } from 'path';
-
-const SETTINGS_FILE_PATH = join(process.cwd(), 'data', 'contact-buttons.json');
-
-// 確保目錄存在
-async function ensureDataDirectory() {
-  const dataDir = join(process.cwd(), 'data');
-  try {
-    await fs.access(dataDir);
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-}
+import { prisma } from "@/lib/prisma";
 
 // 預設聯絡按鈕設定
 const defaultSettings = {
@@ -40,16 +27,15 @@ const defaultSettings = {
 
 export async function GET() {
   try {
-    await ensureDataDirectory();
-    
-    try {
-      const fileContent = await fs.readFile(SETTINGS_FILE_PATH, 'utf-8');
-      const settings = JSON.parse(fileContent);
-      return NextResponse.json({ success: true, settings });
-    } catch (error) {
-      // 如果檔案不存在，返回預設資料
-      return NextResponse.json({ success: true, settings: defaultSettings });
+    const setting = await prisma.siteSetting.findUnique({
+      where: { key: "contact-buttons" },
+    });
+
+    if (setting && setting.value) {
+      return NextResponse.json({ success: true, settings: setting.value });
     }
+
+    return NextResponse.json({ success: true, settings: defaultSettings });
   } catch (error) {
     console.error("載入聯絡按鈕設定失敗:", error);
     return NextResponse.json(
@@ -77,8 +63,11 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString()
     };
 
-    await ensureDataDirectory();
-    await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    await prisma.siteSetting.upsert({
+      where: { key: "contact-buttons" },
+      update: { value: dataToSave },
+      create: { key: "contact-buttons", value: dataToSave },
+    });
 
     return NextResponse.json({ 
       success: true, 
