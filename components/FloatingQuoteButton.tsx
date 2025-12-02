@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../app/contexts/LanguageContext";
-import { fireContactConversion, fireMetaContactEvent } from "@/lib/analytics";
+import { fireContactConversion, fireMetaContactEvent, fireGTMEvent } from "@/lib/analytics";
 
 type ContactButtonsSettings = {
   line: { enabled: boolean; url: string; label_zh: string; label_en: string };
@@ -40,21 +40,39 @@ export function FloatingQuoteButton() {
   }, []);
 
   const handleLineClick = () => {
+    console.log("GTM event contact_click", { channel: "line" });
     fireContactConversion();
     fireMetaContactEvent("Lead");
+    fireGTMEvent("contact_click", {
+      channel: "line",
+      label: settings.line.label_zh,
+      DLV: "line",
+    });
     window.open(settings.line.url, "_blank");
   };
 
   const handleWhatsAppClick = () => {
     const cleanNumber = settings.whatsapp.number.replace(/[^0-9+]/g, "");
+    console.log("GTM event contact_click", { channel: "whatsapp" });
     fireContactConversion();
     fireMetaContactEvent("Lead");
+    fireGTMEvent("contact_click", {
+      channel: "whatsapp",
+      label: settings.whatsapp.label_zh,
+      DLV: "whatsapp",
+    });
     window.open(`https://wa.me/${cleanNumber.replace("+", "")}`, "_blank");
   };
 
   const handleEmailClick = () => {
+    console.log("GTM event contact_click", { channel: "email" });
     fireContactConversion();
     fireMetaContactEvent("Lead");
+    fireGTMEvent("contact_click", {
+      channel: "email",
+      label: settings.email.label_zh,
+      DLV: "email",
+    });
     window.location.href = `mailto:${settings.email.address}`;
   };
 

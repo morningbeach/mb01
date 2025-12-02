@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { fireContactConversion, fireMetaContactEvent } from "@/lib/analytics";
+import { fireContactConversion, fireMetaContactEvent, fireGTMEvent } from "@/lib/analytics";
 
 type FormData = {
   name: string;
@@ -65,8 +65,16 @@ export default function ContactForm({ variant = "full", source = "website", onSu
       const data = await res.json();
 
       if (data.success) {
+        console.log("GTM event form_submit", {
+          form_id: source === "footer" ? "footer_form" : "contact_page_form",
+          inquiry_type: formData.inquiryType,
+        });
         fireContactConversion();
         fireMetaContactEvent("Lead");
+        fireGTMEvent("form_submit", { 
+          form_id: source === "footer" ? "footer_form" : "contact_page_form",
+          inquiry_type: formData.inquiryType 
+        });
         setSuccess(true);
         setFormData({
           name: "",

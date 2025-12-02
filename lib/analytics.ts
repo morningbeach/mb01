@@ -37,6 +37,15 @@ export function fireMetaContactEvent(eventName: string = META_PIXEL_CONTACT_EVEN
   }
 }
 
+export function fireGTMEvent(eventName: string, params: Record<string, any> = {}) {
+  if (typeof window === "undefined") return;
+  const dataLayer = (window as any).dataLayer || [];
+  dataLayer.push({
+    event: eventName,
+    ...params,
+  });
+}
+
 export {
   GOOGLE_ADS_CONTACT_CONVERSION,
   GOOGLE_ADS_EXTERNAL_CONVERSION,
