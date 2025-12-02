@@ -99,6 +99,21 @@ export default function PackagingExplorerV2() {
   
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  
+  // 篩選面板開啟時鎖定背景滾動
+  useEffect(() => {
+    if (mobileFilterOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [mobileFilterOpen]);
 
   // 載入維度資料
   const loadDimensions = useCallback(async () => {
@@ -589,19 +604,24 @@ export default function PackagingExplorerV2() {
             
             {/* 右側：篩選 + OR/AND + 數量 */}
             <div className="flex items-center gap-2">
-              {/* 篩選按鈕 */}
+              {/* 超明顯的篩選按鈕 */}
               <button
                 onClick={() => setMobileFilterOpen(true)}
                 className={`
-                  flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm transition-all
+                  flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm
                   ${selectedTags.size > 0 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+                    ? 'bg-blue-600 text-white shadow-blue-200' 
+                    : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
                   }
                 `}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                {selectedTags.size > 0 && <span>{selectedTags.size}</span>}
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>{lang === 'zh' ? '篩選' : 'Filter'}</span>
+                {selectedTags.size > 0 && (
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded-md text-xs">
+                    {selectedTags.size}
+                  </span>
+                )}
               </button>
               
               {/* OR/AND 切換 */}
@@ -657,54 +677,60 @@ export default function PackagingExplorerV2() {
         <AnimatePresence>
           {mobileFilterOpen && (
             <>
-              {/* 背景遮罩 */}
+              {/* 背景遮罩 - 點擊關閉 */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileFilterOpen(false)}
-                className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                className="lg:hidden fixed inset-0 bg-black/60 z-40"
               />
               
-              {/* 篩選面板 - 支援滑動關閉 */}
+              {/* 篩選面板 - 支援向下滑動關閉 */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0, bottom: 0.5 }}
+                dragElastic={{ top: 0, bottom: 0.8 }}
                 onDragEnd={(_, info) => {
-                  // 向下滑動超過 100px 或速度夠快就關閉
-                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                  // 向下滑動超過 80px 或速度夠快就關閉
+                  if (info.offset.y > 80 || info.velocity.y > 300) {
                     setMobileFilterOpen(false);
                   }
                 }}
-                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[85vh] flex flex-col touch-none"
+                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] flex flex-col"
+                style={{ touchAction: 'none' }}
               >
-                {/* 拖曳提示條 - 可拖曳區域 */}
-                <div className="flex justify-center py-3 cursor-grab active:cursor-grabbing">
-                  <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+                {/* 拖曳提示條 - 大且明顯 */}
+                <div 
+                  className="flex justify-center py-4 cursor-grab active:cursor-grabbing"
+                >
+                  <div className="w-14 h-1.5 bg-gray-400 rounded-full" />
                 </div>
                 
                 {/* 標題列 */}
                 <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 text-lg">
                     {lang === 'zh' ? '篩選條件' : 'Filters'}
                   </h3>
                   {selectedTags.size > 0 && (
                     <button
                       onClick={clearAllTags}
-                      className="text-sm text-blue-600"
+                      className="text-sm text-blue-600 font-medium"
                     >
                       {lang === 'zh' ? '清除全部' : 'Clear'}
                     </button>
                   )}
                 </div>
                 
-                {/* 篩選內容 */}
-                <div className="flex-1 overflow-y-auto touch-auto">
+                {/* 篩選內容 - 可滾動，滾動到頂部時繼續向下滑會關閉面板 */}
+                <div 
+                  className="flex-1 overflow-y-auto overscroll-contain"
+                  style={{ touchAction: 'pan-y' }}
+                >
                   {dimensions.map((dimension) => {
                     const Icon = iconMap[dimension.icon || 'Package'] || Package;
                     const isExpanded = expandedDimensions.has(dimension.slug);
@@ -713,7 +739,7 @@ export default function PackagingExplorerV2() {
                       <div key={dimension.id} className="border-b border-gray-100">
                         <button
                           onClick={() => toggleDimension(dimension.slug)}
-                          className="w-full flex items-center justify-between px-4 py-3 active:bg-gray-50"
+                          className="w-full flex items-center justify-between px-4 py-3.5 active:bg-gray-50"
                         >
                           <div className="flex items-center gap-2">
                             <Icon className="w-4 h-4 text-gray-400" />
@@ -747,9 +773,9 @@ export default function PackagingExplorerV2() {
                                   key={tag.id}
                                   onClick={() => toggleTag(tag.slug)}
                                   className={`
-                                    px-3 py-2 rounded-xl text-sm transition-all
+                                    px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all
                                     ${isSelected
-                                      ? 'bg-blue-600 text-white'
+                                      ? 'bg-blue-600 text-white shadow-sm'
                                       : 'bg-gray-100 text-gray-700 active:bg-gray-200'
                                     }
                                   `}
@@ -770,11 +796,11 @@ export default function PackagingExplorerV2() {
                   })}
                 </div>
                 
-                {/* 底部按鈕 - 固定 */}
-                <div className="px-4 py-3 border-t border-gray-100 bg-white safe-area-bottom">
+                {/* 底部按鈕 - 固定且醒目 */}
+                <div className="px-4 py-4 border-t border-gray-100 bg-white safe-area-bottom">
                   <button
                     onClick={() => setMobileFilterOpen(false)}
-                    className="w-full py-3.5 bg-gray-900 text-white rounded-xl font-medium text-base"
+                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-base shadow-lg"
                   >
                     {lang === 'zh' 
                       ? `查看 ${products.length} 個產品` 
