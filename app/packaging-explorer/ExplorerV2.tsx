@@ -561,9 +561,9 @@ export default function PackagingExplorerV2() {
       <div className="min-h-screen bg-gray-50/50">
         {/* ==================== 手機版頂部欄 ==================== */}
         <div className="lg:hidden sticky top-[56px] z-30 bg-white shadow-sm">
-          {/* 第一行：類別 + 數量 */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
-            {/* 類別切換 - 緊湊版 */}
+          {/* 單層：類別 + 篩選 + OR/AND + 數量 */}
+          <div className="flex items-center justify-between px-3 py-2">
+            {/* 左側：類別切換 */}
             <div className="flex gap-1">
               {categories.filter(c => !c.disabled).map((cat) => {
                 const Icon = cat.icon;
@@ -587,88 +587,65 @@ export default function PackagingExplorerV2() {
               })}
             </div>
             
-            {/* 數量顯示 */}
-            <span className="text-sm text-gray-500">
-              <span className="font-semibold text-gray-900">{products.length}</span>
-              <span className="text-gray-400"> {lang === 'zh' ? '件' : ''}</span>
-            </span>
-          </div>
-          
-          {/* 第二行：快速篩選標籤 (最常用的前8個) */}
-          <div className="px-3 py-2 overflow-x-auto scrollbar-hide">
-            <div className="flex gap-1.5 items-center">
-              {/* 更多篩選按鈕 */}
+            {/* 右側：篩選 + OR/AND + 數量 */}
+            <div className="flex items-center gap-2">
+              {/* 篩選按鈕 */}
               <button
                 onClick={() => setMobileFilterOpen(true)}
                 className={`
-                  shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm border transition-all
+                  flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm transition-all
                   ${selectedTags.size > 0 
-                    ? 'bg-blue-600 text-white border-blue-600' 
-                    : 'bg-white text-gray-600 border-gray-200 active:bg-gray-50'
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-600 active:bg-gray-200'
                   }
                 `}
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
-                {selectedTags.size > 0 ? (
-                  <span>{selectedTags.size}</span>
-                ) : (
-                  <span>{lang === 'zh' ? '篩選' : 'Filter'}</span>
-                )}
+                {selectedTags.size > 0 && <span>{selectedTags.size}</span>}
               </button>
               
-              {/* 分隔線 */}
-              <div className="w-px h-5 bg-gray-200 shrink-0" />
+              {/* OR/AND 切換 */}
+              <div className="flex items-center text-xs bg-gray-100 rounded-lg p-0.5">
+                <button
+                  onClick={() => setFilterMode('any')}
+                  className={`px-2 py-1 rounded-md transition-colors ${filterMode === 'any' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400'}`}
+                >
+                  OR
+                </button>
+                <button
+                  onClick={() => setFilterMode('all')}
+                  className={`px-2 py-1 rounded-md transition-colors ${filterMode === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400'}`}
+                >
+                  AND
+                </button>
+              </div>
               
-              {/* 快速標籤 - 取前8個有產品數的標籤 */}
-              {dimensions
-                .flatMap(d => d.tags)
-                .filter(t => (t.productCount || 0) > 0)
-                .sort((a, b) => (b.productCount || 0) - (a.productCount || 0))
-                .slice(0, 8)
-                .map(tag => {
-                  const isSelected = selectedTags.has(tag.slug);
-                  return (
-                    <button
-                      key={tag.slug}
-                      onClick={() => toggleTag(tag.slug)}
-                      className={`
-                        shrink-0 px-2.5 py-1.5 rounded-lg text-sm transition-all whitespace-nowrap
-                        ${isSelected 
-                          ? 'bg-gray-900 text-white' 
-                          : 'bg-gray-100 text-gray-600 active:bg-gray-200'
-                        }
-                      `}
-                    >
-                      {lang === 'zh' ? tag.name_zh : tag.name_en}
-                    </button>
-                  );
-                })
-              }
+              {/* 數量 */}
+              <span className="text-sm text-gray-500 tabular-nums">
+                {products.length}
+              </span>
             </div>
           </div>
           
-          {/* 已選標籤提示條 - 只在選了標籤時顯示 */}
+          {/* 已選標籤條 - 只在選了標籤時顯示 */}
           {selectedTags.size > 0 && (
-            <div className="flex items-center justify-between px-3 py-1.5 bg-blue-50 border-t border-blue-100">
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">
-                {Array.from(selectedTags).map(slug => {
-                  const tag = dimensions.flatMap(d => d.tags).find(t => t.slug === slug);
-                  return tag ? (
-                    <span
-                      key={slug}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs whitespace-nowrap"
-                    >
-                      {lang === 'zh' ? tag.name_zh : tag.name_en}
-                      <button onClick={() => toggleTag(slug)} className="hover:text-blue-900">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ) : null;
-                })}
-              </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border-t border-blue-100 overflow-x-auto scrollbar-hide">
+              {Array.from(selectedTags).map(slug => {
+                const tag = dimensions.flatMap(d => d.tags).find(t => t.slug === slug);
+                return tag ? (
+                  <button
+                    key={slug}
+                    onClick={() => toggleTag(slug)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-lg text-sm whitespace-nowrap"
+                  >
+                    {lang === 'zh' ? tag.name_zh : tag.name_en}
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : null;
+              })}
               <button
                 onClick={clearAllTags}
-                className="shrink-0 text-xs text-blue-600 font-medium"
+                className="shrink-0 px-2 py-1 text-sm text-blue-600 font-medium whitespace-nowrap"
               >
                 {lang === 'zh' ? '清除' : 'Clear'}
               </button>
@@ -676,7 +653,7 @@ export default function PackagingExplorerV2() {
           )}
         </div>
 
-        {/* ==================== 手機版篩選面板（底部彈出） ==================== */}
+        {/* ==================== 手機版篩選面板（底部彈出，可滑動關閉） ==================== */}
         <AnimatePresence>
           {mobileFilterOpen && (
             <>
@@ -689,41 +666,33 @@ export default function PackagingExplorerV2() {
                 className="lg:hidden fixed inset-0 bg-black/50 z-40"
               />
               
-              {/* 篩選面板 */}
+              {/* 篩選面板 - 支援滑動關閉 */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[85vh] flex flex-col"
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.5 }}
+                onDragEnd={(_, info) => {
+                  // 向下滑動超過 100px 或速度夠快就關閉
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                    setMobileFilterOpen(false);
+                  }
+                }}
+                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[85vh] flex flex-col touch-none"
               >
-                {/* 拖曳提示條 */}
-                <div className="flex justify-center py-2">
-                  <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                {/* 拖曳提示條 - 可拖曳區域 */}
+                <div className="flex justify-center py-3 cursor-grab active:cursor-grabbing">
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
                 </div>
                 
                 {/* 標題列 */}
                 <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-gray-900">
-                      {lang === 'zh' ? '篩選' : 'Filter'}
-                    </h3>
-                    {/* OR/AND 切換 */}
-                    <div className="flex items-center gap-1 text-xs bg-gray-100 rounded-lg p-0.5">
-                      <button
-                        onClick={() => setFilterMode('any')}
-                        className={`px-2 py-1 rounded-md transition-colors ${filterMode === 'any' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
-                      >
-                        {lang === 'zh' ? '任一' : 'Any'}
-                      </button>
-                      <button
-                        onClick={() => setFilterMode('all')}
-                        className={`px-2 py-1 rounded-md transition-colors ${filterMode === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
-                      >
-                        {lang === 'zh' ? '全部' : 'All'}
-                      </button>
-                    </div>
-                  </div>
+                  <h3 className="font-semibold text-gray-900">
+                    {lang === 'zh' ? '篩選條件' : 'Filters'}
+                  </h3>
                   {selectedTags.size > 0 && (
                     <button
                       onClick={clearAllTags}
@@ -735,10 +704,9 @@ export default function PackagingExplorerV2() {
                 </div>
                 
                 {/* 篩選內容 */}
-                <div className="flex-1 overflow-y-auto">
-                  {dimensions.map((dimension, dimIndex) => {
+                <div className="flex-1 overflow-y-auto touch-auto">
+                  {dimensions.map((dimension) => {
                     const Icon = iconMap[dimension.icon || 'Package'] || Package;
-                    // 手機版預設展開前2個維度
                     const isExpanded = expandedDimensions.has(dimension.slug);
                     
                     return (
