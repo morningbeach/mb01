@@ -12,7 +12,7 @@ import {
   Package, ShoppingBag, Gift, Layers, Target, Sparkles,
   Paintbrush, Leaf, Star, ChevronDown, X, Search,
   ToggleLeft, ToggleRight, Grid3X3, LayoutGrid, Loader2,
-  TreePine
+  TreePine, SlidersHorizontal, Filter
 } from 'lucide-react';
 
 // ==========================================
@@ -95,6 +95,7 @@ export default function PackagingExplorerV2() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [initialLoaded, setInitialLoaded] = useState(false); // 是否已完成初次載入
   const [usingCache, setUsingCache] = useState(false); // 是否正在使用快取（跳過 effect 載入）
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false); // 手機版篩選面板
   
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -558,10 +559,226 @@ export default function PackagingExplorerV2() {
       <SiteHeader />
 
       <div className="min-h-screen bg-gray-50/50">
+        {/* ==================== 手機版頂部欄 ==================== */}
+        <div className="lg:hidden sticky top-[56px] z-30 bg-white border-b border-gray-100 shadow-sm">
+          {/* 類別切換 - 橫向滾動 */}
+          <div className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeCategory === cat.id;
+              const isDisabled = cat.disabled;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => !isDisabled && handleCategoryChange(cat.id)}
+                  disabled={isDisabled}
+                  className={`
+                    flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                    ${isDisabled 
+                      ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                      : isActive 
+                        ? `${cat.color} text-white shadow-sm` 
+                        : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>
+                    {lang === 'zh' ? cat.name_zh.replace('（暫未開放）', '') : cat.name_en.replace(' (Coming Soon)', '')}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* 篩選控制列 */}
+          <div className="flex items-center justify-between px-4 py-2 border-t border-gray-50">
+            {/* 左側：篩選按鈕 + 已選數量 */}
+            <button
+              onClick={() => setMobileFilterOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg text-sm"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span>{lang === 'zh' ? '篩選' : 'Filter'}</span>
+              {selectedTags.size > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-blue-600 text-white rounded-full text-xs">
+                  {selectedTags.size}
+                </span>
+              )}
+            </button>
+            
+            {/* 右側：OR/AND + 數量 */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-xs">
+                <button
+                  onClick={() => setFilterMode('any')}
+                  className={`px-2 py-1 rounded transition-colors ${filterMode === 'any' ? 'bg-gray-900 text-white' : 'text-gray-500'}`}
+                >
+                  OR
+                </button>
+                <button
+                  onClick={() => setFilterMode('all')}
+                  className={`px-2 py-1 rounded ${filterMode === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500'}`}
+                >
+                  AND
+                </button>
+              </div>
+              <span className="text-xs text-gray-500">
+                <span className="font-semibold text-gray-900">{Math.min(displayCount, products.length)}</span>
+                {totalProducts > products.length && <span>/{totalProducts}</span>}
+              </span>
+            </div>
+          </div>
+          
+          {/* 已選標籤 - 橫向滾動顯示 */}
+          {selectedTags.size > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-t border-blue-100 overflow-x-auto scrollbar-hide">
+              <span className="text-xs text-blue-600 whitespace-nowrap">{lang === 'zh' ? '已選:' : 'Selected:'}</span>
+              {Array.from(selectedTags).map(slug => {
+                const tag = dimensions.flatMap(d => d.tags).find(t => t.slug === slug);
+                return tag ? (
+                  <button
+                    key={slug}
+                    onClick={() => toggleTag(slug)}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-full text-xs whitespace-nowrap"
+                  >
+                    {lang === 'zh' ? tag.name_zh : tag.name_en}
+                    <X className="w-3 h-3" />
+                  </button>
+                ) : null;
+              })}
+              <button
+                onClick={clearAllTags}
+                className="text-xs text-blue-700 whitespace-nowrap underline"
+              >
+                {lang === 'zh' ? '清除全部' : 'Clear all'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ==================== 手機版篩選面板（底部彈出） ==================== */}
+        <AnimatePresence>
+          {mobileFilterOpen && (
+            <>
+              {/* 背景遮罩 */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileFilterOpen(false)}
+                className="lg:hidden fixed inset-0 bg-black/50 z-40"
+              />
+              
+              {/* 篩選面板 */}
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[80vh] flex flex-col"
+              >
+                {/* 標題列 */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <h3 className="font-semibold text-gray-900">
+                    {lang === 'zh' ? '篩選條件' : 'Filters'}
+                  </h3>
+                  <div className="flex items-center gap-3">
+                    {selectedTags.size > 0 && (
+                      <button
+                        onClick={clearAllTags}
+                        className="text-sm text-blue-600"
+                      >
+                        {lang === 'zh' ? '清除全部' : 'Clear all'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setMobileFilterOpen(false)}
+                      className="p-1 rounded-full hover:bg-gray-100"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* 篩選內容 - 可滾動 */}
+                <div className="flex-1 overflow-y-auto px-4 py-3">
+                  {dimensions.map((dimension) => {
+                    const Icon = iconMap[dimension.icon || 'Package'] || Package;
+                    const isExpanded = expandedDimensions.has(dimension.slug);
+                    
+                    return (
+                      <div key={dimension.id} className="mb-3">
+                        <button
+                          onClick={() => toggleDimension(dimension.slug)}
+                          className="w-full flex items-center justify-between py-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium text-gray-800">
+                              {lang === 'zh' ? dimension.name_zh : dimension.name_en}
+                            </span>
+                            <span className="text-sm text-gray-400">
+                              ({dimension.tags.length})
+                            </span>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                              isExpanded ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="flex flex-wrap gap-2 py-2">
+                            {dimension.tags.map((tag) => {
+                              const isSelected = selectedTags.has(tag.slug);
+                              return (
+                                <button
+                                  key={tag.id}
+                                  onClick={() => toggleTag(tag.slug)}
+                                  className={`
+                                    px-3 py-1.5 rounded-full text-sm transition-colors
+                                    ${isSelected
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-gray-100 text-gray-700 active:bg-gray-200'
+                                    }
+                                  `}
+                                >
+                                  {lang === 'zh' ? tag.name_zh : tag.name_en}
+                                  {tag.productCount !== undefined && tag.productCount > 0 && (
+                                    <span className={`ml-1 ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
+                                      {tag.productCount}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* 底部確認按鈕 */}
+                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+                  <button
+                    onClick={() => setMobileFilterOpen(false)}
+                    className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium"
+                  >
+                    {lang === 'zh' ? `顯示 ${Math.min(displayCount, products.length)} 個結果` : `Show ${Math.min(displayCount, products.length)} Results`}
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* 主內容區 */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex gap-5">
-            {/* 左側篩選面板 */}
+            {/* 左側篩選面板 - 桌面版 */}
             <div className="w-56 shrink-0 hidden lg:block">
               <div className="sticky top-[72px] space-y-3">
                 {/* 類別選擇 */}
