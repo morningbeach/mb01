@@ -604,21 +604,21 @@ export default function PackagingExplorerV2() {
             
             {/* 右側：篩選 + OR/AND + 數量 */}
             <div className="flex items-center gap-2">
-              {/* 超明顯的篩選按鈕 */}
+              {/* 超級醒目的篩選按鈕 */}
               <button
                 onClick={() => setMobileFilterOpen(true)}
                 className={`
-                  flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm
+                  flex items-center gap-2 px-4 py-2.5 rounded-2xl text-base font-bold transition-all
                   ${selectedTags.size > 0 
-                    ? 'bg-blue-600 text-white shadow-blue-200' 
-                    : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-300 ring-2 ring-blue-300' 
+                    : 'bg-black text-white shadow-lg shadow-gray-400 animate-pulse'
                   }
                 `}
               >
-                <SlidersHorizontal className="w-4 h-4" />
+                <SlidersHorizontal className="w-5 h-5" />
                 <span>{lang === 'zh' ? '篩選' : 'Filter'}</span>
                 {selectedTags.size > 0 && (
-                  <span className="px-1.5 py-0.5 bg-white/20 rounded-md text-xs">
+                  <span className="px-2 py-0.5 bg-white text-blue-600 rounded-full text-sm font-bold">
                     {selectedTags.size}
                   </span>
                 )}
@@ -686,7 +686,7 @@ export default function PackagingExplorerV2() {
                 className="lg:hidden fixed inset-0 bg-black/60 z-40"
               />
               
-              {/* 篩選面板 - 支援向下滑動關閉 */}
+              {/* 篩選面板 - 支援上下滑動關閉 */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
@@ -695,23 +695,26 @@ export default function PackagingExplorerV2() {
                 drag="y"
                 dragDirectionLock
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0, bottom: 0.5 }}
+                dragElastic={{ top: 0.3, bottom: 0.5 }}
                 onDragEnd={(_, info) => {
-                  // 向下滑動超過 100px 或速度夠快就關閉
-                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                  // 上滑或下滑超過 80px，或速度夠快就關閉
+                  const shouldClose = 
+                    Math.abs(info.offset.y) > 80 || 
+                    Math.abs(info.velocity.y) > 400;
+                  if (shouldClose) {
                     setMobileFilterOpen(false);
                   }
                 }}
                 className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] flex flex-col overflow-hidden"
               >
-                {/* 拖曳區域 - 這裡可以拖曳關閉 */}
+                {/* 拖曳區域 - 上下滑動都可關閉 */}
                 <div 
-                  className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
+                  className="flex flex-col items-center pt-4 pb-2 cursor-grab active:cursor-grabbing select-none bg-gray-50 rounded-t-3xl"
                   style={{ touchAction: 'none' }}
                 >
-                  {/* 拖曳提示條 */}
-                  <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-2" />
-                  <p className="text-xs text-gray-400">{lang === 'zh' ? '下滑關閉' : 'Swipe down to close'}</p>
+                  {/* 拖曳提示條 - 更明顯 */}
+                  <div className="w-16 h-2 bg-gray-400 rounded-full mb-2" />
+                  <p className="text-xs text-gray-500 font-medium">{lang === 'zh' ? '↑↓ 滑動關閉' : '↑↓ Swipe to close'}</p>
                 </div>
                 
                 {/* 標題列 */}
