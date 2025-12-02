@@ -4,11 +4,25 @@ import { useLanguage } from "@/app/contexts/LanguageContext";
 import Link from "next/link";
 import Image from "next/image";
 import { useRef, useMemo } from "react";
+import { getOptimizedImageUrl } from "@/lib/image-utils";
 
 // 雙語文字輔助函數
 function t(lang: string, en?: string | null, zh?: string | null, fallback?: string) {
   const v = lang === "en" ? en : zh;
   return (v && v.trim().length > 0 ? v : null) ?? fallback ?? "";
+}
+
+// 優化圖片 URL 輔助函數
+function optimizeImg(src: string | null | undefined, size: 'sm' | 'md' | 'lg' | 'hero' = 'md') {
+  if (!src) return '/placeholder.jpg';
+  const configs = {
+    sm: { width: 200, height: 200, quality: 75 },
+    md: { width: 400, height: 400, quality: 80 },
+    lg: { width: 800, height: 800, quality: 85 },
+    hero: { width: 1200, height: 600, quality: 85 },
+  };
+  const config = configs[size];
+  return getOptimizedImageUrl(src, { ...config, format: 'auto' });
 }
 
 export function CatalogPageClient({
@@ -84,9 +98,11 @@ function HeroCardsLayout({ node, lang, products = [] }: { node: any; lang: strin
       <div className="relative overflow-hidden rounded-2xl">
         <div className="relative h-96">
           <Image
-            src={node.heroImage || node.coverImage || '/placeholder.jpg'}
+            src={optimizeImg(node.heroImage || node.coverImage, 'hero')}
             alt={lang === 'zh' ? node.name_zh : node.name_en}
             fill
+            priority
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
@@ -219,9 +235,10 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
             >
               <div className="relative aspect-square overflow-hidden">
                 <Image
-                  src={child.coverImage || child.heroImage || '/placeholder.jpg'}
+                  src={optimizeImg(child.coverImage || child.heroImage, 'sm')}
                   alt={lang === 'zh' ? child.name_zh : child.name_en}
                   fill
+                  sizes="(max-width: 640px) 50vw, 220px"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
               </div>
@@ -253,9 +270,10 @@ function GridLayout({ node, lang, products = [] }: { node: any; lang: string; pr
                 <div className="relative aspect-square overflow-hidden bg-zinc-50">
                   {product.coverImage ? (
                     <Image
-                      src={product.coverImage}
+                      src={optimizeImg(product.coverImage, 'sm')}
                       alt={t(lang, product.name_en, product.name_zh, product.name)}
                       fill
+                      sizes="(max-width: 640px) 50vw, 220px"
                       className="object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                   ) : (

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useLanguage } from "./contexts/LanguageContext";
 import { ProductsCarousel } from "./admin/components/ProductsCarousel";
 import { GalleryClient } from "./components/GalleryClient";
+import { getOptimizedImageUrl } from "@/lib/image-utils";
 
 type Lang = "en" | "zh";
 
@@ -788,17 +789,25 @@ function ProductCard({
   priceHint,
 }: ProductCardProps) {
   const bodyHasContent = subtitle || priceHint;
+  // 使用優化的圖片 URL
+  const optimizedImage = image ? getOptimizedImageUrl(image, {
+    width: 400,
+    height: 400,
+    quality: 80,
+    format: "auto",
+  }) : image;
+  
   const content = (
     <>
       <div className="relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100">
-        {image && (
+        {optimizedImage && (
           <Image
-            src={image}
+            src={optimizedImage}
             alt={title || "Product"}
             fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover transition-all duration-500 group-hover:scale-105"
           />
-        )}
       </div>
       {title && (
         <h3 className="mt-4 text-lg font-medium text-zinc-900">{title}</h3>

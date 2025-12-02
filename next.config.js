@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // 啟用 AVIF 和 WebP 格式以獲得更好的壓縮
+    formats: ["image/avif", "image/webp"],
+    // 定義響應式圖片尺寸
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // 最小化快取時間（秒）- 1 年
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: "https",
