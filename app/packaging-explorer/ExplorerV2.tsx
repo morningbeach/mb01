@@ -693,22 +693,25 @@ export default function PackagingExplorerV2() {
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 drag="y"
+                dragDirectionLock
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={{ top: 0, bottom: 0.8 }}
+                dragElastic={{ top: 0, bottom: 0.5 }}
                 onDragEnd={(_, info) => {
-                  // 向下滑動超過 80px 或速度夠快就關閉
-                  if (info.offset.y > 80 || info.velocity.y > 300) {
+                  // 向下滑動超過 100px 或速度夠快就關閉
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
                     setMobileFilterOpen(false);
                   }
                 }}
-                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] flex flex-col"
-                style={{ touchAction: 'none' }}
+                className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] flex flex-col overflow-hidden"
               >
-                {/* 拖曳提示條 - 大且明顯 */}
+                {/* 拖曳區域 - 這裡可以拖曳關閉 */}
                 <div 
-                  className="flex justify-center py-4 cursor-grab active:cursor-grabbing"
+                  className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing select-none"
+                  style={{ touchAction: 'none' }}
                 >
-                  <div className="w-14 h-1.5 bg-gray-400 rounded-full" />
+                  {/* 拖曳提示條 */}
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full mb-2" />
+                  <p className="text-xs text-gray-400">{lang === 'zh' ? '下滑關閉' : 'Swipe down to close'}</p>
                 </div>
                 
                 {/* 標題列 */}
@@ -726,7 +729,7 @@ export default function PackagingExplorerV2() {
                   )}
                 </div>
                 
-                {/* 篩選內容 - 可滾動，滾動到頂部時繼續向下滑會關閉面板 */}
+                {/* 篩選內容 - 獨立滾動區域 */}
                 <div 
                   className="flex-1 overflow-y-auto overscroll-contain"
                   style={{ touchAction: 'pan-y' }}
