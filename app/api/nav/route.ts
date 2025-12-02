@@ -19,8 +19,24 @@ export async function GET() {
         slug: true,
         navLabel_zh: true,
         navLabel_en: true,
+        order: true,
       },
     });
+
+    // Ensure 'about' page is always present in navigation
+    // This is a fallback in case the database record is missing or disabled
+    const hasAbout = pages.some(p => p.slug === 'about');
+    if (!hasAbout) {
+      pages.push({
+        slug: 'about',
+        navLabel_zh: '關於我們',
+        navLabel_en: 'About',
+        order: 20, // Default order for About page
+      });
+      
+      // Re-sort by order to ensure correct position
+      pages.sort((a, b) => a.order - b.order);
+    }
 
     // 設置快取 header，讓瀏覽器可以快取結果
     return NextResponse.json(pages, {

@@ -34,6 +34,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "chart.googleapis.com",
       },
+      // Placeholder images for testing
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
     ],
   },
 

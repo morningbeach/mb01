@@ -38,11 +38,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       const geoRegion = getCookie("geo-region");
       console.log("[GeoRegion] Cookie value:", geoRegion); // 除錯用
       
-      if (geoRegion === "TW") {
-        // 偵測到台灣 → 顯示中文，可切換
+      // 檢查是否為本地開發環境
+      const isLocal = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      if (isLocal || geoRegion === "TW") {
+        // 偵測到台灣或本地端 → 顯示中文，可切換
         setRegion("TW");
         if (!initialized) {
-          setLangState("zh"); // 台灣預設中文
+          setLangState("zh"); // 台灣/本地端預設中文
         }
       } else {
         // INTL 或沒有 cookie → 預設境外，強制英文

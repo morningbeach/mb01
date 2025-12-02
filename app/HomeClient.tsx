@@ -176,20 +176,32 @@ function HeroSection({
 
   if (!titleLine1 && !titleLine2 && !subtitle) return null;
 
+  const isEn = lang === "en";
+
   return (
     <section className="mt-4 text-center md:mt-6">
-      <h1 className="text-4xl font-semibold tracking-tight text-zinc-900 md:text-6xl">
+      <h1 
+        className={`font-semibold tracking-wide text-zinc-900 ${
+          isEn ? "text-5xl md:text-7xl" : "text-4xl md:text-6xl"
+        }`}
+      >
         {titleLine1}
         {titleLine2 && (
           <>
             <br />
-            {titleLine2}
+            <span 
+              className={`whitespace-nowrap tracking-tight ${
+                isEn ? "text-lg md:text-2xl" : "text-xl md:text-3xl"
+              }`}
+            >
+              {titleLine2}
+            </span>
           </>
         )}
       </h1>
 
       {subtitle && (
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-600">
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-zinc-500">
           {subtitle}
         </p>
       )}

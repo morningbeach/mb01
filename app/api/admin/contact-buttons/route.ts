@@ -66,7 +66,11 @@ export async function POST(request: NextRequest) {
     await prisma.siteSetting.upsert({
       where: { key: "contact-buttons" },
       update: { value: dataToSave },
-      create: { key: "contact-buttons", value: dataToSave },
+      create: { 
+        id: "contact-buttons", // 明確指定 ID 以避免與預設值 "main" 衝突
+        key: "contact-buttons", 
+        value: dataToSave 
+      },
     });
 
     return NextResponse.json({ 
