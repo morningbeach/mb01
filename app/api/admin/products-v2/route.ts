@@ -30,6 +30,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 檢查 SKU 是否已被使用
+    if (productData.sku && productData.sku.trim() !== '') {
+      const existingProduct = await prisma.product.findFirst({
+        where: { sku: productData.sku.trim() },
+      });
+
+      if (existingProduct) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `SKU "${productData.sku}" 已被其他產品使用\n產品名稱：${existingProduct.name}\n產品 ID：${existingProduct.id}`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // 如果 SKU 是空字串，轉換為 null
+    if (productData.sku === '' || (typeof productData.sku === 'string' && productData.sku.trim() === '')) {
+      productData.sku = null;
+    }
+
     // 確保 version 為 2
     const finalProductData = {
       ...productData,
@@ -39,16 +61,16 @@ export async function POST(req: NextRequest) {
     const product = await prisma.product.create({
       data: {
         ...finalProductData,
-        // 創建 TAG 關聯（只有當有有效的 tagIds 時）
-        tags: validTagIds.length > 0 ? {
+        // 創建 TAG 關聯（只有當有效的 tagIds 時）
+        ProductTag: validTagIds.length > 0 ? {
           create: validTagIds.map((tagId: string) => ({
             tagId,
           })),
         } : undefined,
       },
       include: {
-        tags: {
-          include: { tag: true },
+        ProductTag: {
+          include: { Tag: true },
         },
       },
     });
@@ -91,8 +113,8 @@ export async function GET(req: NextRequest) {
     const products = await prisma.product.findMany({
       where: { version: 2 },
       include: {
-        tags: {
-          include: { tag: true },
+        ProductTag: {
+          include: { Tag: true },
         },
       },
       orderBy: { createdAt: "desc" },

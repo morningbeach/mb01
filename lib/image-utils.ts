@@ -15,43 +15,9 @@ export function getOptimizedImageUrl(
     fit?: "scale-down" | "contain" | "cover" | "crop" | "pad";
   } = {}
 ): string {
-  // 如果是相對路徑或本地路徑，直接返回
-  if (!src || src.startsWith("/") || src.startsWith("data:")) {
-    return src;
-  }
-
-  // 如果不是我們的 R2 圖床，直接返回原始 URL
-  const r2Domain = "img.mbpack.co";
-  if (!src.includes(r2Domain)) {
-    return src;
-  }
-
-  const {
-    width,
-    height,
-    quality = 80,
-    format = "auto",
-    fit = "cover",
-  } = options;
-
-  // 構建 Cloudflare Image Resizing 參數
-  const params: string[] = [];
-  if (width) params.push(`width=${width}`);
-  if (height) params.push(`height=${height}`);
-  params.push(`quality=${quality}`);
-  params.push(`format=${format}`);
-  params.push(`fit=${fit}`);
-
-  // 轉換為 Cloudflare Image Resizing URL
-  // 格式: https://your-domain.com/cdn-cgi/image/options/image-url
-  const imageOptions = params.join(",");
-  
-  // 從 R2 URL 提取路徑
-  const url = new URL(src);
-  const imagePath = url.pathname;
-  
-  // 返回優化後的 URL
-  return `https://${r2Domain}/cdn-cgi/image/${imageOptions}${imagePath}`;
+  // 直接返回原始 URL，讓 Next.js Image 組件處理優化
+  // Cloudflare Image Resizing 需要額外設定，暫時停用
+  return src || '';
 }
 
 /**

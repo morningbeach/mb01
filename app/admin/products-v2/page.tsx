@@ -9,8 +9,8 @@ export default async function ProductsV2Page() {
   const products = await prisma.product.findMany({
     where: { version: 2 },
     include: {
-      tags: { include: { tag: true } },
-      _count: { select: { tags: true } },
+      ProductTag: { include: { Tag: true } },
+      _count: { select: { ProductTag: true } },
     },
     orderBy: { updatedAt: "desc" },
   });

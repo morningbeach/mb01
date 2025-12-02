@@ -808,6 +808,7 @@ function ProductCard({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover transition-all duration-500 group-hover:scale-105"
           />
+        )}
       </div>
       {title && (
         <h3 className="mt-4 text-lg font-medium text-zinc-900">{title}</h3>

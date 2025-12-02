@@ -44,7 +44,7 @@ export function ProductForm({ product }: ProductFormProps) {
     status: product?.status || "DRAFT",
     coverImage: product?.coverImage || "",
     gallery: (product?.gallery || []) as string[],
-    tagIds: product?.tags?.map((pt: any) => pt.tagId) || [],
+    tagIds: product?.ProductTag?.map((pt: any) => pt.tagId) || [],
     seoTitle: product?.seoTitle || "",
     seoDescription: product?.seoDescription || "",
   });

@@ -70,7 +70,7 @@ export function ProductFormBilingual({ product }: ProductFormProps) {
     status: product?.status || "DRAFT",
     coverImage: product?.coverImage || "",
     images: (product?.images || []) as string[],
-    tagIds: product?.tags?.map((pt: any) => pt.tagId) || [],
+    tagIds: product?.ProductTag?.map((pt: any) => pt.tagId) || [],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,6 +88,9 @@ export function ProductFormBilingual({ product }: ProductFormProps) {
       const submitData = {
         ...formData,
         version: 2,
+        // 將空字串轉換為 null（避免唯一性約束錯誤）
+        sku: formData.sku && formData.sku.trim() !== '' ? formData.sku.trim() : null,
+        slug: formData.slug && formData.slug.trim() !== '' ? formData.slug.trim() : '',
         // 向下相容：使用英文作為預設值
         name: formData.name_en,
         shortDesc: formData.shortDesc_en,

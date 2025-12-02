@@ -83,8 +83,8 @@ export default function ProductDetailClient({ product, gallery, categoryPath }: 
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          {product.tags.map((pt: any) => {
-            const tagName = t(lang, pt.tag.name_en, pt.tag.name_zh, pt.tag.name);
+          {product.ProductTag.map((pt: any) => {
+            const tagName = t(lang, pt.Tag.name_en, pt.Tag.name_zh, pt.Tag.name);
             return (
               <span
                 key={pt.tagId}
@@ -134,15 +134,15 @@ export default function ProductDetailClient({ product, gallery, categoryPath }: 
           )}
 
           {/* Gift set contents */}
-          {product.giftSet && product.giftSet.items.length > 0 && (
+          {product.GiftSet && product.GiftSet.GiftSetItem.length > 0 && (
             <section>
               <h2 className="text-sm font-medium uppercase tracking-[0.15em] text-zinc-500">
                 {lang === "zh" ? "內含物品" : "Items included in this set"}
               </h2>
               <ul className="mt-3 space-y-2 text-sm text-zinc-700">
-                {product.giftSet.items.map((item: any) => (
+                {product.GiftSet.GiftSetItem.map((item: any) => (
                   <li key={item.id}>
-                    ・ {item.product.name} × {item.quantity}
+                    ・ {item.Product.name} × {item.quantity}
                   </li>
                 ))}
               </ul>

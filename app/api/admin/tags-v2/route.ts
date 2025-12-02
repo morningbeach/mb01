@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       where: { version: 2 },
       include: {
         _count: {
-          select: { products: true },
+          select: { ProductTag: true },
         },
       },
       orderBy: { name: "asc" },

@@ -61,14 +61,14 @@ export default async function ProductDetailPage({
   const product = await prisma.product.findFirst({
     where: { slug: params.slug, version: 2 },
     include: {
-      tags: { 
-        include: { tag: true },
+      ProductTag: { 
+        include: { Tag: true },
       },
-      giftSet: {
+      GiftSet: {
         include: {
-          items: {
+          GiftSetItem: {
             include: {
-              product: true,
+              Product: true,
             },
           },
         },
@@ -81,7 +81,7 @@ export default async function ProductDetailPage({
   }
 
   // 找到分類路徑
-  const productTagIds = product.tags.map(pt => pt.tagId);
+  const productTagIds = product.ProductTag.map(pt => pt.tagId);
   const categoryPath = await findCategoryPath(productTagIds);
 
   const gallery = [

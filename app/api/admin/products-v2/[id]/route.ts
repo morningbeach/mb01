@@ -10,8 +10,8 @@ export async function GET(
     const product = await prisma.product.findUnique({
       where: { id: params.id },
       include: {
-        tags: {
-          include: { tag: true },
+        ProductTag: {
+          include: { Tag: true },
         },
       },
     });
@@ -45,10 +45,11 @@ export async function PUT(
     const { version, id, createdAt, updatedAt, tagIds, ...updateData } = body;
 
     // 檢查 SKU 是否與其他產品重複（排除自己）
-    if (updateData.sku) {
+    // 注意：要檢查非空字串，因為空字串和 null 都可能存在
+    if (updateData.sku && updateData.sku.trim() !== '') {
       const existingProduct = await prisma.product.findFirst({
         where: {
-          sku: updateData.sku,
+          sku: updateData.sku.trim(),
           NOT: {
             id: params.id, // 排除當前正在更新的產品
           },
@@ -59,11 +60,16 @@ export async function PUT(
         return NextResponse.json(
           { 
             success: false, 
-            message: `SKU "${updateData.sku}" 已被其他產品使用（${existingProduct.name}）`,
+            message: `SKU "${updateData.sku}" 已被其他產品使用\n產品名稱：${existingProduct.name}\n產品 ID：${existingProduct.id}`,
           },
           { status: 400 }
         );
       }
+    }
+    
+    // 如果 SKU 是空字串，轉換為 null（避免空字串重複問題）
+    if (updateData.sku === '' || (typeof updateData.sku === 'string' && updateData.sku.trim() === '')) {
+      updateData.sku = null;
     }
 
     // 先刪除舊的 TAG 關聯，再建立新的
@@ -76,15 +82,15 @@ export async function PUT(
       data: {
         ...updateData,
         // 重新建立 TAG 關聯
-        tags: tagIds ? {
+        ProductTag: tagIds ? {
           create: tagIds.map((tagId: string) => ({
             tagId,
           })),
         } : undefined,
       },
       include: {
-        tags: {
-          include: { tag: true },
+        ProductTag: {
+          include: { Tag: true },
         },
       },
     });

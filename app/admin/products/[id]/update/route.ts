@@ -43,6 +43,23 @@ export async function POST(
 
   const tagIds = formData.getAll("tagIds") as string[];
 
+  // 檢查 SKU 是否已被其他產品使用
+  if (sku) {
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        sku,
+        id: { not: id }, // 排除當前產品
+      },
+    });
+
+    if (existingProduct) {
+      return NextResponse.json(
+        { error: `SKU "${sku}" 已被其他產品使用（產品名稱：${existingProduct.name}）` },
+        { status: 400 }
+      );
+    }
+  }
+
   await prisma.$transaction([
     prisma.product.update({
       where: { id },

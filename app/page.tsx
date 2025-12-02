@@ -42,7 +42,7 @@ export default async function Home() {
 
     if (mode === "latest") {
       productsForHomepage = await prisma.product.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: "ACTIVE", version: 2 },
         orderBy: { createdAt: "desc" },
         take: limit,
         select: {
@@ -108,7 +108,7 @@ export default async function Home() {
 
         if (productIdSet.size > 0) {
           productsForHomepage = await prisma.product.findMany({
-            where: { id: { in: Array.from(productIdSet) }, status: "ACTIVE" },
+            where: { id: { in: Array.from(productIdSet) }, status: "ACTIVE", version: 2 },
             orderBy: { createdAt: "desc" },
             take: limit,
             select: {
@@ -131,7 +131,7 @@ export default async function Home() {
 
       if (productsForHomepage.length === 0) {
         productsForHomepage = await prisma.product.findMany({
-          where: { status: "ACTIVE" },
+          where: { status: "ACTIVE", version: 2 },
           orderBy: { createdAt: "desc" },
           take: limit,
           select: {
@@ -167,23 +167,23 @@ export default async function Home() {
         const album = await prisma.album.findUnique({
           where: { id: albumId },
           include: {
-            items: {
-              include: { image: true },
+            AlbumImage: {
+              include: { Image: true },
               orderBy: { position: "asc" },
               ...(imageLimit ? { take: imageLimit } : {}),
             },
           },
         });
 
-        if (album && album.items.length > 0) {
+        if (album && album.AlbumImage.length > 0) {
           galleryData[albumId] = {
             effect,
-            images: album.items.map((item) => ({
-              id: item.image.id,
-              url: item.image.url,
-              label: item.image.title || album.name,
-              title: item.image.title || album.name,
-              subtitle: item.image.alt || "",
+            images: album.AlbumImage.map((item) => ({
+              id: item.Image.id,
+              url: item.Image.url,
+              label: item.Image.title || album.name,
+              title: item.Image.title || album.name,
+              subtitle: item.Image.alt || "",
             })),
           };
         }

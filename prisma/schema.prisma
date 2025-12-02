@@ -7,17 +7,275 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// 網站設定（頁腳、聯絡按鈕等全站設定）
-model SiteSetting {
-  id        String   @id @default("main")
-  key       String   @unique
-  value     Json
+model AdminSession {
+  id        String    @id
+  sessionId String    @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  AdminUser AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([sessionId])
+}
+
+model AdminUser {
+  id           String         @id
+  email        String         @unique
+  name         String?
+  password     String
+  role         String         @default("admin")
+  AdminSession AdminSession[]
+}
+
+model Album {
+  id           String        @id
+  slug         String        @unique
+  name         String
+  description  String?
+  coverImageId String?
+  isSystem     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime
+  Image        Image?        @relation(fields: [coverImageId], references: [id])
+  AlbumImage   AlbumImage[]
+  CaseProject  CaseProject[]
+}
+
+model AlbumImage {
+  id       String @id
+  albumId  String
+  imageId  String
+  position Int    @default(0)
+  Album    Album  @relation(fields: [albumId], references: [id])
+  Image    Image  @relation(fields: [imageId], references: [id])
+
+  @@unique([albumId, imageId])
+}
+
+model BlogPost {
+  id          String    @id
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  content     String
+  coverImage  String?
+  publishedAt DateTime?
+  isPublished Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  content_en  String?
+  content_zh  String?
+  excerpt_en  String?
+  excerpt_zh  String?
+  isFeatured  Boolean   @default(false)
+  seoDesc_en  String?
+  seoDesc_zh  String?
+  seoTitle_en String?
+  seoTitle_zh String?
+  title_en    String?
+  title_zh    String?
+  BlogTag     BlogTag[]
+}
+
+model BlogTag {
+  blogPostId String
+  tagId      String
+  BlogPost   BlogPost @relation(fields: [blogPostId], references: [id])
+  Tag        Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([blogPostId, tagId])
+}
+
+model CaseProject {
+  id          String   @id
+  slug        String   @unique
+  title_zh    String
+  title_en    String?
+  desc_zh     String?
+  desc_en     String?
+  client_zh   String?
+  client_en   String?
+  category_zh String?
+  category_en String?
+  year        Int?
+  coverImage  String?
+  images      String[]
+  albumId     String?
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+  seoTitle_zh String?
+  seoTitle_en String?
+  seoDesc_zh  String?
+  seoDesc_en  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  Album       Album?   @relation(fields: [albumId], references: [id])
+}
+
+model CategoryNode {
+  id                 String         @id
+  slug               String         @unique
+  name_zh            String
+  name_en            String
+  description_zh     String?
+  description_en     String?
+  parentId           String?
+  displayMode        String         @default("grid")
+  order              Int            @default(0)
+  coverImage         String?
+  heroImage          String?
+  icon               String?
+  colorTheme         String?
+  productIds         String[]
+  seoTitle_zh        String?
+  seoTitle_en        String?
+  seoDescription_zh  String?
+  seoDescription_en  String?
+  isActive           Boolean        @default(true)
+  isLeaf             Boolean        @default(false)
+  isHidden           Boolean        @default(false)
+  showInMenu         Boolean        @default(true)
+  depth              Int            @default(0)
+  path               String[]       @default([])
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime
+  tagIds             String[]
+  CategoryNode       CategoryNode?  @relation("CategoryNodeToCategoryNode", fields: [parentId], references: [id], onDelete: Cascade)
+  other_CategoryNode CategoryNode[] @relation("CategoryNodeToCategoryNode")
+
+  @@index([depth])
+  @@index([isActive])
+  @@index([isHidden])
+  @@index([order])
+  @@index([parentId])
+  @@index([slug])
+}
+
+model ContactInquiry {
+  id          String        @id
+  name        String
+  email       String
+  company     String?
+  phone       String?
+  inquiryType InquiryType   @default(GENERAL)
+  productType String?
+  quantity    String?
+  timeline    String?
+  budget      String?
+  message     String
+  status      InquiryStatus @default(NEW)
+  notes       String?
+  assignedTo  String?
+  source      String        @default("website")
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime
+  repliedAt   DateTime?
+}
+
+model FrontCategory {
+  id                    String                  @id
+  slug                  String                  @unique
+  name                  String
+  heroTitle             String?
+  heroSubtitle          String?
+  cardTitle             String?
+  cardDescription       String?
+  cardImage             String?
+  baseCategory          Category?
+  order                 Int                     @default(0)
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime
+  heroImage             String?
+  version               Int                     @default(1)
+  FrontCategoryTagGroup FrontCategoryTagGroup[]
+}
+
+model FrontCategoryTagGroup {
+  id              String        @id
+  frontCategoryId String
+  label           String
+  description     String?
+  order           Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  tagId           String
+  FrontCategory   FrontCategory @relation(fields: [frontCategoryId], references: [id])
+  Tag             Tag           @relation(fields: [tagId], references: [id])
+}
+
+model GiftSet {
+  id          String        @id
+  productId   String        @unique
+  Product     Product       @relation(fields: [productId], references: [id])
+  GiftSetItem GiftSetItem[]
+}
+
+model GiftSetItem {
+  id        String  @id
+  giftSetId String
+  productId String
+  quantity  Int     @default(1)
+  GiftSet   GiftSet @relation(fields: [giftSetId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id])
+
+  @@index([giftSetId])
+  @@index([productId])
+}
+
+model HomeSection {
+  id        Int             @id @default(autoincrement())
+  type      HomeSectionType
+  order     Int             @default(100)
+  enabled   Boolean         @default(true)
+  payload   Json
+  createdAt DateTime        @default(now())
+  updatedAt DateTime
+}
+
+model Image {
+  id           String         @id
+  url          String         @unique
+  storageKey   String         @unique
+  width        Int?
+  height       Int?
+  size         Int?
+  mimeType     String?
+  alt          String?
+  title        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  isDeleted    Boolean        @default(false)
+  Album        Album[]
+  AlbumImage   AlbumImage[]
+  ProductImage ProductImage[]
+}
+
+model ImageAsset {
+  id        String   @id
+  url       String
+  label     String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id             String   @id
+  slug           String   @unique
+  title          String
+  content        String
+  heroImage      String?
+  seoTitle       String?
+  seoDescription String?
+  updatedAt      DateTime
+  createdAt      DateTime @default(now())
 }
 
 model Product {
-  id                String         @id @default(cuid())
+  id                String         @id
   slug              String         @unique
   name              String
   category          Category
@@ -30,7 +288,7 @@ model Product {
   seoTitle          String?
   seoDescription    String?
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  updatedAt         DateTime
   dimensions        String?
   leadTime          String?
   materials         String?
@@ -69,277 +327,34 @@ model Product {
   shortDesc_zh      String?
   unit_en           String?
   unit_zh           String?
-  giftSet           GiftSet?
-  giftSetItems      GiftSetItem[]
-  productImages     ProductImage[]
-  tags              ProductTag[]
+  GiftSet           GiftSet?
+  GiftSetItem       GiftSetItem[]
+  ProductImage      ProductImage[]
+  ProductTag        ProductTag[]
 }
 
-model Tag {
-  id                  String                  @id @default(cuid())
-  slug                String                  @unique
-  name                String
-  color               String?
-  subtitle            String?
-  version             Int                     @default(1)
-  name_en             String?
-  name_zh             String?
-  subtitle_en         String?
-  subtitle_zh         String?
-  blogPosts           BlogTag[]
-  frontCategoryGroups FrontCategoryTagGroup[]
-  products            ProductTag[]
-}
+model ProductImage {
+  id        String  @id
+  productId String
+  imageId   String
+  position  Int     @default(0)
+  Image     Image   @relation(fields: [imageId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id])
 
-model CategoryNode {
-  id                String         @id @default(cuid())
-  slug              String         @unique
-  name_zh           String
-  name_en           String
-  description_zh    String?
-  description_en    String?
-  parentId          String?
-  displayMode       String         @default("grid")
-  order             Int            @default(0)
-  coverImage        String?
-  heroImage         String?
-  icon              String?
-  colorTheme        String?
-  productIds        String[]
-  seoTitle_zh       String?
-  seoTitle_en       String?
-  seoDescription_zh String?
-  seoDescription_en String?
-  isActive          Boolean        @default(true)
-  isLeaf            Boolean        @default(false)
-  isHidden          Boolean        @default(false)
-  showInMenu        Boolean        @default(true)
-  depth             Int            @default(0)
-  path              String[]       @default([])
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  tagIds            String[]
-  parent            CategoryNode?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
-  children          CategoryNode[] @relation("CategoryTree")
-
-  @@index([parentId])
-  @@index([slug])
-  @@index([order])
-  @@index([isActive])
-  @@index([isHidden])
-  @@index([depth])
+  @@unique([productId, imageId])
 }
 
 model ProductTag {
   productId String
   tagId     String
-  product   Product @relation(fields: [productId], references: [id])
-  tag       Tag     @relation(fields: [tagId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id])
+  Tag       Tag     @relation(fields: [tagId], references: [id])
 
   @@id([productId, tagId])
 }
 
-model GiftSet {
-  id        String        @id @default(cuid())
-  productId String        @unique
-  product   Product       @relation(fields: [productId], references: [id])
-  items     GiftSetItem[]
-}
-
-model GiftSetItem {
-  id        String  @id @default(cuid())
-  giftSetId String
-  productId String
-  quantity  Int     @default(1)
-  giftSet   GiftSet @relation(fields: [giftSetId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@index([giftSetId])
-  @@index([productId])
-}
-
-model BlogPost {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  title       String
-  excerpt     String?
-  content     String
-  coverImage  String?
-  publishedAt DateTime?
-  isPublished Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  content_en  String?
-  content_zh  String?
-  excerpt_en  String?
-  excerpt_zh  String?
-  isFeatured  Boolean   @default(false)
-  seoDesc_en  String?
-  seoDesc_zh  String?
-  seoTitle_en String?
-  seoTitle_zh String?
-  title_en    String?
-  title_zh    String?
-  tags        BlogTag[]
-}
-
-model BlogTag {
-  blogPostId String
-  tagId      String
-  blogPost   BlogPost @relation(fields: [blogPostId], references: [id])
-  tag        Tag      @relation(fields: [tagId], references: [id])
-
-  @@id([blogPostId, tagId])
-}
-
-model Page {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  content        String
-  heroImage      String?
-  seoTitle       String?
-  seoDescription String?
-  updatedAt      DateTime @updatedAt
-  createdAt      DateTime @default(now())
-}
-
-model AdminUser {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  name     String?
-  password String
-  role     String  @default("admin")
-  sessions AdminSession[]
-}
-
-model AdminSession {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  userId    String
-  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([sessionId])
-  @@index([expiresAt])
-}
-
-model FrontCategory {
-  id              String                  @id @default(cuid())
-  slug            String                  @unique
-  name            String
-  heroTitle       String?
-  heroSubtitle    String?
-  cardTitle       String?
-  cardDescription String?
-  cardImage       String?
-  baseCategory    Category?
-  order           Int                     @default(0)
-  isActive        Boolean                 @default(true)
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  heroImage       String?
-  version         Int                     @default(1)
-  tagGroups       FrontCategoryTagGroup[]
-}
-
-model FrontCategoryTagGroup {
-  id              String        @id @default(cuid())
-  frontCategoryId String
-  label           String
-  description     String?
-  order           Int           @default(0)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  tagId           String
-  frontCategory   FrontCategory @relation(fields: [frontCategoryId], references: [id])
-  tag             Tag           @relation(fields: [tagId], references: [id])
-}
-
-model ImageAsset {
-  id        String   @id @default(cuid())
-  url       String
-  label     String?
-  createdAt DateTime @default(now())
-}
-
-model HomeSection {
-  id        Int             @id @default(autoincrement())
-  type      HomeSectionType
-  order     Int             @default(100)
-  enabled   Boolean         @default(true)
-  /// JSON 內容，依 type 不同有不同結構：
-  /// HERO: { titleLine1_en, titleLine1_zh, ... }
-  /// WHY / PRODUCTS / FACTORY: { title_en, title_zh, subtitle_en, subtitle_zh, cards: [...] }
-  /// BLOG: { title_en, ... , posts: [...] }
-  /// CTA: { title_en, title_zh, body_en, body_zh, ... }
-  payload   Json
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-}
-
-model Image {
-  id            String         @id @default(cuid())
-  url           String         @unique
-  storageKey    String         @unique
-  width         Int?
-  height        Int?
-  size          Int?
-  mimeType      String?
-  alt           String?
-  title         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  isDeleted     Boolean        @default(false)
-  albumsAsCover Album[]        @relation("AlbumCoverImage")
-  albumItems    AlbumImage[]
-  productImages ProductImage[]
-}
-
-/// 相簿（之後 homepage 區塊、產品系列都可以掛「相簿」）
-model Album {
-  id           String        @id @default(cuid())
-  slug         String        @unique
-  name         String
-  description  String?
-  coverImageId String?
-  isSystem     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  coverImage   Image?        @relation("AlbumCoverImage", fields: [coverImageId], references: [id])
-  items        AlbumImage[]
-  caseProjects CaseProject[]
-}
-
-/// 相簿內的圖片排序
-model AlbumImage {
-  id       String @id @default(cuid())
-  albumId  String
-  imageId  String
-  position Int    @default(0)
-  album    Album  @relation(fields: [albumId], references: [id])
-  image    Image  @relation(fields: [imageId], references: [id])
-
-  @@unique([albumId, imageId])
-}
-
-/// 產品與圖片的多對多（含排序）
-/// （目前 Product 已經直接存 URL，這張表可以先保留作為未來擴充用）
-model ProductImage {
-  id        String  @id @default(cuid())
-  productId String
-  imageId   String
-  position  Int     @default(0)
-  image     Image   @relation(fields: [imageId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
-
-  @@unique([productId, imageId])
-}
-
-/// 網站頁面管理（含預設頁面和自訂頁面）
 model SitePage {
-  id          String   @id @default(cuid())
+  id          String   @id
   slug        String   @unique
   type        PageType
   isDefault   Boolean  @default(false)
@@ -361,44 +376,33 @@ model SitePage {
   seoDesc_zh  String?
   seoDesc_en  String?
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime
   pageData    Json?
 }
 
-/// 案例專案（Case 頁面用）
-model CaseProject {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title_zh    String
-  title_en    String?
-  desc_zh     String?
-  desc_en     String?
-  client_zh   String?
-  client_en   String?
-  category_zh String?
-  category_en String?
-  year        Int?
-  coverImage  String?
-  images      String[]
-  albumId     String?
-  isPublished Boolean  @default(false)
-  isFeatured  Boolean  @default(false)
-  order       Int      @default(0)
-  seoTitle_zh String?
-  seoTitle_en String?
-  seoDesc_zh  String?
-  seoDesc_en  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  album       Album?   @relation(fields: [albumId], references: [id])
+model SiteSetting {
+  id        String   @id @default("main")
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime
 }
 
-/// 虛擬資料夾（用於 R2 圖片管理，尚未有檔案的資料夾）
-model VirtualFolder {
-  id        String   @id @default(cuid())
-  path      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Tag {
+  id                    String                  @id
+  slug                  String                  @unique
+  name                  String
+  color                 String?
+  subtitle              String?
+  version               Int                     @default(1)
+  name_en               String?
+  name_zh               String?
+  subtitle_en           String?
+  subtitle_zh           String?
+  BlogTag               BlogTag[]
+  FrontCategoryTagGroup FrontCategoryTagGroup[]
+  ProductTag            ProductTag[]
+  DimensionTagMapping   DimensionTagMapping[]
 }
 
 model TrendReport {
@@ -416,16 +420,17 @@ model TrendReport {
   updatedAt  DateTime
 }
 
+model VirtualFolder {
+  id        String   @id
+  path      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
 enum Category {
   GIFT
   GIFT_BOX
   GIFT_SET
-}
-
-enum ProductStatus {
-  DRAFT
-  ACTIVE
-  ARCHIVED
 }
 
 enum HomeSectionType {
@@ -441,6 +446,27 @@ enum HomeSectionType {
   VIDEO
 }
 
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  REPLIED
+  QUOTED
+  CONVERTED
+  CLOSED
+  SPAM
+}
+
+enum InquiryType {
+  GENERAL
+  QUOTE
+  SAMPLE
+  CUSTOM_DESIGN
+  BULK_ORDER
+  PARTNERSHIP
+  COMPLAINT
+  OTHER
+}
+
 enum PageType {
   HOMEPAGE
   PRODUCTS
@@ -451,6 +477,12 @@ enum PageType {
   CUSTOM
   PROCESS
   FAQ
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
 }
 
 enum TrendCategory {
@@ -466,46 +498,41 @@ enum TrendReportStatus {
   FAILED
 }
 
-model ContactInquiry {
-  id           String              @id @default(cuid())
-  name         String
-  email        String
-  company      String?
-  phone        String?
-  inquiryType  InquiryType         @default(GENERAL)
-  productType  String?
-  quantity     String?
-  timeline     String?
-  budget       String?
-  message      String
-  status       InquiryStatus       @default(NEW)
-  notes        String?
-  assignedTo   String?
-  source       String              @default("website")
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  repliedAt    DateTime?
+// ==========================================
+// 篩選維度系統 (Filter Dimension System)
+// ==========================================
+
+model FilterDimension {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  category      String   // 'print-packaging', 'bag', 'gift' 等大分類
+  name_zh       String
+  name_en       String
+  icon          String?  // Lucide icon 名稱
+  order         Int      @default(0)
+  is_active     Boolean  @default(true)
+  allow_multiple Boolean @default(true) // 是否允許多選
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  tagMappings   DimensionTagMapping[]
+  
+  @@index([category])
+  @@index([is_active])
+  @@index([order])
 }
 
-enum InquiryType {
-  GENERAL
-  QUOTE
-  SAMPLE
-  CUSTOM_DESIGN
-  BULK_ORDER
-  PARTNERSHIP
-  COMPLAINT
-  OTHER
+model DimensionTagMapping {
+  id          String   @id @default(cuid())
+  dimensionId String
+  tagId       String
+  order       Int      @default(0)
+  
+  dimension   FilterDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  tag         Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([dimensionId, tagId])
+  @@index([dimensionId])
+  @@index([tagId])
 }
 
-enum InquiryStatus {
-  NEW
-  IN_PROGRESS
-  REPLIED
-  QUOTED
-  CONVERTED
-  CLOSED
-  SPAM
-}
