@@ -62,7 +62,7 @@ const iconMap: Record<string, any> = {
 // 類別配置
 // ==========================================
 const categories = [
-  { id: 'print-packaging', name_zh: '印刷品', name_en: 'Print', icon: Package, color: 'bg-amber-500', disabled: false },
+  { id: 'print-packaging', name_zh: '包裝盒', name_en: 'Boxes', icon: Package, color: 'bg-amber-500', disabled: false },
   { id: 'bag', name_zh: '提袋', name_en: 'Bags', icon: ShoppingBag, color: 'bg-emerald-500', disabled: false },
   { id: 'gift', name_zh: '禮品（暫未開放）', name_en: 'Gifts (Coming Soon)', icon: Gift, color: 'bg-violet-500', disabled: true },
   { id: 'all', name_zh: '全部（暫未開放）', name_en: 'All (Coming Soon)', icon: Grid3X3, color: 'bg-gray-700', disabled: true },
@@ -101,6 +101,9 @@ export default function PackagingExplorerV2() {
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const footerTriggerRef = useRef<HTMLDivElement>(null);
+  
+  // 載入鎖 - 防止同一類別重複載入
+  const loadingLockRef = useRef<string | null>(null);
   
   // 篩選面板開啟時鎖定背景滾動
   useEffect(() => {
@@ -384,6 +387,10 @@ export default function PackagingExplorerV2() {
   useEffect(() => {
     if (initialLoaded) return;
     
+    // 防止重複載入
+    if (loadingLockRef.current === activeCategory) return;
+    loadingLockRef.current = activeCategory;
+    
     const initialLoad = async () => {
       setLoading(true);
       try {
@@ -461,10 +468,10 @@ export default function PackagingExplorerV2() {
           console.log(`[載入完成] ${activeCategory}: ${total} 個產品`);
         }
         
-        // 背景預載另一類別
+        // 背景預載另一類別（排除當前類別）
         setTimeout(() => {
-          prefetchCategory('bag');
-          prefetchCategory('print-packaging');
+          if (activeCategory !== 'bag') prefetchCategory('bag');
+          if (activeCategory !== 'print-packaging') prefetchCategory('print-packaging');
         }, 500);
       } catch (error) {
         console.error('初次載入失敗:', error);
@@ -475,10 +482,16 @@ export default function PackagingExplorerV2() {
     initialLoad();
   }, []); // 只執行一次
 
+  // 正在預載的類別（防止並發）
+  const prefetchingRef = useRef<Set<string>>(new Set());
+  
   // 背景預載其他類別（載入全部產品，鎖定後不再更新）
   const prefetchCategory = async (categoryId: string) => {
     // 已快取且鎖定，不重複載入
     if (getCategoryCache(categoryId) && isCacheLocked(categoryId)) return;
+    // 正在預載中，跳過
+    if (prefetchingRef.current.has(categoryId)) return;
+    prefetchingRef.current.add(categoryId);
     
     try {
       const params = new URLSearchParams();
@@ -523,21 +536,30 @@ export default function PackagingExplorerV2() {
     } catch (error) {
       // 預載失敗不影響使用
       console.log('預載失敗，切換時會重新載入');
+    } finally {
+      prefetchingRef.current.delete(categoryId);
     }
   };
 
-  // 去重函數：移除相同 id 或相同 coverImage (jpg/png) 的產品，保留第一個出現者
+  // 去重函數：移除相同 id、slug 或相同 coverImage 的產品，保留第一個出現者
   function dedupeProducts(items: any[]) {
     const seenIds = new Set<string>();
+    const seenSlugs = new Set<string>();
     const seenImages = new Set<string>();
     const result: any[] = [];
     for (const it of items) {
       if (!it) continue;
+      // 檢查 ID
       if (seenIds.has(it.id)) continue;
+      // 檢查 slug
+      if (it.slug && seenSlugs.has(it.slug)) continue;
+      // 檢查圖片
       const imgRaw = (it.coverImage || '').split('?')[0] || '';
       const imgKey = imgRaw.trim().toLowerCase();
       if (imgKey && seenImages.has(imgKey)) continue;
+      // 記錄已見
       seenIds.add(it.id);
+      if (it.slug) seenSlugs.add(it.slug);
       if (imgKey) seenImages.add(imgKey);
       result.push(it);
     }
@@ -1160,8 +1182,8 @@ export default function PackagingExplorerV2() {
                         </button>
                       </div>
                       <span className="text-xs text-gray-500">
-                        <span className="font-semibold text-gray-900">{Math.min(displayCount, products.length)}</span>
-                        {totalProducts > products.length && <span>/{totalProducts}</span>}
+                        <span className="font-semibold text-gray-900">{totalProducts}</span>
+                        <span> {lang === 'zh' ? '個產品' : ' products'}</span>
                       </span>
                     </div>
                   </div>
@@ -1345,9 +1367,20 @@ export default function PackagingExplorerV2() {
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {products.slice(0, displayCount).map((product, index) => (
+                    {(() => {
+                      // 渲染前再次去重，確保不會顯示重複產品
+                      const seenIds = new Set<string>();
+                      const uniqueProducts: Product[] = [];
+                      for (const p of products.slice(0, displayCount)) {
+                        if (!seenIds.has(p.id)) {
+                          seenIds.add(p.id);
+                          uniqueProducts.push(p);
+                        }
+                      }
+                      return uniqueProducts;
+                    })().map((product, index) => (
                       <div
-                        key={product.id}
+                        key={`${product.id}-${index}`}
                         onClick={() => setSelectedProduct(product)}
                         className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-200"
                       >

@@ -42,9 +42,15 @@ export async function POST(req: NextRequest) {
   const maxAge = 60 * 60 * 8; // 8 hours
   const sid = crypto.randomBytes(32).toString("hex");
 
-  const success = await createSession(user.id, sid);
-  if (!success) {
-    return new NextResponse("Session store error", { status: 500 });
+  try {
+    const success = await createSession(user.id, sid);
+    if (!success) {
+      console.error('Session creation failed for user:', user.id);
+      return new NextResponse("Session store error - check server logs", { status: 500 });
+    }
+  } catch (error: any) {
+    console.error('Session creation exception:', error?.message || error);
+    return new NextResponse(`Session store error: ${error?.message || 'Unknown error'}`, { status: 500 });
   }
 
   const res = NextResponse.redirect(new URL("/admin", req.url), {

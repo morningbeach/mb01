@@ -22,8 +22,10 @@ export async function createSession(userId: string, sessionId: string): Promise<
       },
     });
     return true;
-  } catch (error) {
-    console.error('createSession error:', error);
+  } catch (error: any) {
+    console.error('createSession error:', error?.message || error);
+    console.error('Error code:', error?.code);
+    console.error('Full error:', JSON.stringify(error, null, 2));
     return false;
   }
 }
