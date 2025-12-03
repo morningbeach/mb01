@@ -96,11 +96,9 @@ export default function PackagingExplorerV2() {
   const [initialLoaded, setInitialLoaded] = useState(false); // 是否已完成初次載入
   const [usingCache, setUsingCache] = useState(false); // 是否正在使用快取（跳過 effect 載入）
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false); // 手機版篩選面板
-  const [reachedBottom, setReachedBottom] = useState(false); // 是否滾動到底部
   
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const footerTriggerRef = useRef<HTMLDivElement>(null);
   
   // 篩選面板開啟時鎖定背景滾動
   useEffect(() => {
@@ -224,21 +222,13 @@ export default function PackagingExplorerV2() {
       if (res.ok) {
         const data = await res.json();
         const newProducts = data.products || [];
-
+        
         if (reset) {
-          const dedupedProducts = dedupeProducts(newProducts);
-          setProducts(dedupedProducts);
-          // 預載新產品的圖片
-          preloadImagesRef.current(dedupedProducts, 'high');
+          setProducts(newProducts);
         } else {
-          setProducts(prev => {
-            const merged = [...prev, ...newProducts];
-            return dedupeProducts(merged);
-          });
-          // 預載新增的產品圖片
-          preloadImagesRef.current(newProducts, 'low');
+          setProducts(prev => [...prev, ...newProducts]);
         }
-
+        
         setTotalProducts(data.pagination?.total || 0);
         setHasMore(newProducts.length === 50);
         if (!reset) {
@@ -285,121 +275,30 @@ export default function PackagingExplorerV2() {
     return () => observer.disconnect();
   }, [loadMore, loading, loadingMore]);
 
-  // Footer 觸發器 - 滾動到底部時顯示 Footer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setReachedBottom(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
+  // 預載入的快取（永久保留，整個頁面生命週期內有效）
+  const prefetchCache = useRef<Record<string, { products: Product[], dimensions: Dimension[], total: number }>>({});
 
-    if (footerTriggerRef.current) {
-      observer.observe(footerTriggerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  // 切換類別或篩選時重置 reachedBottom
-  useEffect(() => {
-    setReachedBottom(false);
-  }, [activeCategory, selectedTags, searchQuery]);
-
-  // 兩個獨立的快取區塊，互不污染
-  const printPackagingCache = useRef<{ products: Product[], dimensions: Dimension[], total: number, locked: boolean }>({ products: [], dimensions: [], total: 0, locked: false });
-  const bagCache = useRef<{ products: Product[], dimensions: Dimension[], total: number, locked: boolean }>({ products: [], dimensions: [], total: 0, locked: false });
-  
-  // 圖片預載快取 - 已預載的圖片 URL
-  const preloadedImages = useRef<Set<string>>(new Set());
-  
-  // 預載圖片（背景執行，不阻塞 UI）- 使用 ref 存放避免依賴問題
-  const preloadImagesRef = useRef((products: Product[], priority: 'high' | 'low' = 'low') => {
-    products.forEach((product, index) => {
-      if (product.coverImage && !preloadedImages.current.has(product.coverImage)) {
-        const delay = priority === 'high' ? index * 50 : index * 100 + 500;
-        setTimeout(() => {
-          const img = new window.Image();
-          img.src = product.coverImage!;
-          img.onload = () => {
-            preloadedImages.current.add(product.coverImage!);
-          };
-        }, delay);
-      }
-      if (product.images && product.images.length > 0) {
-        product.images.slice(0, 3).forEach((imgUrl, imgIndex) => {
-          if (!preloadedImages.current.has(imgUrl)) {
-            setTimeout(() => {
-              const img = new window.Image();
-              img.src = imgUrl;
-              img.onload = () => {
-                preloadedImages.current.add(imgUrl);
-              };
-            }, (priority === 'high' ? 1000 : 2000) + index * 100 + imgIndex * 200);
-          }
-        });
-      }
-    });
-  });
-  
-  // 取得指定類別的快取
-  const getCategoryCache = (categoryId: string) => {
-    if (categoryId === 'print-packaging' && printPackagingCache.current.products.length > 0) {
-      return printPackagingCache.current;
-    }
-    if (categoryId === 'bag' && bagCache.current.products.length > 0) {
-      return bagCache.current;
-    }
-    return null;
-  };
-  
-  // 檢查快取是否已鎖定
-  const isCacheLocked = (categoryId: string) => {
-    if (categoryId === 'print-packaging') return printPackagingCache.current.locked;
-    if (categoryId === 'bag') return bagCache.current.locked;
-    return false;
-  };
-  
-  // 設定指定類別的快取
-  const setCategoryCache = (categoryId: string, data: { products: Product[], dimensions: Dimension[], total: number }, lock = false) => {
-    if (categoryId === 'print-packaging') {
-      printPackagingCache.current = { ...data, locked: lock };
-    } else if (categoryId === 'bag') {
-      bagCache.current = { ...data, locked: lock };
-    }
-  };
-  
-  // 鎖定快取（防止被覆蓋）
-  const lockCache = (categoryId: string) => {
-    if (categoryId === 'print-packaging') {
-      printPackagingCache.current.locked = true;
-    } else if (categoryId === 'bag') {
-      bagCache.current.locked = true;
-    }
-  };
-
-  // 初次載入：漸進式載入 - 先載 20 個快速展示，背景載入全部
+  // 初次載入：並行載入維度和產品
   useEffect(() => {
     if (initialLoaded) return;
     
     const initialLoad = async () => {
       setLoading(true);
       try {
-        // 第一階段：快速載入前 20 個產品 + 維度
-        const quickParams = new URLSearchParams();
-        quickParams.append('category', activeCategory);
-        quickParams.append('page', '1');
-        quickParams.append('limit', '20');
+        const params = new URLSearchParams();
+        params.append('category', activeCategory);
+        params.append('page', '1');
+        params.append('limit', '30'); // 初次只載入 30 個，加快速度
         
-        const [dimensionsRes, quickProductsRes] = await Promise.all([
+        // 並行載入維度和產品
+        const [dimensionsRes, productsRes] = await Promise.all([
           fetch(`/api/filter-dimensions?category=${activeCategory}`),
-          fetch(`/api/products/filter?${quickParams.toString()}`),
+          fetch(`/api/products/filter?${params.toString()}`),
         ]);
         
         let loadedDimensions: Dimension[] = [];
-        let quickProducts: Product[] = [];
+        let loadedProducts: Product[] = [];
+        let total = 0;
         
         if (dimensionsRes.ok) {
           const data = await dimensionsRes.json();
@@ -414,60 +313,29 @@ export default function PackagingExplorerV2() {
           }
         }
         
-        if (quickProductsRes.ok) {
-          const data = await quickProductsRes.json();
-          const rawProducts = data.products || [];
-          quickProducts = dedupeProducts(rawProducts);
-          // 先顯示前 20 個
-          setProducts(quickProducts);
-          setTotalProducts(data.pagination?.total || quickProducts.length);
-          setHasMore(true); // 還有更多
+        if (productsRes.ok) {
+          const data = await productsRes.json();
+          loadedProducts = data.products || [];
+          total = data.pagination?.total || 0;
+          setProducts(loadedProducts);
+          setTotalProducts(total);
+          setHasMore(loadedProducts.length === 30);
         }
         
-        // 預載前 20 個圖片（高優先級）
-        preloadImagesRef.current(quickProducts, 'high');
+        // 存到快取（初次載入也存）
+        prefetchCache.current[activeCategory] = {
+          products: loadedProducts,
+          dimensions: loadedDimensions,
+          total: total,
+        };
         
-        setLoading(false);
         setInitialLoaded(true);
         
-        // 第二階段：背景載入全部產品
-        const fullParams = new URLSearchParams();
-        fullParams.append('category', activeCategory);
-        fullParams.append('page', '1');
-        fullParams.append('limit', '500');
-        
-        const fullProductsRes = await fetch(`/api/products/filter?${fullParams.toString()}`);
-        if (fullProductsRes.ok) {
-          const data = await fullProductsRes.json();
-          const rawProducts = data.products || [];
-          const allProducts = dedupeProducts(rawProducts);
-          const total = allProducts.length;
-          
-          // 更新為全部產品
-          setProducts(allProducts);
-          setTotalProducts(total);
-          setHasMore(false);
-          
-          // 存到快取並鎖定
-          setCategoryCache(activeCategory, {
-            products: allProducts,
-            dimensions: loadedDimensions,
-            total: total,
-          }, true);
-          
-          // 預載剩餘圖片（低優先級）
-          preloadImagesRef.current(allProducts.slice(20), 'low');
-          
-          console.log(`[載入完成] ${activeCategory}: ${total} 個產品`);
-        }
-        
-        // 背景預載另一類別
-        setTimeout(() => {
-          prefetchCategory('bag');
-          prefetchCategory('print-packaging');
-        }, 500);
+        // 背景預載提袋類別（不影響主載入）
+        prefetchCategory('bag');
       } catch (error) {
         console.error('初次載入失敗:', error);
+      } finally {
         setLoading(false);
       }
     };
@@ -475,16 +343,15 @@ export default function PackagingExplorerV2() {
     initialLoad();
   }, []); // 只執行一次
 
-  // 背景預載其他類別（載入全部產品，鎖定後不再更新）
+  // 背景預載其他類別（只預載一次，永久保留）
   const prefetchCategory = async (categoryId: string) => {
-    // 已快取且鎖定，不重複載入
-    if (getCategoryCache(categoryId) && isCacheLocked(categoryId)) return;
+    if (prefetchCache.current[categoryId]) return; // 已快取，不重複載入
     
     try {
       const params = new URLSearchParams();
       params.append('category', categoryId);
       params.append('page', '1');
-      params.append('limit', '500'); // 載入全部產品
+      params.append('limit', '30'); // 預載 30 個（完整首頁量）
       
       const [productsRes, dimensionsRes] = await Promise.all([
         fetch(`/api/products/filter?${params.toString()}`),
@@ -504,45 +371,17 @@ export default function PackagingExplorerV2() {
               .filter((dim: Dimension) => dim.tags.length > 0)
           : [];
         
-        // 儲存到快取時去重，避免重複的 product id 或重複的圖片
-        const rawProducts = productsData.products || [];
-        const dedupedProducts = dedupeProducts(rawProducts);
-        
-        // 設定並鎖定快取，總數使用去重後的實際數量
-        setCategoryCache(categoryId, {
-          products: dedupedProducts,
+        prefetchCache.current[categoryId] = {
+          products: productsData.products || [],
           dimensions: filteredDims,
-          total: dedupedProducts.length,
-        }, true); // 鎖定
-        
-        // 背景預載圖片（低優先級）
-        preloadImagesRef.current(dedupedProducts, 'low');
-        
-        console.log(`[預載] ${categoryId}: ${dedupedProducts.length} 個產品已快取`);
+          total: productsData.pagination?.total || 0,
+        };
       }
     } catch (error) {
       // 預載失敗不影響使用
       console.log('預載失敗，切換時會重新載入');
     }
   };
-
-  // 去重函數：移除相同 id 或相同 coverImage (jpg/png) 的產品，保留第一個出現者
-  function dedupeProducts(items: any[]) {
-    const seenIds = new Set<string>();
-    const seenImages = new Set<string>();
-    const result: any[] = [];
-    for (const it of items) {
-      if (!it) continue;
-      if (seenIds.has(it.id)) continue;
-      const imgRaw = (it.coverImage || '').split('?')[0] || '';
-      const imgKey = imgRaw.trim().toLowerCase();
-      if (imgKey && seenImages.has(imgKey)) continue;
-      seenIds.add(it.id);
-      if (imgKey) seenImages.add(imgKey);
-      result.push(it);
-    }
-    return result;
-  }
 
   // 用 ref 追蹤是否應該跳過下一次 effect（比 state 更可靠）
   const skipNextEffectRef = useRef(false);
@@ -563,58 +402,11 @@ export default function PackagingExplorerV2() {
     if (!initialLoaded || usingCache || skipNextEffectRef.current) {
       return;
     }
-    
-    // 本地過濾（標籤 + 搜尋都在本地完成）
-    const cached = getCategoryCache(activeCategory);
-    if (cached && cached.products.length > 0) {
-      const tagSlugs = Array.from(selectedTags);
-      const query = searchQuery.toLowerCase().trim();
-      
-      let filtered = cached.products;
-      
-      // 標籤過濾
-      if (tagSlugs.length > 0) {
-        filtered = filtered.filter(product => {
-          const productTagSlugs = product.ProductTag?.map(pt => pt.Tag?.slug).filter(Boolean) || [];
-          if (filterMode === 'all') {
-            // AND 模式：必須符合所有選中的標籤
-            return tagSlugs.every(slug => productTagSlugs.includes(slug));
-          } else {
-            // OR 模式：符合任一選中的標籤
-            return tagSlugs.some(slug => productTagSlugs.includes(slug));
-          }
-        });
-      }
-      
-      // 搜尋過濾（本地全文搜尋）
-      if (query) {
-        filtered = filtered.filter(product => {
-          const searchFields = [
-            product.name_zh,
-            product.name_en,
-            product.shortDesc_zh,
-            product.shortDesc_en,
-            product.material,
-            product.specs,
-            // 也搜尋標籤名稱
-            ...(product.ProductTag?.map(pt => pt.Tag?.name_zh) || []),
-            ...(product.ProductTag?.map(pt => pt.Tag?.name_en) || []),
-          ].filter(Boolean).map(s => s!.toLowerCase());
-          
-          return searchFields.some(field => field.includes(query));
-        });
-      }
-      
-      // 如果有任何篩選條件，更新產品列表
-      if (tagSlugs.length > 0 || query) {
-        setProducts(filtered);
-        setTotalProducts(filtered.length);
-        setHasMore(false);
-        setDisplayCount(20);
-      }
-      return;
+    // 只有在有篩選條件時才載入（類別切換由 handleCategoryChange 處理）
+    if (selectedTags.size > 0 || searchQuery) {
+      loadProducts(true);
     }
-  }, [selectedTags, filterMode, searchQuery, usingCache, initialLoaded, activeCategory]);
+  }, [selectedTags, filterMode, searchQuery, usingCache, initialLoaded]);
 
   // 切換類別 - 使用預載快取加速（最大程度保留快取）
   const handleCategoryChange = async (categoryId: string) => {
@@ -622,17 +414,17 @@ export default function PackagingExplorerV2() {
     
     const previousCategory = activeCategory;
     
-    // 保存當前類別到快取並鎖定（只要沒有篩選條件且未鎖定）
-    if (products.length > 0 && selectedTags.size === 0 && !isCacheLocked(previousCategory)) {
-      setCategoryCache(previousCategory, {
+    // 永遠保存當前類別到快取（只要沒有篩選條件）
+    if (products.length > 0 && selectedTags.size === 0) {
+      prefetchCache.current[previousCategory] = {
         products: [...products],
         dimensions: [...dimensions],
         total: totalProducts,
-      }, true); // 鎖定
+      };
     }
     
-    // 檢查是否有預載快取（兩個獨立快取區塊，互不污染）
-    const cached = getCategoryCache(categoryId);
+    // 檢查是否有預載快取
+    const cached = prefetchCache.current[categoryId];
     const hasCache = cached && cached.products.length > 0;
     
     // 標記使用快取模式
@@ -666,24 +458,32 @@ export default function PackagingExplorerV2() {
       return;
     }
     
-    // 沒有快取，漸進式載入
+    // 沒有快取，載入資料
     setTransitioning(true);
     
     try {
-      // 第一階段：快速載入前 20 個
-      const quickParams = new URLSearchParams();
-      quickParams.append('category', categoryId);
-      quickParams.append('page', '1');
-      quickParams.append('limit', '20');
+      const params = new URLSearchParams();
+      params.append('category', categoryId);
+      params.append('page', '1');
+      params.append('limit', '30');
       
-      const [quickProductsRes, dimensionsRes] = await Promise.all([
-        fetch(`/api/products/filter?${quickParams.toString()}`),
+      const [productsRes, dimensionsRes] = await Promise.all([
+        fetch(`/api/products/filter?${params.toString()}`),
         fetch(`/api/filter-dimensions?category=${categoryId}`),
       ]);
       
-      let filteredDims: Dimension[] = [];
-      if (dimensionsRes.ok) {
+      if (productsRes.ok && dimensionsRes.ok) {
+        const productsData = await productsRes.json();
         const dimensionsData = await dimensionsRes.json();
+        
+        const newProducts = productsData.products || [];
+        const total = productsData.pagination?.total || 0;
+        
+        setProducts(newProducts);
+        setTotalProducts(total);
+        setHasMore(newProducts.length === 30);
+        
+        let filteredDims: Dimension[] = [];
         if (dimensionsData.success) {
           filteredDims = dimensionsData.data
             .map((dim: Dimension) => ({
@@ -694,54 +494,17 @@ export default function PackagingExplorerV2() {
           setDimensions(filteredDims);
           setExpandedDimensions(new Set(filteredDims.slice(0, 2).map((d: Dimension) => d.slug)));
         }
+        
+        // 存到快取
+        prefetchCache.current[categoryId] = {
+          products: newProducts,
+          dimensions: filteredDims,
+          total: total,
+        };
+        
+        // 預載相鄰類別
+        setTimeout(() => prefetchAdjacentCategories(categoryId), 200);
       }
-      
-      if (quickProductsRes.ok) {
-        const data = await quickProductsRes.json();
-        const rawProducts = data.products || [];
-        const quickProducts = dedupeProducts(rawProducts);
-        
-        // 先顯示前 20 個
-        setProducts(quickProducts);
-        setTotalProducts(data.pagination?.total || quickProducts.length);
-        setHasMore(true);
-        setTransitioning(false);
-        
-        // 預載前 20 個圖片
-        preloadImagesRef.current(quickProducts, 'high');
-        
-        // 第二階段：背景載入全部
-        const fullParams = new URLSearchParams();
-        fullParams.append('category', categoryId);
-        fullParams.append('page', '1');
-        fullParams.append('limit', '500');
-        
-        const fullProductsRes = await fetch(`/api/products/filter?${fullParams.toString()}`);
-        if (fullProductsRes.ok) {
-          const fullData = await fullProductsRes.json();
-          const allProducts = dedupeProducts(fullData.products || []);
-          const total = allProducts.length;
-          
-          setProducts(allProducts);
-          setTotalProducts(total);
-          setHasMore(false);
-          
-          // 存到快取並鎖定
-          setCategoryCache(categoryId, {
-            products: allProducts,
-            dimensions: filteredDims,
-            total: total,
-          }, true);
-          
-          // 預載剩餘圖片
-          preloadImagesRef.current(allProducts.slice(20), 'low');
-          
-          console.log(`[切換載入完成] ${categoryId}: ${total} 個產品`);
-        }
-      }
-      
-      // 預載相鄰類別
-      setTimeout(() => prefetchAdjacentCategories(categoryId), 200);
     } catch (error) {
       console.error('切換類別失敗:', error);
     } finally {
@@ -767,24 +530,6 @@ export default function PackagingExplorerV2() {
       const newSet = new Set(prev);
       if (newSet.has(slug)) {
         newSet.delete(slug);
-        // 如果刪除後沒有選中的標籤，恢復快取資料
-        if (newSet.size === 0) {
-          const cached = getCategoryCache(activeCategory);
-          if (cached) {
-            setUsingCache(true);
-            setProducts(cached.products);
-            setDimensions(cached.dimensions);
-            setTotalProducts(cached.total);
-            setHasMore(cached.total > cached.products.length);
-            setDisplayCount(20);
-            requestAnimationFrame(() => {
-              setTimeout(() => setUsingCache(false), 100);
-            });
-          } else {
-            // 沒有快取，重新載入
-            loadProducts(true);
-          }
-        }
       } else {
         newSet.add(slug);
       }
@@ -796,7 +541,7 @@ export default function PackagingExplorerV2() {
   const clearAllTags = () => {
     setSelectedTags(new Set());
     // 從快取恢復原始資料
-    const cached = getCategoryCache(activeCategory);
+    const cached = prefetchCache.current[activeCategory];
     if (cached) {
       setUsingCache(true);
       setProducts(cached.products);
@@ -987,37 +732,6 @@ export default function PackagingExplorerV2() {
                   )}
                 </div>
                 
-                {/* 搜尋框 - 手機版 */}
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={lang === 'zh' ? '搜尋產品名稱、材質...' : 'Search products...'}
-                      className="w-full pl-10 pr-10 py-3 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => {
-                          setSearchQuery('');
-                          if (selectedTags.size === 0) {
-                            const cached = getCategoryCache(activeCategory);
-                            if (cached) {
-                              setProducts(cached.products);
-                              setTotalProducts(cached.total);
-                            }
-                          }
-                        }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 active:text-gray-600"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
                 {/* 篩選內容 - 獨立滾動區域 */}
                 <div 
                   className="flex-1 overflow-y-auto overscroll-contain"
@@ -1169,38 +883,6 @@ export default function PackagingExplorerV2() {
 
                 {/* 篩選維度 */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                  {/* 搜尋框 */}
-                  <div className="p-2.5 border-b border-gray-100">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={lang === 'zh' ? '搜尋產品...' : 'Search...'}
-                        className="w-full pl-8 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      {searchQuery && (
-                        <button
-                          onClick={() => {
-                            setSearchQuery('');
-                            // 恢復快取資料
-                            if (selectedTags.size === 0) {
-                              const cached = getCategoryCache(activeCategory);
-                              if (cached) {
-                                setProducts(cached.products);
-                                setTotalProducts(cached.total);
-                              }
-                            }
-                          }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
                   {/* 已選標籤 */}
                   {selectedTags.size > 0 && (
                     <div className="p-2.5 bg-blue-50 border-b border-blue-100">
@@ -1391,11 +1073,6 @@ export default function PackagingExplorerV2() {
                       )}
                     </div>
                   )}
-                  
-                  {/* Footer 觸發器 - 所有產品載入完成後出現 */}
-                  {!loading && !loadingMore && displayCount >= products.length && !hasMore && (
-                    <div ref={footerTriggerRef} className="h-1" />
-                  )}
                 </>
               )}
             </div>
@@ -1412,8 +1089,9 @@ export default function PackagingExplorerV2() {
         )}
       </div>
 
-      {/* Footer - 只有滾動到底部 + 載入完成才顯示 */}
-      {reachedBottom && !loading && !loadingMore && displayCount >= products.length && !hasMore && (
+      {/* 所有產品載入完成後顯示 Footer */}
+      {/* 條件：不在載入中、不在載入更多、已顯示所有產品、沒有更多可載入 */}
+      {!loading && !loadingMore && displayCount >= products.length && !hasMore && (
         <SiteFooter />
       )}
     </>

@@ -1,33 +1,30 @@
 ﻿const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
 async function main() {
-  // 獲取所有 bag 類別的 tag IDs
-  const bagTagMappings = await prisma.dimensionTagMapping.findMany({
-    where: { dimension: { category: 'bag' } },
-    select: { tagId: true }
-  });
-  const bagTagIds = bagTagMappings.map(m => m.tagId);
+  const prisma = new PrismaClient();
   
-  // 查詢名稱含「盒」的產品，看它們有哪些 bag 標籤
-  const products = await prisma.product.findMany({
+  // 查找摺疊盒相關的 Tag
+  const foldTags = await prisma.tag.findMany({
     where: {
-      name_zh: { contains: '盒' },
-      ProductTag: { some: { tagId: { in: bagTagIds } } }
-    },
-    include: {
-      ProductTag: {
-        where: { tagId: { in: bagTagIds } },
-        include: { Tag: true }
-      }
-    },
-    take: 10
+      OR: [
+        { slug: { contains: 'fold' } },
+        { name: { contains: '摺疊' } },
+        { name_zh: { contains: '摺疊' } },
+        { slug: { contains: 'collapsible' } },
+      ]
+    }
   });
   
-  console.log('仍有 bag 標籤的盒子產品:');
-  products.forEach(p => {
-    const tags = p.ProductTag.map(pt => pt.Tag.name_zh).join(', ');
-    console.log(p.name_zh, '|', tags);
+  console.log('=== 摺疊相關的 Tag ===');
+  foldTags.forEach(t => console.log(`${t.id} | ${t.slug} | ${t.name_zh || t.name}`));
+  
+  // 同時查找精裝紙盒的維度 ID
+  const rigidBoxDim = await prisma.filterDimension.findFirst({
+    where: { slug: 'rigid-box' }
   });
+  console.log('\n精裝紙盒維度:', rigidBoxDim?.id);
+  
+  await prisma.$disconnect();
 }
-main().catch(console.error).finally(() => prisma.$disconnect());
+
+main();

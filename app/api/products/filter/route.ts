@@ -35,9 +35,40 @@ const CROSS_CATEGORY_TAG_SLUGS = [
   'tag-1764169657523', // 禮品包裝 - 跨類別
 ];
 
+// 提袋白名單：只有包含這些「袋」tag 的產品才能進入提袋類別
+const BAG_WHITELIST_SLUGS = [
+  // 袋形
+  'tote-bag', 'flat-bag', 'gusset-bag', 'drawstring-bag', 'drawstring-backpack',
+  'shoulder-bag', 'crossbody-bag', 'messenger-bag', 'backpack', 'cooler-bag',
+  'lunch-bag', 'wine-bag', 'bottle-bag', 'pouch', 'pencil-case', 'laptop-sleeve',
+  'document-bag', 'foldable-bag', 'eco-bag', 'ita-bag', 'paper-shopping-bag',
+  'gift-bag', 'other-bag-style', 'cosmetic-pouch',
+  // 材質袋
+  'canvas-bag', 'cotton-canvas', 'pvc-bag', 'tyvek-bag', 'nonwoven-bag',
+  'woven-bag',
+  // 其他袋相關
+  'coolerbag-1764280414779', 'insulationbag-1764280384176',
+  'vest-typebag-1764281280937', 'vest-typebag-1764281282158',
+  'gunnybag-1764278867794',
+];
+
 // 快取：類別 → 標籤 IDs（5 分鐘過期）
 const categoryTagCache: Record<string, { ids: string[], expiry: number }> = {};
+// 快取：提袋白名單 tag IDs
+let bagWhitelistTagIds: string[] | null = null;
 const CACHE_TTL = 5 * 60 * 1000; // 5 分鐘
+
+// 取得提袋白名單 tag IDs
+async function getBagWhitelistTagIds(): Promise<string[]> {
+  if (bagWhitelistTagIds) return bagWhitelistTagIds;
+  
+  const tags = await prisma.tag.findMany({
+    where: { slug: { in: BAG_WHITELIST_SLUGS } },
+    select: { id: true },
+  });
+  bagWhitelistTagIds = tags.map(t => t.id);
+  return bagWhitelistTagIds;
+}
 
 // 取得類別標籤 IDs（帶快取）
 async function getCategoryTagIds(category: string): Promise<string[]> {
@@ -83,6 +114,12 @@ export async function GET(request: Request) {
       categoryTagIds = await getCategoryTagIds(category);
     }
 
+    // 提袋類別：取得白名單 tag IDs
+    let bagWhitelistIds: string[] = [];
+    if (category === 'bag') {
+      bagWhitelistIds = await getBagWhitelistTagIds();
+    }
+
     // 建立查詢條件
     const where: any = {
       status: 'ACTIVE',
@@ -91,11 +128,20 @@ export async function GET(request: Request) {
 
     // 類別篩選：產品必須有該類別的標籤
     if (category && categoryTagIds.length > 0) {
-      where.ProductTag = {
-        some: {
-          tagId: { in: categoryTagIds },
-        },
-      };
+      if (category === 'bag') {
+        // 提袋類別：必須有白名單中的「袋」tag
+        where.ProductTag = {
+          some: {
+            tagId: { in: bagWhitelistIds },
+          },
+        };
+      } else {
+        where.ProductTag = {
+          some: {
+            tagId: { in: categoryTagIds },
+          },
+        };
+      }
     }
 
     // Tag 篩選（使用 ProductTag 關聯）
@@ -177,7 +223,7 @@ export async function GET(request: Request) {
       _hasPaperBag: p.ProductTag.some((pt: any) => pt.Tag.slug === 'paper-bag'),
     }));
 
-    // 提袋類別：紙袋產品排在後面（超過50個才顯示）
+    // 提袋類別：紙袋產品排在後面
     if (category === 'bag') {
       const nonPaperBag = result.filter((p: any) => !p._hasPaperBag);
       const paperBag = result.filter((p: any) => p._hasPaperBag);
