@@ -123,8 +123,8 @@ export default function CasePage() {
           setPageData(pageInfo);
         }
 
-        // 載入案例資料
-        const caseRes = await fetch("/api/admin/cases");
+        // 載入案例資料（使用公開 API）
+        const caseRes = await fetch("/api/cases");
         if (caseRes.ok) {
           const cases = await caseRes.json();
           // 只顯示已發布的案例，並按精選狀態和排序排列
