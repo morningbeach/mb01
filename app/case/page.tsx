@@ -127,8 +127,8 @@ export default function CasePage() {
         const caseRes = await fetch("/api/cases");
         if (caseRes.ok) {
           const cases = await caseRes.json();
-          // 只顯示已發布的案例，並按精選狀態和排序排列
-          const publishedCases = cases.filter((c: any) => c.isPublished)
+          // API 已過濾 isPublished，按精選狀態和排序排列
+          const sortedCases = cases
             .sort((a: any, b: any) => {
               if (a.isFeatured !== b.isFeatured) return b.isFeatured ? 1 : -1;
               return a.order - b.order;
@@ -136,14 +136,14 @@ export default function CasePage() {
             .map((c: any) => ({
               ...c,
               // 轉換資料格式以兼容現有組件
-              description_zh: c.desc_zh,
-              description_en: c.desc_en,
+              description_zh: c.desc_zh || '',
+              description_en: c.desc_en || '',
               image: c.coverImage,
-              results_zh: [],  // CaseProject 目前沒有 results 欄位
+              results_zh: [],
               results_en: [],
-              tags: []  // CaseProject 目前沒有 tags 欄位
+              tags: []
             }));
-          setCaseData(publishedCases.length > 0 ? publishedCases : defaultCaseData);
+          setCaseData(sortedCases.length > 0 ? sortedCases : defaultCaseData);
         } else {
           // 如果 API 失敗，使用預設資料
           setCaseData(defaultCaseData);
