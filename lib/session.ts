@@ -1,7 +1,13 @@
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 // Session 有效期限：8 小時
 const SESSION_EXPIRY_HOURS = 8;
+
+// 生成唯一 ID
+function generateId(): string {
+  return crypto.randomUUID();
+}
 
 export async function createSession(userId: string, sessionId: string): Promise<boolean> {
   try {
@@ -9,6 +15,7 @@ export async function createSession(userId: string, sessionId: string): Promise<
     
     await prisma.adminSession.create({
       data: {
+        id: generateId(),
         sessionId,
         userId,
         expiresAt,

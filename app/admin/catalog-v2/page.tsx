@@ -9,8 +9,8 @@ export default async function CatalogV2Page() {
   const categories = await prisma.frontCategory.findMany({
     where: { version: 2 },
     include: {
-      tagGroups: { include: { tag: true }, orderBy: { order: "asc" } },
-      _count: { select: { tagGroups: true } },
+      FrontCategoryTagGroup: { include: { Tag: true }, orderBy: { order: "asc" } },
+      _count: { select: { FrontCategoryTagGroup: true } },
     },
     orderBy: { order: "asc" },
   });
@@ -96,7 +96,7 @@ export default async function CatalogV2Page() {
 
                 {/* 標籤群組統計 */}
                 <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
-                  <span>📁 {category._count.tagGroups} 個標籤群組</span>
+                  <span>📁 {category._count.FrontCategoryTagGroup} 個標籤群組</span>
                   {category.baseCategory && (
                     <>
                       <span>•</span>
