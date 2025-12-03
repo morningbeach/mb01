@@ -530,6 +530,24 @@ export default function PackagingExplorerV2() {
       const newSet = new Set(prev);
       if (newSet.has(slug)) {
         newSet.delete(slug);
+        // 如果刪除後沒有選中的標籤，恢復快取資料
+        if (newSet.size === 0) {
+          const cached = prefetchCache.current[activeCategory];
+          if (cached) {
+            setUsingCache(true);
+            setProducts(cached.products);
+            setDimensions(cached.dimensions);
+            setTotalProducts(cached.total);
+            setHasMore(cached.total > cached.products.length);
+            setDisplayCount(20);
+            requestAnimationFrame(() => {
+              setTimeout(() => setUsingCache(false), 100);
+            });
+          } else {
+            // 沒有快取，重新載入
+            loadProducts(true);
+          }
+        }
       } else {
         newSet.add(slug);
       }
