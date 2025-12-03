@@ -222,13 +222,16 @@ export default function PackagingExplorerV2() {
       if (res.ok) {
         const data = await res.json();
         const newProducts = data.products || [];
-        
+
         if (reset) {
-          setProducts(newProducts);
+          setProducts(dedupeProducts(newProducts));
         } else {
-          setProducts(prev => [...prev, ...newProducts]);
+          setProducts(prev => {
+            const merged = [...prev, ...newProducts];
+            return dedupeProducts(merged);
+          });
         }
-        
+
         setTotalProducts(data.pagination?.total || 0);
         setHasMore(newProducts.length === 50);
         if (!reset) {
@@ -315,14 +318,16 @@ export default function PackagingExplorerV2() {
         
         if (productsRes.ok) {
           const data = await productsRes.json();
-          loadedProducts = data.products || [];
+          const rawProducts = data.products || [];
+          // 去重：移除相同 id 或相同 coverImage 的產品
+          loadedProducts = dedupeProducts(rawProducts);
           total = data.pagination?.total || 0;
           setProducts(loadedProducts);
           setTotalProducts(total);
-          setHasMore(loadedProducts.length === 30);
+          setHasMore(rawProducts.length === 30);
         }
         
-        // 存到快取（初次載入也存）
+        // 存到快取（初次載入也存，已去重）
         prefetchCache.current[activeCategory] = {
           products: loadedProducts,
           dimensions: loadedDimensions,
@@ -371,8 +376,12 @@ export default function PackagingExplorerV2() {
               .filter((dim: Dimension) => dim.tags.length > 0)
           : [];
         
+        // 儲存到快取時去重，避免重複的 product id 或重複的圖片
+        const rawProducts = productsData.products || [];
+        const dedupedProducts = dedupeProducts(rawProducts);
+        
         prefetchCache.current[categoryId] = {
-          products: productsData.products || [],
+          products: dedupedProducts,
           dimensions: filteredDims,
           total: productsData.pagination?.total || 0,
         };
@@ -382,6 +391,24 @@ export default function PackagingExplorerV2() {
       console.log('預載失敗，切換時會重新載入');
     }
   };
+
+  // 去重函數：移除相同 id 或相同 coverImage (jpg/png) 的產品，保留第一個出現者
+  function dedupeProducts(items: any[]) {
+    const seenIds = new Set<string>();
+    const seenImages = new Set<string>();
+    const result: any[] = [];
+    for (const it of items) {
+      if (!it) continue;
+      if (seenIds.has(it.id)) continue;
+      const imgRaw = (it.coverImage || '').split('?')[0] || '';
+      const imgKey = imgRaw.trim().toLowerCase();
+      if (imgKey && seenImages.has(imgKey)) continue;
+      seenIds.add(it.id);
+      if (imgKey) seenImages.add(imgKey);
+      result.push(it);
+    }
+    return result;
+  }
 
   // 用 ref 追蹤是否應該跳過下一次 effect（比 state 更可靠）
   const skipNextEffectRef = useRef(false);
@@ -476,12 +503,14 @@ export default function PackagingExplorerV2() {
         const productsData = await productsRes.json();
         const dimensionsData = await dimensionsRes.json();
         
-        const newProducts = productsData.products || [];
+        const rawProducts = productsData.products || [];
         const total = productsData.pagination?.total || 0;
+        // 去重：移除相同 id 或相同 coverImage 的產品
+        const dedupedProducts = dedupeProducts(rawProducts);
         
-        setProducts(newProducts);
+        setProducts(dedupedProducts);
         setTotalProducts(total);
-        setHasMore(newProducts.length === 30);
+        setHasMore(rawProducts.length === 30);
         
         let filteredDims: Dimension[] = [];
         if (dimensionsData.success) {
@@ -495,9 +524,9 @@ export default function PackagingExplorerV2() {
           setExpandedDimensions(new Set(filteredDims.slice(0, 2).map((d: Dimension) => d.slug)));
         }
         
-        // 存到快取
+        // 存到快取（已去重）
         prefetchCache.current[categoryId] = {
-          products: newProducts,
+          products: dedupedProducts,
           dimensions: filteredDims,
           total: total,
         };
