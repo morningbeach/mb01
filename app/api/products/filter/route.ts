@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // 跨類別的標籤（同時屬於多個類別，不應用於類別過濾）
 const CROSS_CATEGORY_TAG_SLUGS = [
@@ -37,6 +35,33 @@ const CROSS_CATEGORY_TAG_SLUGS = [
   'tag-1764169657523', // 禮品包裝 - 跨類別
 ];
 
+// 快取：類別 → 標籤 IDs（5 分鐘過期）
+const categoryTagCache: Record<string, { ids: string[], expiry: number }> = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5 分鐘
+
+// 取得類別標籤 IDs（帶快取）
+async function getCategoryTagIds(category: string): Promise<string[]> {
+  const now = Date.now();
+  const cached = categoryTagCache[category];
+  
+  if (cached && cached.expiry > now) {
+    return cached.ids;
+  }
+  
+  // 直接用 slug 過濾，不需要先查 excludedTagIds
+  const dimensionTags = await prisma.dimensionTagMapping.findMany({
+    where: {
+      dimension: { category },
+      tag: { slug: { notIn: CROSS_CATEGORY_TAG_SLUGS } },
+    },
+    select: { tagId: true },
+  });
+  
+  const ids = dimensionTags.map(dt => dt.tagId);
+  categoryTagCache[category] = { ids, expiry: now + CACHE_TTL };
+  return ids;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -52,30 +77,10 @@ export async function GET(request: Request) {
     // 類別篩選
     const category = searchParams.get('category') || '';
 
-    // 取得跨類別標籤的 IDs（這些標籤不用於類別過濾）
-    const excludedTags = await prisma.tag.findMany({
-      where: { slug: { in: CROSS_CATEGORY_TAG_SLUGS } },
-      select: { id: true },
-    });
-    const excludedTagIds = excludedTags.map(t => t.id);
-
-    // 如果有類別篩選，先取得該類別下的所有 tag IDs（排除跨類別標籤）
+    // 如果有類別篩選，取得該類別下的所有 tag IDs（使用快取）
     let categoryTagIds: string[] = [];
     if (category) {
-      const dimensionTags = await prisma.dimensionTagMapping.findMany({
-        where: {
-          dimension: {
-            category: category,
-          },
-          tagId: {
-            notIn: excludedTagIds,
-          },
-        },
-        select: {
-          tagId: true,
-        },
-      });
-      categoryTagIds = dimensionTags.map(dt => dt.tagId);
+      categoryTagIds = await getCategoryTagIds(category);
     }
 
     // 建立查詢條件

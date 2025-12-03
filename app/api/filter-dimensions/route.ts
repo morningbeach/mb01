@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 // 跨類別的標籤（同時屬於多個類別，在篩選器中隱藏以避免混淆）
-const CROSS_CATEGORY_TAG_SLUGS = [
+const CROSS_CATEGORY_TAG_SLUGS = new Set([
   'corporate-gift',
   'embossing',
   'laser-engraving',
@@ -35,7 +33,7 @@ const CROSS_CATEGORY_TAG_SLUGS = [
   'baby-kids',
   'school-office',
   'tag-1764169657523', // 禮品包裝 - 跨類別
-];
+]);
 
 // GET: 取得所有維度（帶產品數量）
 export async function GET(request: Request) {
@@ -77,7 +75,7 @@ export async function GET(request: Request) {
       is_active: dim.is_active,
       allow_multiple: dim.allow_multiple,
       tags: dim.tagMappings
-        .filter((mapping: any) => !CROSS_CATEGORY_TAG_SLUGS.includes(mapping.tag.slug))
+        .filter((mapping: any) => !CROSS_CATEGORY_TAG_SLUGS.has(mapping.tag.slug))
         .map((mapping: any) => ({
           id: mapping.tag.id,
           slug: mapping.tag.slug,
