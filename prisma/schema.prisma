@@ -142,8 +142,8 @@ model CategoryNode {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime
   tagIds             String[]
-  CategoryNode       CategoryNode?  @relation("CategoryNodeToCategoryNode", fields: [parentId], references: [id], onDelete: Cascade)
-  other_CategoryNode CategoryNode[] @relation("CategoryNodeToCategoryNode")
+  parent             CategoryNode?  @relation("CategoryNodeToCategoryNode", fields: [parentId], references: [id], onDelete: Cascade)
+  children           CategoryNode[] @relation("CategoryNodeToCategoryNode")
 
   @@index([depth])
   @@index([isActive])
@@ -400,9 +400,9 @@ model Tag {
   subtitle_en           String?
   subtitle_zh           String?
   BlogTag               BlogTag[]
+  DimensionTagMapping   DimensionTagMapping[]
   FrontCategoryTagGroup FrontCategoryTagGroup[]
   ProductTag            ProductTag[]
-  DimensionTagMapping   DimensionTagMapping[]
 }
 
 model TrendReport {
@@ -425,6 +425,38 @@ model VirtualFolder {
   path      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime
+}
+
+model FilterDimension {
+  id             String                @id @default(cuid())
+  slug           String                @unique
+  category       String
+  name_zh        String
+  name_en        String
+  icon           String?
+  order          Int                   @default(0)
+  is_active      Boolean               @default(true)
+  allow_multiple Boolean               @default(true)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  tagMappings    DimensionTagMapping[]
+
+  @@index([category])
+  @@index([is_active])
+  @@index([order])
+}
+
+model DimensionTagMapping {
+  id          String          @id @default(cuid())
+  dimensionId String
+  tagId       String
+  order       Int             @default(0)
+  dimension   FilterDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  tag         Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([dimensionId, tagId])
+  @@index([dimensionId])
+  @@index([tagId])
 }
 
 enum Category {
@@ -497,42 +529,3 @@ enum TrendReportStatus {
   COMPLETED
   FAILED
 }
-
-// ==========================================
-// 篩選維度系統 (Filter Dimension System)
-// ==========================================
-
-model FilterDimension {
-  id            String   @id @default(cuid())
-  slug          String   @unique
-  category      String   // 'print-packaging', 'bag', 'gift' 等大分類
-  name_zh       String
-  name_en       String
-  icon          String?  // Lucide icon 名稱
-  order         Int      @default(0)
-  is_active     Boolean  @default(true)
-  allow_multiple Boolean @default(true) // 是否允許多選
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  tagMappings   DimensionTagMapping[]
-  
-  @@index([category])
-  @@index([is_active])
-  @@index([order])
-}
-
-model DimensionTagMapping {
-  id          String   @id @default(cuid())
-  dimensionId String
-  tagId       String
-  order       Int      @default(0)
-  
-  dimension   FilterDimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
-  tag         Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
-  @@unique([dimensionId, tagId])
-  @@index([dimensionId])
-  @@index([tagId])
-}
-
