@@ -8,8 +8,6 @@ const CROSS_CATEGORY_TAG_SLUGS = [
   'corporate-gift',
   'embossing',
   'laser-engraving',
-  'canvas',
-  'cotton',
   'polyester',
   'nylon',
   'leather',
