@@ -4,6 +4,7 @@ import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 
+// 這是公開測試端點，用於診斷登入問題
 export async function GET() {
   const results: any = {
     timestamp: new Date().toISOString(),
@@ -16,6 +17,7 @@ export async function GET() {
     results.tests.push({ name: 'DB Connection', status: 'OK', userCount });
   } catch (e: any) {
     results.tests.push({ name: 'DB Connection', status: 'FAIL', error: e.message });
+    return NextResponse.json(results);
   }
 
   // Test 2: Find user
@@ -24,7 +26,7 @@ export async function GET() {
     results.tests.push({ 
       name: 'Find User', 
       status: user ? 'OK' : 'NO_USER', 
-      userId: user?.id,
+      userId: user?.id?.substring(0, 8) + '...',
       email: user?.email 
     });
   } catch (e: any) {
@@ -54,5 +56,6 @@ export async function GET() {
     results.tests.push({ name: 'Create Session', status: 'FAIL', error: e.message, code: e.code });
   }
 
+  results.allPassed = results.tests.every((t: any) => t.status === 'OK');
   return NextResponse.json(results);
 }

@@ -9,6 +9,7 @@ const PUBLIC_ADMIN_PATHS = [
   "/api/admin/login",
   "/api/admin/logout",
   "/api/admin/session/validate",
+  "/api/admin/test-session",
 ];
 
 export async function middleware(req: NextRequest) {
