@@ -128,7 +128,7 @@ export default function PackagingExplorerV2() {
   const [giftSubDimension, setGiftSubDimension] = useState<Dimension | null>(null); // 禮品品項的子維度
   // 禮品初始隨機產品狀態
   const [giftRandomProducts, setGiftRandomProducts] = useState<Product[]>([]);
-  const [showingGiftRandom, setShowingGiftRandom] = useState(false);
+  const [showingRandomPicks, setShowingRandomPicks] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false); // 篩選時的載入狀態
   
   // 從 URL 讀取初始類別（同步）
@@ -498,7 +498,7 @@ export default function PackagingExplorerV2() {
             setGiftRandomProducts(randomProducts);
             setProducts(randomProducts);
             setTotalProducts(randomProducts.length);
-            setShowingGiftRandom(true);
+            setShowingRandomPicks(true);
             setHasMore(false);
           }
           
@@ -834,7 +834,7 @@ export default function PackagingExplorerV2() {
         
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
-        // 不需要重設 setShowingGiftRandom，它已經是 true
+        // 不需要重設 setShowingRandomPicks，它已經是 true
         setHasMore(false);
         console.log(`[禮品重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
         return;
@@ -896,7 +896,7 @@ export default function PackagingExplorerV2() {
         setExpandedDimensions(new Set(giftCached.dimensions.slice(0, 2).map((d: Dimension) => d.slug)));
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
-        setShowingGiftRandom(true);
+        setShowingRandomPicks(true);
         setHasMore(false);
         console.log(`[禮品切換] 從快取隨機選擇 ${randomFromCache.length} 個產品`);
         return;
@@ -934,7 +934,7 @@ export default function PackagingExplorerV2() {
           setGiftRandomProducts(randomProducts);
           setProducts(randomProducts);
           setTotalProducts(randomProducts.length);
-          setShowingGiftRandom(true);
+          setShowingRandomPicks(true);
           setHasMore(false);
         }
         
@@ -959,7 +959,7 @@ export default function PackagingExplorerV2() {
     }
     
     // 重置禮品相關狀態
-    setShowingGiftRandom(false);
+    setShowingRandomPicks(false);
     setGiftRandomProducts([]);
     
     // 檢查是否有預載快取（兩個獨立快取區塊，互不污染）
@@ -1117,12 +1117,12 @@ export default function PackagingExplorerV2() {
               setGiftRandomProducts(randomProducts);
               setProducts(randomProducts);
               setTotalProducts(randomProducts.length);
-              setShowingGiftRandom(true);
+              setShowingRandomPicks(true);
             } else if (giftRandomProducts.length > 0) {
               // 快取還沒載入完成，使用之前的隨機產品
               setProducts(giftRandomProducts);
               setTotalProducts(giftRandomProducts.length);
-              setShowingGiftRandom(true);
+              setShowingRandomPicks(true);
             } else {
               setProducts([]);
               setTotalProducts(0);
@@ -1150,14 +1150,14 @@ export default function PackagingExplorerV2() {
         } else {
           // 禮品類別：還有其他標籤，清除隨機顯示標記
           if (activeCategory === 'gift') {
-            setShowingGiftRandom(false);
+            setShowingRandomPicks(false);
           }
         }
       } else {
         newSet.add(slug);
         // 禮品類別：選擇標籤時，清除隨機顯示標記
         if (activeCategory === 'gift') {
-          setShowingGiftRandom(false);
+          setShowingRandomPicks(false);
         }
       }
       return newSet;
@@ -1205,10 +1205,10 @@ export default function PackagingExplorerV2() {
       
       // 從快取隨機選擇15個不同的產品
       const randomProducts = getRandomGiftProducts(15);
-      if (randomProducts.length > 0) {
+        if (randomProducts.length > 0) {
         setProducts(randomProducts);
         setTotalProducts(randomProducts.length);
-        setShowingGiftRandom(true);
+        setShowingRandomPicks(true);
       } else {
         setProducts([]);
         setTotalProducts(0);
@@ -2087,8 +2087,8 @@ export default function PackagingExplorerV2() {
                 </div>
               ) : (
                 <>
-                  {/* 禮品隨機推薦提示 */}
-                  {activeCategory === 'gift' && showingGiftRandom && (
+                  {/* 隨機推薦提示（禮品 / 包裝盒 / 提袋） */}
+                  {['gift','print-packaging','bag'].includes(activeCategory) && showingRandomPicks && (
                     <div className="mb-4 px-4 py-3 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-200">
                       <div className="flex items-center gap-2 text-violet-700">
                         <Sparkles className="w-5 h-5" />

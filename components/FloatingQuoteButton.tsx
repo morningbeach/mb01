@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "../app/contexts/LanguageContext";
-import { fireContactConversion, fireMetaContactEvent, fireGTMEvent } from "@/lib/analytics";
+import { fireMetaContactEvent, fireGTMEvent } from "@/lib/analytics";
 
 type ContactButtonsSettings = {
   line: { enabled: boolean; url: string; label_zh: string; label_en: string };
@@ -40,8 +40,7 @@ export function FloatingQuoteButton() {
   }, []);
 
   const handleLineClick = () => {
-    console.log("GTM event contact_click", { channel: "line" });
-    fireContactConversion();
+    // GTM 會處理 Google Ads 轉換追蹤
     fireMetaContactEvent("Lead");
     fireGTMEvent("contact_click", {
       channel: "line",
@@ -53,8 +52,7 @@ export function FloatingQuoteButton() {
 
   const handleWhatsAppClick = () => {
     const cleanNumber = settings.whatsapp.number.replace(/[^0-9+]/g, "");
-    console.log("GTM event contact_click", { channel: "whatsapp" });
-    fireContactConversion();
+    // GTM 會處理 Google Ads 轉換追蹤
     fireMetaContactEvent("Lead");
     fireGTMEvent("contact_click", {
       channel: "whatsapp",
@@ -65,8 +63,7 @@ export function FloatingQuoteButton() {
   };
 
   const handleEmailClick = () => {
-    console.log("GTM event contact_click", { channel: "email" });
-    fireContactConversion();
+    // GTM 會處理 Google Ads 轉換追蹤
     fireMetaContactEvent("Lead");
     fireGTMEvent("contact_click", {
       channel: "email",

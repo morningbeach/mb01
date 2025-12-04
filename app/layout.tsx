@@ -30,7 +30,7 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-N2NF47N8');
           `}
         </Script>
-        {/* Google Analytics */}
+        {/* Google Analytics + Google Ads */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-5XXT3C5Z3P"
           strategy="afterInteractive"
@@ -41,6 +41,7 @@ export default function RootLayout({
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-5XXT3C5Z3P');
+            gtag('config', 'AW-16682749587');
           `}
         </Script>
         {/* Meta Pixel */}

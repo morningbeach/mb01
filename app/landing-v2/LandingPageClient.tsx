@@ -339,7 +339,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
                 />
                 <div className="mt-16 grid gap-8 md:grid-cols-3">
                 {displayCases.map((item, i) => (
-                    <Link href={`/case/${item.slug}`} key={item.id} className="group cursor-pointer space-y-4">
+                    <div key={item.id} className="group space-y-4">
                     <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-zinc-900">
                         {item.coverImage ? (
                             <Image src={item.coverImage} alt={item.title_zh} fill className="object-cover transition duration-700 group-hover:scale-105" />
@@ -352,7 +352,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
                         <h3 className="mt-2 text-2xl font-bold text-white">{item.title_zh}</h3>
                         </div>
                     </div>
-                    </Link>
+                    </div>
                 ))}
                 </div>
             </div>
