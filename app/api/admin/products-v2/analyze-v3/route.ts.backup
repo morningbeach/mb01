@@ -1,0 +1,528 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+type PrismaDimension = Awaited<ReturnType<typeof prisma.filterDimension.findMany>>[number];
+type PrismaTagMapping = PrismaDimension["tagMappings"][number];
+
+const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const CATEGORY_LABELS: Record<string, string> = {
+  "print-packaging": "盒",
+  "bag": "袋",
+  "gift": "禮品",
+};
+const VALID_FORCE_CATEGORY = new Set(["print-packaging", "bag", "gift"]);
+
+const BAG_DIMENSIONS = {
+  material: "bag-material",
+  style: "bag-style",
+  extras: ["bag-print", "bag-feature", "bag-eco", "bag-application"],
+};
+const BOX_DIMENSIONS = {
+  families: ["folding-carton", "rigid-box", "other-print"],
+  extras: ["application", "material", "finishing"],
+};
+
+interface DimensionNodeTag {
+  id: string;
+  slug: string;
+  name_zh: string;
+  name_en: string;
+  color: string | null;
+}
+
+interface DimensionNode {
+  id: string;
+  slug: string;
+  name_zh: string;
+  name_en: string;
+  icon: string | null;
+  allow_multiple: boolean;
+  tags: DimensionNodeTag[];
+}
+
+function formatOptions(
+  dimension?: PrismaDimension
+) {
+  if (!dimension) return "";
+  return dimension.tagMappings
+    .map((m) => `- ${m.tag.slug}: ${m.tag.name_zh || m.tag.slug}${m.tag.name_en ? ` / ${m.tag.name_en}` : ""}`)
+    .join("\n");
+}
+
+function extractJson(text?: string) {
+  if (!text) return null;
+  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[0]);
+  } catch (err) {
+    return null;
+  }
+}
+
+async function callGemini({
+  apiKey,
+  prompt,
+  base64Image,
+  mimeType,
+  temperature = 0.1,
+  maxOutputTokens = 400,
+}: {
+  apiKey: string;
+  prompt: string;
+  base64Image: string;
+  mimeType: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+}) {
+  const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { inlineData: { mimeType, data: base64Image } },
+            { text: prompt },
+          ],
+        },
+      ],
+      generationConfig: { temperature, maxOutputTokens },
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const message = data?.error?.message || "Gemini 呼叫失敗";
+    throw new Error(message);
+  }
+
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+}
+
+function normalizeSlugs(slugs: unknown, allowed: Set<string>, fallback: string[]): string[] {
+  if (!Array.isArray(slugs)) return fallback;
+  const result: string[] = [];
+  slugs.forEach((slug) => {
+    if (typeof slug === "string") {
+      const lowered = slug.trim().toLowerCase();
+      if (allowed.has(lowered) && !result.includes(lowered)) {
+        result.push(lowered);
+      }
+    }
+  });
+  return result.length > 0 ? result : fallback;
+}
+
+function pushSuggestions(
+  rawSuggestions: any,
+  collector: string[],
+) {
+  if (!Array.isArray(rawSuggestions)) return;
+  rawSuggestions.forEach((item: any) => {
+    if (item && typeof item === "object") {
+      const dimension = item.dimension || item.dim || "unknown-dimension";
+      const nameZh = item.name_zh || item.name || "未命名";
+      const nameEn = item.name_en || "";
+      const reason = item.reason || item.note || "";
+      collector.push(`${dimension}: ${nameZh}${nameEn ? ` / ${nameEn}` : ""}${reason ? `（${reason}）` : ""}`);
+    } else if (typeof item === "string") {
+      collector.push(item);
+    }
+  });
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const apiKey = formData.get("apiKey") as string;
+    const image = formData.get("image") as File;
+    const userHint = (formData.get("userHint") as string) || "";
+    const forceCategory = formData.get("forceCategory") as string;
+
+    if (!apiKey) {
+      return NextResponse.json({ error: "請提供 Gemini API Key" }, { status: 400 });
+    }
+    if (!image) {
+      return NextResponse.json({ error: "請上傳產品圖片" }, { status: 400 });
+    }
+
+    const bytes = await image.arrayBuffer();
+    const base64Image = Buffer.from(bytes).toString("base64");
+    const mimeType = image.type || "image/jpeg";
+
+    const userHintSection = userHint
+      ? `\n\n【用戶提示】${userHint}`
+      : "";
+
+    let detectedCategory: "print-packaging" | "bag" | "gift" = "print-packaging";
+    if (forceCategory && VALID_FORCE_CATEGORY.has(forceCategory)) {
+      detectedCategory = forceCategory as typeof detectedCategory;
+    } else {
+      const categoryPrompt = `你是一個專業的禮品包裝產品專家。請分析這張產品圖片，判斷這是什麼類型的產品。${userHintSection}
+
+請只回覆以下三種之一（英文大寫，不要其他文字）：
+- BOX：紙質包裝盒、紙盒、禮盒、摺疊盒、瓦楞盒、精裝盒等紙盒
+- BAG：提袋、購物袋、環保袋、帆布袋、不織布袋等袋類產品
+- GIFT：禮品、贈品、3C產品、家居用品、非紙質盒（例如鐵盒、木盒、塑膠盒等）
+
+如果外觀像盒子但材質不是紙，請判斷為 GIFT。`;        
+      const categoryText = await callGemini({
+        apiKey,
+        prompt: categoryPrompt,
+        base64Image,
+        mimeType,
+        temperature: 0.1,
+        maxOutputTokens: 10,
+      });
+      const map: Record<string, typeof detectedCategory> = {
+        BOX: "print-packaging",
+        BAG: "bag",
+        GIFT: "gift",
+      };
+      detectedCategory = map[categoryText.trim().toUpperCase()] || "print-packaging";
+    }
+
+    const categoryLabel = CATEGORY_LABELS[detectedCategory] || "盒";
+
+    const rawDimensions = (await prisma.filterDimension.findMany({
+      where: { category: detectedCategory, is_active: true },
+      include: {
+        tagMappings: {
+          include: { tag: true },
+          orderBy: { order: "asc" },
+        },
+      },
+      orderBy: { order: "asc" },
+    })) as PrismaDimension[];
+
+    const dimensionMap = new Map(
+      rawDimensions.map((dim) => [
+        dim.slug,
+        dim,
+      ])
+    );
+
+    const dimensionTree: DimensionNode[] = rawDimensions.map((dim) => ({
+      id: dim.id,
+      slug: dim.slug,
+      name_zh: dim.name_zh,
+      name_en: dim.name_en,
+      icon: dim.icon,
+      allow_multiple: dim.allow_multiple,
+      tags: dim.tagMappings.map((m) => ({
+        id: m.tag.id,
+        slug: m.tag.slug,
+        name_zh: m.tag.name_zh || m.tag.name,
+        name_en: m.tag.name_en || m.tag.name,
+        color: m.tag.color,
+      })),
+    }));
+
+    const detectedTagMap: Record<string, string[]> = {};
+    const suggestedNewTags: string[] = [];
+    let detectedMainCategory = "";
+    let detectedMainCategoryName = "";
+    let detectedItemSlug = "";
+    let detectedItemName = "";
+
+    // ===== Category specific flows =====
+    if (detectedCategory === "bag") {
+      // Step 2: 材質
+      const materialDim = dimensionMap.get(BAG_DIMENSIONS.material);
+      const materialOptions = formatOptions(materialDim);
+      if (materialDim && materialOptions) {
+        const materialPrompt = `你正在分類一個提袋產品。請根據圖片判斷袋子主要材質。${userHintSection}
+
+材質選項：
+${materialOptions}
+
+請以 JSON 回覆：
+{
+  "isMixed": true 或 false,
+  "materials": ["slug1", "slug2"...],
+  "suggestedNewTags": [
+    { "dimension": "bag-material", "name_zh": "中文", "name_en": "English", "reason": "原因" }
+  ]
+}
+
+規則：
+- 如果材質很明確，materials 只選 1 個 slug。
+- 如果是混和材質（例如帆布 + 皮革），請設定 isMixed: true 並選 2~3 個最主要的 slug。
+- 只允許使用上述 slug，若沒有可用，選最接近的並在 suggestedNewTags 建議新標籤。
+- 不可以空白。`;
+        const materialAnswer = await callGemini({
+          apiKey,
+          prompt: materialPrompt,
+          base64Image,
+          mimeType,
+          temperature: 0.2,
+          maxOutputTokens: 200,
+        });
+        const parsed = extractJson(materialAnswer) || {};
+        const allowed = new Set(materialDim.tagMappings.map((m) => m.tag.slug));
+        const materialFallback: string[] = materialDim.tagMappings[0]?.tag.slug
+          ? [materialDim.tagMappings[0]?.tag.slug]
+          : [];
+        let materials = normalizeSlugs(parsed.materials, allowed, materialFallback);
+        if (!parsed.isMixed && materials.length > 1) {
+          materials = materials.slice(0, 1);
+        }
+        detectedTagMap[BAG_DIMENSIONS.material] = materials;
+        pushSuggestions(parsed.suggestedNewTags, suggestedNewTags);
+      }
+
+      // Step 3: 袋形 (強制單一)
+      const styleDim = dimensionMap.get(BAG_DIMENSIONS.style);
+      const styleOptions = formatOptions(styleDim);
+      if (styleDim && styleOptions) {
+        const stylePrompt = `請判斷這個提袋屬於哪一種袋形。${userHintSection}
+
+袋形選項：
+${styleOptions}
+
+只回覆 JSON：{"style": "slug"}
+- 只能選一個 slug。
+- 如果沒有完全符合，選最接近的並在 suggestion 中描述原因。
+`;
+        const styleAnswer = await callGemini({
+          apiKey,
+          prompt: stylePrompt,
+          base64Image,
+          mimeType,
+          temperature: 0.2,
+          maxOutputTokens: 80,
+        });
+        const parsed = extractJson(styleAnswer) || {};
+        const allowed = new Set(styleDim.tagMappings.map((m) => m.tag.slug));
+        const styleFallback: string[] = styleDim.tagMappings[0]?.tag.slug
+          ? [styleDim.tagMappings[0]?.tag.slug]
+          : [];
+        const styleSlug = normalizeSlugs(parsed.style ? [parsed.style] : [], allowed, styleFallback);
+        detectedTagMap[BAG_DIMENSIONS.style] = styleSlug;
+        detectedItemSlug = styleSlug[0] || "";
+        const matchedTag = styleDim.tagMappings.find((m) => m.tag.slug === detectedItemSlug);
+        detectedItemName = matchedTag ? `${matchedTag.tag.name_zh || ""}${matchedTag.tag.name_en ? ` / ${matchedTag.tag.name_en}` : ""}` : "";
+        pushSuggestions(parsed.suggestedNewTags, suggestedNewTags);
+      }
+
+      // Step 4: 其餘維度（不可留空）
+      const extrasPromptParts = BAG_DIMENSIONS.extras.map((slug) => {
+        const dim = dimensionMap.get(slug);
+        if (!dim) return "";
+        return `【${dim.name_zh}】(slug: ${slug})\n${formatOptions(dim)}`;
+      }).join("\n\n");
+
+      const extrasPrompt = `針對此提袋，請為以下維度挑選最適合的 slug，至少各選一個。${userHintSection}
+
+${extrasPromptParts}
+
+回覆 JSON：
+{
+  "bag-print": ["slug"],
+  "bag-feature": ["slug"],
+  "bag-eco": ["slug"],
+  "bag-application": ["slug"],
+  "suggestedNewTags": [ { "dimension": "bag-feature", "name_zh": "中文", "name_en": "English", "reason": "原因" } ]
+}
+
+規則：
+- 每個欄位至少 1 個 slug，可複選。
+- 如果沒有完全符合，選最接近的並在 suggestedNewTags 建議。
+- 不得留空。`;
+
+      const extrasAnswer = await callGemini({
+        apiKey,
+        prompt: extrasPrompt,
+        base64Image,
+        mimeType,
+        temperature: 0.25,
+        maxOutputTokens: 300,
+      });
+      const extrasJson = extractJson(extrasAnswer) || {};
+      BAG_DIMENSIONS.extras.forEach((slug) => {
+        const dim = dimensionMap.get(slug);
+        if (!dim) return;
+        const allowed = new Set(dim.tagMappings.map((m) => m.tag.slug));
+        const fallback: string[] = dim.tagMappings[0]?.tag.slug
+          ? [dim.tagMappings[0]?.tag.slug]
+          : [];
+        detectedTagMap[slug] = normalizeSlugs(extrasJson[slug], allowed, fallback);
+      });
+      pushSuggestions(extrasJson.suggestedNewTags, suggestedNewTags);
+    } else if (detectedCategory === "print-packaging") {
+      // Step 2: 判斷盒型家族
+      const familyPrompt = `請判斷這個包裝產品屬於：folding-carton（一般紙盒）、rigid-box（精緻硬盒）、other-print（其他印刷品，例如卡片、貼紙）。${userHintSection}
+
+只回覆一個 slug：folding-carton / rigid-box / other-print。`;
+      const familyAnswer = await callGemini({
+        apiKey,
+        prompt: familyPrompt,
+        base64Image,
+        mimeType,
+        temperature: 0.15,
+        maxOutputTokens: 10,
+      });
+      const selectedFamily = BOX_DIMENSIONS.families.includes(familyAnswer.trim())
+        ? familyAnswer.trim()
+        : "other-print";
+
+      const familyDim = dimensionMap.get(selectedFamily);
+      if (familyDim) {
+        const options = formatOptions(familyDim);
+        const familyTagPrompt = `以下是 ${familyDim.name_zh} 的可用盒型 slug，請根據圖片選擇 1~2 個最貼近的 slug。${userHintSection}
+
+${options}
+
+回覆 JSON：{"selectedSlugs": ["slug1", "slug2"], "suggestedNewTags": []}
+- 至少 1 個 slug，若完全不符請選最接近的並於建議中說明。`;
+        const tagAnswer = await callGemini({
+          apiKey,
+          prompt: familyTagPrompt,
+          base64Image,
+          mimeType,
+          temperature: 0.2,
+          maxOutputTokens: 150,
+        });
+        const parsed = extractJson(tagAnswer) || {};
+        const allowed = new Set(familyDim.tagMappings.map((m) => m.tag.slug));
+        const fallback: string[] = familyDim.tagMappings[0]?.tag.slug
+          ? [familyDim.tagMappings[0]?.tag.slug]
+          : [];
+        detectedTagMap[selectedFamily] = normalizeSlugs(parsed.selectedSlugs, allowed, fallback);
+        detectedItemSlug = detectedTagMap[selectedFamily][0] || "";
+        const match = familyDim.tagMappings.find((m) => m.tag.slug === detectedItemSlug);
+        detectedItemName = match ? `${match.tag.name_zh || ""}${match.tag.name_en ? ` / ${match.tag.name_en}` : ""}` : "";
+        pushSuggestions(parsed.suggestedNewTags, suggestedNewTags);
+      }
+
+      // Step 3: 應用場景 / 材質 / 工藝
+      const extrasPromptParts = BOX_DIMENSIONS.extras.map((slug) => {
+        const dim = dimensionMap.get(slug);
+        if (!dim) return "";
+        return `【${dim.name_zh}】(slug: ${slug})\n${formatOptions(dim)}`;
+      }).join("\n\n");
+
+      const boxExtrasPrompt = `為以下維度挑選最適合的 slug（不可留空，可複選），必要時提出新標籤建議。${userHintSection}
+
+${extrasPromptParts}
+
+回覆 JSON：
+{
+  "application": ["slug"],
+  "material": ["slug"],
+  "finishing": ["slug"],
+  "suggestedNewTags": [ { "dimension": "material", "name_zh": "中文", "name_en": "English", "reason": "原因" } ]
+}`;
+
+      const boxExtrasAnswer = await callGemini({
+        apiKey,
+        prompt: boxExtrasPrompt,
+        base64Image,
+        mimeType,
+        temperature: 0.25,
+        maxOutputTokens: 400,
+      });
+      const boxExtrasJson = extractJson(boxExtrasAnswer) || {};
+      BOX_DIMENSIONS.extras.forEach((slug) => {
+        const dim = dimensionMap.get(slug);
+        if (!dim) return;
+        const allowed = new Set(dim.tagMappings.map((m) => m.tag.slug));
+        const fallback: string[] = dim.tagMappings[0]?.tag.slug
+          ? [dim.tagMappings[0]?.tag.slug]
+          : [];
+        detectedTagMap[slug] = normalizeSlugs(boxExtrasJson[slug], allowed, fallback);
+      });
+      pushSuggestions(boxExtrasJson.suggestedNewTags, suggestedNewTags);
+    } else {
+      // Gift flow（沿用現有邏輯：Step2 12大品類、Step3 品項）
+      const mainDimension = dimensionMap.get("gift-type");
+      const mainOptions = formatOptions(mainDimension);
+      if (mainDimension && mainOptions) {
+        const prompt = `請判斷這個禮品屬於哪一個 12 大品類 slug。${userHintSection}
+
+${mainOptions}
+
+只回覆一個 slug（小寫）。`;
+        const answer = await callGemini({
+          apiKey,
+          prompt,
+          base64Image,
+          mimeType,
+          temperature: 0.15,
+          maxOutputTokens: 30,
+        });
+        detectedMainCategory = answer.trim().toLowerCase();
+        const tag = mainDimension.tagMappings.find((m) => m.tag.slug === detectedMainCategory);
+        if (tag) {
+          detectedMainCategoryName = `${tag.tag.name_zh || ""}${tag.tag.name_en ? ` / ${tag.tag.name_en}` : ""}`;
+          detectedTagMap["gift-type"] = [tag.tag.slug];
+          detectedItemSlug = tag.tag.slug;
+          detectedItemName = detectedMainCategoryName;
+        }
+      }
+    }
+
+    // ===== 產品資訊描述 =====
+    const productInfoPrompt = `你是一個專業的禮品包裝產品文案專家。請為這張圖片中的產品撰寫完整商品資訊。${userHintSection}
+
+這是一個「${categoryLabel}」類別產品。
+
+請回覆 JSON：
+{
+  "name_en": "英文名稱（20字以內）",
+  "name_zh": "中文名稱（10字以內）",
+  "slug": "url-friendly slug（小寫英文字母與連字號）",
+  "shortDesc_en": "英文一句話描述",
+  "shortDesc_zh": "中文一句話描述",
+  "description_en": "英文詳細描述（80-150字）",
+  "description_zh": "中文詳細描述（60-120字）",
+  "dimensions_en": "英文尺寸描述（如：20 × 15 × 8 cm）",
+  "dimensions_zh": "中文尺寸描述（如：20 × 15 × 8 公分）",
+  "materials_en": "英文材質描述",
+  "materials_zh": "中文材質描述",
+  "priceHint_en": "英文價格提示（如：From $3.50/pc）",
+  "priceHint_zh": "中文價格提示（如：每個 $3.50 起）",
+  "minQty": 訂購量數字,
+  "leadTime_en": "英文交期（如：15-20 business days）",
+  "leadTime_zh": "中文交期（如：15-20 個工作天）",
+  "seoTitle_en": "英文 SEO 標題",
+  "seoTitle_zh": "中文 SEO 標題",
+  "seoDescription_en": "英文 SEO 描述",
+  "seoDescription_zh": "中文 SEO 描述"
+}
+
+只回覆 JSON，不要額外文字。`;
+
+    const productInfoAnswer = await callGemini({
+      apiKey,
+      prompt: productInfoPrompt,
+      base64Image,
+      mimeType,
+      temperature: 0.35,
+      maxOutputTokens: 900,
+    });
+    const productData = extractJson(productInfoAnswer) || {};
+
+    return NextResponse.json({
+      success: true,
+      detectedCategory,
+      categoryLabel,
+      detectedMainCategory,
+      detectedMainCategoryName,
+      detectedItemSlug,
+      detectedItemName,
+      dimensions: dimensionTree,
+      detectedTagMap,
+      suggestedNewTags,
+      productData,
+    });
+  } catch (error: any) {
+    console.error("analyze-v3 error", error);
+    return NextResponse.json(
+      { error: error.message || "分析失敗" },
+      { status: 500 }
+    );
+  }
+}

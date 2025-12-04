@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,9 +11,9 @@ import { SiteFooter } from '../../components/SiteFooter';
 import ProductModal from './ProductModal';
 import {
   Package, ShoppingBag, Gift, Layers, Target, Sparkles,
-  Paintbrush, Leaf, Star, ChevronDown, X, Search,
+  Paintbrush, Leaf, Star, ChevronDown, ChevronRight, X, Search,
   ToggleLeft, ToggleRight, Grid3X3, LayoutGrid, Loader2,
-  TreePine, SlidersHorizontal, Filter
+  TreePine, SlidersHorizontal, Filter, Copy, Check
 } from 'lucide-react';
 
 // ==========================================
@@ -62,11 +63,34 @@ const iconMap: Record<string, any> = {
 // 類別配置
 // ==========================================
 const categories = [
-  { id: 'print-packaging', name_zh: '包裝盒', name_en: 'Boxes', icon: Package, color: 'bg-amber-500', disabled: false },
-  { id: 'bag', name_zh: '提袋', name_en: 'Bags', icon: ShoppingBag, color: 'bg-emerald-500', disabled: false },
-  { id: 'gift', name_zh: '禮品（暫未開放）', name_en: 'Gifts (Coming Soon)', icon: Gift, color: 'bg-violet-500', disabled: true },
-  { id: 'all', name_zh: '全部（暫未開放）', name_en: 'All (Coming Soon)', icon: Grid3X3, color: 'bg-gray-700', disabled: true },
+  { id: 'print-packaging', name_zh: '包裝盒', name_en: 'Boxes', icon: Package, color: 'bg-amber-500', colorLight: 'bg-amber-50', colorBorder: 'border-amber-200', colorText: 'text-amber-800', colorAccent: 'bg-amber-600', disabled: false },
+  { id: 'bag', name_zh: '提袋', name_en: 'Bags', icon: ShoppingBag, color: 'bg-emerald-500', colorLight: 'bg-emerald-50', colorBorder: 'border-emerald-200', colorText: 'text-emerald-800', colorAccent: 'bg-emerald-600', disabled: false },
+  { id: 'gift', name_zh: '禮品', name_en: 'Gifts', icon: Gift, color: 'bg-violet-500', colorLight: 'bg-violet-50', colorBorder: 'border-violet-200', colorText: 'text-violet-800', colorAccent: 'bg-violet-600', disabled: false },
+  { id: 'all', name_zh: '全部（暫未開放）', name_en: 'All (Coming Soon)', icon: Grid3X3, color: 'bg-gray-700', colorLight: 'bg-gray-50', colorBorder: 'border-gray-200', colorText: 'text-gray-800', colorAccent: 'bg-gray-600', disabled: true },
 ];
+
+// 每個品類對應的品項維度 slug
+const categoryItemDimensions: Record<string, string[]> = {
+  'print-packaging': ['folding-carton', 'rigid-box', 'other-print'],  // 包裝盒有三個品項維度
+  'bag': ['bag-style'],                                                 // 提袋品項維度
+  'gift': ['gift-type'],                                               // 禮品品項維度（前台只展開，不當標籤）
+};
+
+// 禮品品項 → 子維度的對應表
+const giftItemToDimensionMap: Record<string, string> = {
+  'drinkware': 'gift-drinkware',
+  'gift-bags': 'gift-bag-type',
+  'stationery': 'gift-stationery',
+  'tech-accessories': 'gift-tech',
+  'card-holders': 'gift-card-holder',
+  'apparel-accessories': 'gift-apparel',
+  'keychains-accessories': 'gift-keychain',
+  'home-living': 'gift-home',
+  'fragrance': 'gift-fragrance',
+  'outdoor-sports': 'gift-outdoor',
+  'toys-games': 'gift-toys',
+  'office-business': 'gift-office',
+};
 
 // 應用場景維度 slugs（用於全部模式）
 const applicationDimensionSlugs = ['application', 'bag-application', 'gift-application'];
@@ -76,6 +100,8 @@ const applicationDimensionSlugs = ['application', 'bag-application', 'gift-appli
 // ==========================================
 export default function PackagingExplorerV2() {
   const { lang } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   
   // 狀態
   const [activeCategory, setActiveCategory] = useState('print-packaging');
@@ -97,6 +123,47 @@ export default function PackagingExplorerV2() {
   const [usingCache, setUsingCache] = useState(false); // 是否正在使用快取（跳過 effect 載入）
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false); // 手機版篩選面板
   const [reachedBottom, setReachedBottom] = useState(false); // 是否滾動到底部
+  const [urlCopied, setUrlCopied] = useState(false); // 複製網址成功提示
+  const [selectedGiftItem, setSelectedGiftItem] = useState<string | null>(null); // 選中的禮品品項（如 drinkware）
+  const [giftSubDimension, setGiftSubDimension] = useState<Dimension | null>(null); // 禮品品項的子維度
+  // 禮品初始隨機產品狀態
+  const [giftRandomProducts, setGiftRandomProducts] = useState<Product[]>([]);
+  const [showingGiftRandom, setShowingGiftRandom] = useState(false);
+  const [filterLoading, setFilterLoading] = useState(false); // 篩選時的載入狀態
+  
+  // 從 URL 讀取初始類別（同步）
+  const getInitialCategory = (): string => {
+    const categoryParam = searchParams.get('cat') || searchParams.get('category');
+    if (categoryParam && ['print-packaging', 'bag', 'gift'].includes(categoryParam)) {
+      return categoryParam;
+    }
+    return 'print-packaging';
+  };
+  
+  // 從 URL 讀取初始標籤和類別
+  const urlInitializedRef = useRef(false);
+  const initialCategoryRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (urlInitializedRef.current) return;
+    urlInitializedRef.current = true;
+    
+    const tagsParam = searchParams.get('tags');
+    const categoryParam = searchParams.get('cat') || searchParams.get('category');
+    
+    // 支援 gift 類別
+    if (categoryParam && ['print-packaging', 'bag', 'gift'].includes(categoryParam)) {
+      setActiveCategory(categoryParam);
+      initialCategoryRef.current = categoryParam;
+    }
+    
+    if (tagsParam) {
+      const tagSlugs = tagsParam.split(',').filter(Boolean);
+      if (tagSlugs.length > 0) {
+        setSelectedTags(new Set(tagSlugs));
+      }
+    }
+  }, [searchParams]);
   
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -311,9 +378,10 @@ export default function PackagingExplorerV2() {
     setReachedBottom(false);
   }, [activeCategory, selectedTags, searchQuery]);
 
-  // 兩個獨立的快取區塊，互不污染
+  // 三個獨立的快取區塊，互不污染
   const printPackagingCache = useRef<{ products: Product[], dimensions: Dimension[], total: number, locked: boolean }>({ products: [], dimensions: [], total: 0, locked: false });
   const bagCache = useRef<{ products: Product[], dimensions: Dimension[], total: number, locked: boolean }>({ products: [], dimensions: [], total: 0, locked: false });
+  const giftCache = useRef<{ products: Product[], dimensions: Dimension[], total: number, locked: boolean }>({ products: [], dimensions: [], total: 0, locked: false });
   
   // 圖片預載快取 - 已預載的圖片 URL
   const preloadedImages = useRef<Set<string>>(new Set());
@@ -355,6 +423,9 @@ export default function PackagingExplorerV2() {
     if (categoryId === 'bag' && bagCache.current.products.length > 0) {
       return bagCache.current;
     }
+    if (categoryId === 'gift' && giftCache.current.products.length > 0) {
+      return giftCache.current;
+    }
     return null;
   };
   
@@ -362,6 +433,7 @@ export default function PackagingExplorerV2() {
   const isCacheLocked = (categoryId: string) => {
     if (categoryId === 'print-packaging') return printPackagingCache.current.locked;
     if (categoryId === 'bag') return bagCache.current.locked;
+    if (categoryId === 'gift') return giftCache.current.locked;
     return false;
   };
   
@@ -371,6 +443,8 @@ export default function PackagingExplorerV2() {
       printPackagingCache.current = { ...data, locked: lock };
     } else if (categoryId === 'bag') {
       bagCache.current = { ...data, locked: lock };
+    } else if (categoryId === 'gift') {
+      giftCache.current = { ...data, locked: lock };
     }
   };
   
@@ -387,26 +461,96 @@ export default function PackagingExplorerV2() {
   useEffect(() => {
     if (initialLoaded) return;
     
+    // 確定實際要載入的類別（優先使用 URL 參數）
+    const categoryToLoad = getInitialCategory();
+    
+    // 如果 URL 指定的類別與當前不同，等待 setActiveCategory 生效
+    if (categoryToLoad !== activeCategory) {
+      setActiveCategory(categoryToLoad);
+      return; // 等待下次 effect 執行
+    }
+    
     // 防止重複載入
     if (loadingLockRef.current === activeCategory) return;
     loadingLockRef.current = activeCategory;
     
+    // 禮品類別初次載入：先載入維度，再載入隨機產品，背景預載全部
+    if (activeCategory === 'gift') {
+      const loadGiftInitial = async () => {
+        setLoading(true);
+        let loadedDimensions: Dimension[] = [];
+        
+        try {
+          // 第一步：先載入維度（左側控制器）
+          const dimensionsRes = await fetch(`/api/filter-dimensions?category=gift`);
+          if (dimensionsRes.ok) {
+            const dimensionsData = await dimensionsRes.json();
+            if (dimensionsData.success) {
+              loadedDimensions = dimensionsData.data.map((dim: Dimension) => ({
+                ...dim,
+                tags: dim.tags.filter(tag => (tag.productCount || 0) > 0)
+              })).filter((dim: Dimension) => dim.tags.length > 0);
+              
+              setDimensions(loadedDimensions);
+              setExpandedDimensions(new Set(loadedDimensions.slice(0, 2).map((d: Dimension) => d.slug)));
+            }
+          }
+          
+          // 第二步：載入隨機產品
+          const randomProductsRes = await fetch(`/api/products/filter?category=gift&random=true&limit=15`);
+          if (randomProductsRes.ok) {
+            const productsData = await randomProductsRes.json();
+            const randomProducts = dedupeProducts(productsData.products || []);
+            setGiftRandomProducts(randomProducts);
+            setProducts(randomProducts);
+            setTotalProducts(randomProducts.length);
+            setShowingGiftRandom(true);
+            setHasMore(false);
+          }
+          
+          setLoading(false);
+          setInitialLoaded(true);
+          
+          // 背景預載所有禮品產品
+          const fullProductsRes = await fetch(`/api/products/filter?category=gift&page=1&limit=500`);
+          if (fullProductsRes.ok) {
+            const fullData = await fullProductsRes.json();
+            const allProducts = dedupeProducts(fullData.products || []);
+            
+            // 存到快取並鎖定
+            setCategoryCache('gift', {
+              products: allProducts,
+              dimensions: loadedDimensions,
+              total: allProducts.length,
+            }, true);
+            
+            // 預載圖片
+            preloadImagesRef.current(allProducts, 'low');
+            console.log(`[禮品預載完成] ${allProducts.length} 個產品已快取`);
+          }
+          
+          // 背景預載其他類別
+          setTimeout(() => {
+            prefetchCategory('print-packaging');
+            prefetchCategory('bag');
+          }, 500);
+        } catch (error) {
+          console.error('禮品初次載入失敗:', error);
+          setLoading(false);
+          setInitialLoaded(true);
+        }
+      };
+      loadGiftInitial();
+      return;
+    }
+    
     const initialLoad = async () => {
       setLoading(true);
       try {
-        // 第一階段：快速載入前 20 個產品 + 維度
-        const quickParams = new URLSearchParams();
-        quickParams.append('category', activeCategory);
-        quickParams.append('page', '1');
-        quickParams.append('limit', '20');
-        
-        const [dimensionsRes, quickProductsRes] = await Promise.all([
-          fetch(`/api/filter-dimensions?category=${activeCategory}`),
-          fetch(`/api/products/filter?${quickParams.toString()}`),
-        ]);
+        // 第一步：先載入維度（左側控制器）
+        const dimensionsRes = await fetch(`/api/filter-dimensions?category=${activeCategory}`);
         
         let loadedDimensions: Dimension[] = [];
-        let quickProducts: Product[] = [];
         
         if (dimensionsRes.ok) {
           const data = await dimensionsRes.json();
@@ -420,6 +564,16 @@ export default function PackagingExplorerV2() {
             setExpandedDimensions(new Set(loadedDimensions.slice(0, 2).map((d: Dimension) => d.slug)));
           }
         }
+        
+        // 第二步：載入前 20 個產品
+        const quickParams = new URLSearchParams();
+        quickParams.append('category', activeCategory);
+        quickParams.append('page', '1');
+        quickParams.append('limit', '20');
+        
+        const quickProductsRes = await fetch(`/api/products/filter?${quickParams.toString()}`);
+        
+        let quickProducts: Product[] = [];
         
         if (quickProductsRes.ok) {
           const data = await quickProductsRes.json();
@@ -468,10 +622,11 @@ export default function PackagingExplorerV2() {
           console.log(`[載入完成] ${activeCategory}: ${total} 個產品`);
         }
         
-        // 背景預載另一類別（排除當前類別）
+        // 背景預載其他類別（排除當前類別）
         setTimeout(() => {
           if (activeCategory !== 'bag') prefetchCategory('bag');
           if (activeCategory !== 'print-packaging') prefetchCategory('print-packaging');
+          if (activeCategory !== 'gift') prefetchCategory('gift');
         }, 500);
       } catch (error) {
         console.error('初次載入失敗:', error);
@@ -480,7 +635,7 @@ export default function PackagingExplorerV2() {
     };
     
     initialLoad();
-  }, []); // 只執行一次
+  }, [activeCategory]); // 當 activeCategory 變化時重新執行
 
   // 正在預載的類別（防止並發）
   const prefetchingRef = useRef<Set<string>>(new Set());
@@ -586,6 +741,40 @@ export default function PackagingExplorerV2() {
       return;
     }
     
+    // 禮品類別特殊處理：從 API 載入產品
+    if (activeCategory === 'gift') {
+      const tagSlugs = Array.from(selectedTags);
+      if (tagSlugs.length > 0) {
+        // 有選擇品項時，從 API 載入產品
+        const loadGiftProducts = async () => {
+          setFilterLoading(true); // 開始載入
+          try {
+            const params = new URLSearchParams();
+            params.append('category', 'gift');
+            params.append('tags', tagSlugs.join(','));
+            params.append('page', '1');
+            params.append('limit', '500');
+            
+            const res = await fetch(`/api/products/filter?${params.toString()}`);
+            if (res.ok) {
+              const data = await res.json();
+              const dedupedProducts = dedupeProducts(data.products || []);
+              setProducts(dedupedProducts);
+              setTotalProducts(dedupedProducts.length);
+              setHasMore(false);
+              setDisplayCount(20);
+            }
+          } catch (error) {
+            console.error('載入禮品產品失敗:', error);
+          } finally {
+            setFilterLoading(false); // 結束載入
+          }
+        };
+        loadGiftProducts();
+      }
+      return; // 禮品類別不使用本地過濾
+    }
+    
     // 本地過濾（標籤 + 搜尋都在本地完成）
     const cached = getCategoryCache(activeCategory);
     if (cached && cached.products.length > 0) {
@@ -640,6 +829,42 @@ export default function PackagingExplorerV2() {
 
   // 切換類別 - 使用預載快取加速（最大程度保留快取）
   const handleCategoryChange = async (categoryId: string) => {
+    // 禮品類別特殊處理：如果已經在禮品且沒有選擇標籤，重新隨機
+    if (categoryId === 'gift' && activeCategory === 'gift' && selectedTags.size === 0 && !transitioning) {
+      const giftCached = getCategoryCache('gift');
+      if (giftCached && giftCached.products.length > 0) {
+        // 從快取隨機選擇15個新產品
+        const allProducts = giftCached.products;
+        const shuffled = [...allProducts].sort(() => Math.random() - 0.5);
+        const randomFromCache = shuffled.slice(0, 15);
+        
+        setProducts(randomFromCache);
+        setTotalProducts(randomFromCache.length);
+        setShowingGiftRandom(true);
+        setHasMore(false);
+        console.log(`[禮品重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
+        return;
+      }
+    }
+    
+    // 包裝盒/提袋類別：如果已經在同一類別且沒有選擇標籤，重新隨機
+    if ((categoryId === 'print-packaging' || categoryId === 'bag') && 
+        categoryId === activeCategory && selectedTags.size === 0 && !transitioning) {
+      const cached = getCategoryCache(categoryId);
+      if (cached && cached.products.length > 0) {
+        // 從快取隨機選擇20個新產品
+        const allProducts = cached.products;
+        const shuffled = [...allProducts].sort(() => Math.random() - 0.5);
+        const randomFromCache = shuffled.slice(0, 20);
+        
+        setProducts(randomFromCache);
+        setTotalProducts(randomFromCache.length);
+        setHasMore(false);
+        console.log(`[${categoryId}重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
+        return;
+      }
+    }
+    
     if (categoryId === activeCategory || transitioning) return;
     
     const previousCategory = activeCategory;
@@ -652,6 +877,94 @@ export default function PackagingExplorerV2() {
         total: totalProducts,
       }, true); // 鎖定
     }
+    
+    // 禮品類別特殊處理
+    if (categoryId === 'gift') {
+      setActiveCategory(categoryId);
+      setSelectedTags(new Set());
+      setSelectedGiftItem(null);
+      setGiftSubDimension(null);
+      setDisplayCount(15);
+      setPage(1);
+      
+      // 檢查是否已有快取
+      const giftCached = getCategoryCache('gift');
+      
+      if (giftCached && giftCached.products.length > 0) {
+        // 從快取隨機選擇15個產品
+        const allProducts = giftCached.products;
+        const shuffled = [...allProducts].sort(() => Math.random() - 0.5);
+        const randomFromCache = shuffled.slice(0, 15);
+        
+        setDimensions(giftCached.dimensions);
+        setExpandedDimensions(new Set(giftCached.dimensions.slice(0, 2).map((d: Dimension) => d.slug)));
+        setProducts(randomFromCache);
+        setTotalProducts(randomFromCache.length);
+        setShowingGiftRandom(true);
+        setHasMore(false);
+        console.log(`[禮品切換] 從快取隨機選擇 ${randomFromCache.length} 個產品`);
+        return;
+      }
+      
+      // 沒有快取，從 API 載入
+      setLoading(true);
+      
+      try {
+        // 同時載入維度和隨機15個產品
+        const [dimensionsRes, randomProductsRes] = await Promise.all([
+          fetch(`/api/filter-dimensions?category=${categoryId}`),
+          fetch(`/api/products/filter?category=gift&random=true&limit=15`),
+        ]);
+        
+        let loadedDimensions: Dimension[] = [];
+        
+        if (dimensionsRes.ok) {
+          const dimensionsData = await dimensionsRes.json();
+          if (dimensionsData.success) {
+            // 過濾掉沒有產品的維度和標籤
+            loadedDimensions = dimensionsData.data.map((dim: Dimension) => ({
+              ...dim,
+              tags: dim.tags.filter(tag => (tag.productCount || 0) > 0)
+            })).filter((dim: Dimension) => dim.tags.length > 0);
+            
+            setDimensions(loadedDimensions);
+            setExpandedDimensions(new Set(loadedDimensions.slice(0, 2).map((d: Dimension) => d.slug)));
+          }
+        }
+        
+        if (randomProductsRes.ok) {
+          const productsData = await randomProductsRes.json();
+          const randomProducts = dedupeProducts(productsData.products || []);
+          setGiftRandomProducts(randomProducts);
+          setProducts(randomProducts);
+          setTotalProducts(randomProducts.length);
+          setShowingGiftRandom(true);
+          setHasMore(false);
+        }
+        
+        // 背景預載所有禮品產品
+        const fullProductsRes = await fetch(`/api/products/filter?category=gift&page=1&limit=500`);
+        if (fullProductsRes.ok) {
+          const fullData = await fullProductsRes.json();
+          const allProducts = dedupeProducts(fullData.products || []);
+          setCategoryCache('gift', {
+            products: allProducts,
+            dimensions: loadedDimensions,
+            total: allProducts.length,
+          }, true);
+          console.log(`[禮品切換] 預載 ${allProducts.length} 個產品到快取`);
+        }
+      } catch (error) {
+        console.error('載入禮品頁面失敗:', error);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    
+    // 重置禮品相關狀態
+    setShowingGiftRandom(false);
+    setGiftRandomProducts([]);
     
     // 檢查是否有預載快取（兩個獨立快取區塊，互不污染）
     const cached = getCategoryCache(categoryId);
@@ -773,12 +1086,22 @@ export default function PackagingExplorerV2() {
   
   // 預載相鄰類別（所有可用類別都預載）
   const prefetchAdjacentCategories = (currentCategoryId: string) => {
-    const categoryIds = ['print-packaging', 'bag'];
+    const categoryIds = ['print-packaging', 'bag', 'gift'];
     categoryIds.forEach(id => {
       if (id !== currentCategoryId) {
         prefetchCategory(id);
       }
     });
+  };
+
+  // 從快取中隨機抽取禮品產品
+  const getRandomGiftProducts = (count: number = 15): Product[] => {
+    const cached = getCategoryCache('gift');
+    if (!cached || cached.products.length === 0) return [];
+    
+    // Fisher-Yates 洗牌算法
+    const shuffled = [...cached.products].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
   };
 
   // 不再需要 loadFullCategoryData，因為快取已經完整
@@ -789,35 +1112,117 @@ export default function PackagingExplorerV2() {
       const newSet = new Set(prev);
       if (newSet.has(slug)) {
         newSet.delete(slug);
-        // 如果刪除後沒有選中的標籤，恢復快取資料
+        // 如果刪除後沒有選中的標籤
         if (newSet.size === 0) {
-          const cached = getCategoryCache(activeCategory);
-          if (cached) {
-            setUsingCache(true);
-            setProducts(cached.products);
-            setDimensions(cached.dimensions);
-            setTotalProducts(cached.total);
-            setHasMore(cached.total > cached.products.length);
-            setDisplayCount(20);
-            requestAnimationFrame(() => {
-              setTimeout(() => setUsingCache(false), 100);
-            });
+          // 禮品類別特殊處理：從快取隨機抽取新的15個產品
+          if (activeCategory === 'gift') {
+            const randomProducts = getRandomGiftProducts(15);
+            if (randomProducts.length > 0) {
+              setGiftRandomProducts(randomProducts);
+              setProducts(randomProducts);
+              setTotalProducts(randomProducts.length);
+              setShowingGiftRandom(true);
+            } else if (giftRandomProducts.length > 0) {
+              // 快取還沒載入完成，使用之前的隨機產品
+              setProducts(giftRandomProducts);
+              setTotalProducts(giftRandomProducts.length);
+              setShowingGiftRandom(true);
+            } else {
+              setProducts([]);
+              setTotalProducts(0);
+            }
+            setHasMore(false);
+            setDisplayCount(15);
           } else {
-            // 沒有快取，重新載入
-            loadProducts(true);
+            // 其他類別：恢復快取資料
+            const cached = getCategoryCache(activeCategory);
+            if (cached) {
+              setUsingCache(true);
+              setProducts(cached.products);
+              setDimensions(cached.dimensions);
+              setTotalProducts(cached.total);
+              setHasMore(cached.total > cached.products.length);
+              setDisplayCount(20);
+              requestAnimationFrame(() => {
+                setTimeout(() => setUsingCache(false), 100);
+              });
+            } else {
+              // 沒有快取，重新載入
+              loadProducts(true);
+            }
+          }
+        } else {
+          // 禮品類別：還有其他標籤，清除隨機顯示標記
+          if (activeCategory === 'gift') {
+            setShowingGiftRandom(false);
           }
         }
       } else {
         newSet.add(slug);
+        // 禮品類別：選擇標籤時，清除隨機顯示標記
+        if (activeCategory === 'gift') {
+          setShowingGiftRandom(false);
+        }
       }
       return newSet;
+    });
+  };
+
+  // 更新 URL（不刷新頁面）
+  const updateUrlWithTags = useCallback((tags: Set<string>) => {
+    const params = new URLSearchParams();
+    if (activeCategory !== 'print-packaging') {
+      params.set('cat', activeCategory);
+    }
+    if (tags.size > 0) {
+      params.set('tags', Array.from(tags).join(','));
+    }
+    const queryString = params.toString();
+    const newUrl = queryString ? `/packaging-explorer?${queryString}` : '/packaging-explorer';
+    window.history.replaceState({}, '', newUrl);
+  }, [activeCategory]);
+
+  // 監聽 selectedTags 變化，同步更新 URL
+  useEffect(() => {
+    if (urlInitializedRef.current) {
+      updateUrlWithTags(selectedTags);
+    }
+  }, [selectedTags, updateUrlWithTags]);
+
+  // 複製當前網址
+  const copyCurrentUrl = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 2000);
     });
   };
 
   // 清除所有標籤 - 恢復快取資料
   const clearAllTags = () => {
     setSelectedTags(new Set());
-    // 從快取恢復原始資料
+    
+    // 禮品類別特殊處理：從快取隨機選擇新的15個產品
+    if (activeCategory === 'gift') {
+      setSelectedGiftItem(null);
+      setGiftSubDimension(null);
+      
+      // 從快取隨機選擇15個不同的產品
+      const randomProducts = getRandomGiftProducts(15);
+      if (randomProducts.length > 0) {
+        setProducts(randomProducts);
+        setTotalProducts(randomProducts.length);
+        setShowingGiftRandom(true);
+      } else {
+        setProducts([]);
+        setTotalProducts(0);
+      }
+      setHasMore(false);
+      setDisplayCount(15);
+      return;
+    }
+    
+    // 其他類別：從快取恢復原始資料
     const cached = getCategoryCache(activeCategory);
     if (cached) {
       setUsingCache(true);
@@ -829,6 +1234,40 @@ export default function PackagingExplorerV2() {
       requestAnimationFrame(() => {
         setTimeout(() => setUsingCache(false), 100);
       });
+    }
+  };
+
+  // 選擇禮品品項，載入對應子維度
+  const handleGiftItemSelect = async (itemSlug: string) => {
+    setSelectedGiftItem(itemSlug);
+    // 不清空已選標籤，允許跨品項多選
+    // setSelectedTags(new Set());
+    // setProducts([]);
+    // setTotalProducts(0);
+    
+    // 取得對應的子維度 slug
+    const subDimSlug = giftItemToDimensionMap[itemSlug];
+    if (!subDimSlug) {
+      console.error('找不到品項對應的子維度:', itemSlug);
+      return;
+    }
+    
+    // 從 API 載入子維度
+    try {
+      const res = await fetch(`/api/filter-dimensions?category=gift`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const subDim = data.data.find((d: Dimension) => d.slug === subDimSlug);
+          if (subDim) {
+            setGiftSubDimension(subDim);
+          } else {
+            console.error('找不到子維度:', subDimSlug);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('載入子維度失敗:', error);
     }
   };
 
@@ -946,6 +1385,23 @@ export default function PackagingExplorerV2() {
               >
                 {lang === 'zh' ? '清除' : 'Clear'}
               </button>
+              {/* 複製網址按鈕 */}
+              <button
+                onClick={copyCurrentUrl}
+                className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm whitespace-nowrap transition-colors"
+              >
+                {urlCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-green-600">{lang === 'zh' ? '已複製' : 'Copied!'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{lang === 'zh' ? '複製網址' : 'Copy URL'}</span>
+                  </>
+                )}
+              </button>
             </div>
           )}
         </div>
@@ -1045,7 +1501,139 @@ export default function PackagingExplorerV2() {
                   className="flex-1 overflow-y-auto overscroll-contain"
                   style={{ touchAction: 'pan-y' }}
                 >
-                  {dimensions.map((dimension) => {
+                  {/* 禮品品項選擇器 - 僅禮品類別顯示 - 手機版 */}
+                  {activeCategory === 'gift' && (
+                    <div className="border-b-4 border-violet-200 bg-gradient-to-r from-violet-50 to-white">
+                      <div className="px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-violet-600" />
+                          <span className="font-semibold text-violet-800">
+                            {lang === 'zh' ? '選擇品項' : 'Select Items'}
+                          </span>
+                        </div>
+                        {selectedGiftItem && (
+                          <button
+                            onClick={() => {
+                              setSelectedGiftItem(null);
+                              setGiftSubDimension(null);
+                              // 保留已選標籤和產品，不清空
+                            }}
+                            className="text-sm text-violet-600 hover:text-violet-800"
+                          >
+                            {lang === 'zh' ? '返回' : 'Back'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* 已選標籤顯示區 */}
+                      {selectedTags.size > 0 && (
+                        <div className="px-4 pb-3">
+                          <div className="text-xs text-gray-500 mb-2">
+                            {lang === 'zh' ? `已選 ${selectedTags.size} 項` : `${selectedTags.size} selected`}
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {Array.from(selectedTags).map(tagSlug => {
+                              // 從所有維度中找到對應的標籤
+                              const tagInfo = dimensions.flatMap(d => d.tags).find(t => t.slug === tagSlug);
+                              if (!tagInfo) return null;
+                              return (
+                                <button
+                                  key={tagSlug}
+                                  onClick={() => toggleTag(tagSlug)}
+                                  className="flex items-center gap-1 px-2 py-1 bg-violet-600 text-white text-xs rounded-full"
+                                >
+                                  <span>{lang === 'zh' ? tagInfo.name_zh : tagInfo.name_en}</span>
+                                  <X className="w-3 h-3" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="px-4 pb-4">
+                        {!selectedGiftItem ? (
+                          // 品項列表（第一層）- 只顯示子維度有產品的品項
+                          <div className="grid grid-cols-3 gap-2">
+                            {dimensions.find(d => d.slug === 'gift-type')?.tags
+                              .filter(tag => {
+                                // 檢查對應子維度是否有任何有產品的標籤
+                                const subDimSlug = giftItemToDimensionMap[tag.slug];
+                                if (!subDimSlug) return false;
+                                const subDim = dimensions.find(d => d.slug === subDimSlug);
+                                return subDim && subDim.tags.some(t => (t.productCount || 0) > 0);
+                              })
+                              .map((tag) => (
+                              <button
+                                key={tag.id}
+                                onClick={() => handleGiftItemSelect(tag.slug)}
+                                className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl text-xs font-medium transition-all bg-white text-gray-700 border border-gray-200 active:bg-violet-50 hover:border-violet-300"
+                              >
+                                <span className="text-center leading-tight">
+                                  {lang === 'zh' ? tag.name_zh : tag.name_en}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          // 子維度標籤列表（第二層）- 只顯示有產品的標籤
+                          <div>
+                            <div className="mb-2 text-sm text-violet-600 font-medium">
+                              {dimensions.find(d => d.slug === 'gift-type')?.tags.find(t => t.slug === selectedGiftItem)?.name_zh}
+                            </div>
+                            {giftSubDimension ? (
+                              <div className="grid grid-cols-3 gap-2">
+                                {giftSubDimension.tags
+                                  .filter(tag => (tag.productCount || 0) > 0)
+                                  .map((tag) => {
+                                  const isSelected = selectedTags.has(tag.slug);
+                                  return (
+                                    <button
+                                      key={tag.id}
+                                      onClick={() => toggleTag(tag.slug)}
+                                      className={`
+                                        flex flex-col items-center gap-1 px-2 py-3 rounded-xl text-xs font-medium transition-all
+                                        ${isSelected
+                                          ? 'bg-violet-600 text-white shadow-md'
+                                          : 'bg-white text-gray-700 border border-gray-200 active:bg-violet-50'
+                                        }
+                                      `}
+                                    >
+                                      <span className="text-center leading-tight">
+                                        {lang === 'zh' ? tag.name_zh : tag.name_en}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-center text-gray-400 py-4">
+                                {lang === 'zh' ? '載入中...' : 'Loading...'}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 其他篩選維度 */}
+                  {dimensions
+                    .filter(dimension => {
+                      // 隱藏所有標籤都沒有產品的維度
+                      const hasProductsInTags = dimension.tags.some(tag => (tag.productCount || 0) > 0);
+                      if (!hasProductsInTags) return false;
+                      
+                      // 禮品類別：過濾品項維度和所有子維度
+                      if (activeCategory === 'gift') {
+                        // gift-type 是品項選擇器，不顯示在篩選列表
+                        if (dimension.slug === 'gift-type') return false;
+                        // 所有子維度也不顯示（它們只在品項選擇器內顯示）
+                        if (Object.values(giftItemToDimensionMap).includes(dimension.slug)) return false;
+                      }
+                      return true;
+                    })
+                    .map((dimension) => {
                     const Icon = iconMap[dimension.icon || 'Package'] || Package;
                     const isExpanded = expandedDimensions.has(dimension.slug);
                     
@@ -1133,7 +1721,7 @@ export default function PackagingExplorerV2() {
             {/* 左側篩選面板 - 桌面版 */}
             <div className="w-56 shrink-0 hidden lg:block">
               <div className="sticky top-[72px] space-y-3">
-                {/* 類別選擇 */}
+                {/* 類別選擇 - 原版樣式 */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
                   <div className="grid grid-cols-2 gap-1.5">
                     {categories.map((cat) => {
@@ -1188,6 +1776,121 @@ export default function PackagingExplorerV2() {
                     </div>
                   </div>
                 </div>
+
+                {/* 禮品品項選擇器 - 僅禮品類別顯示 */}
+                {activeCategory === 'gift' && (
+                  <div className="bg-white rounded-xl shadow-sm border border-violet-200 overflow-hidden">
+                    <div className="px-3 py-2.5 bg-gradient-to-r from-violet-50 to-violet-100 border-b border-violet-200">
+                      <div className="flex items-center gap-2">
+                        <Gift className="w-4 h-4 text-violet-600" />
+                        <span className="font-semibold text-violet-800 text-sm">
+                          {selectedGiftItem 
+                            ? dimensions.find(d => d.slug === 'gift-type')?.tags.find(t => t.slug === selectedGiftItem)?.name_zh
+                            : (lang === 'zh' ? '選擇品項' : 'Select Items')
+                          }
+                        </span>
+                        {selectedGiftItem && (
+                          <button
+                            onClick={() => {
+                              setSelectedGiftItem(null);
+                              setGiftSubDimension(null);
+                              // 保留已選標籤和產品，不清空
+                            }}
+                            className="ml-auto text-xs text-violet-600 hover:text-violet-800"
+                          >
+                            ← {lang === 'zh' ? '返回' : 'Back'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* 已選標籤顯示區 - 桌面版 */}
+                    {selectedTags.size > 0 && (
+                      <div className="px-2.5 py-2 border-b border-violet-100 bg-violet-50/50">
+                        <div className="text-[10px] text-gray-500 mb-1.5">
+                          {lang === 'zh' ? `已選 ${selectedTags.size} 項` : `${selectedTags.size} selected`}
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(selectedTags).map(tagSlug => {
+                            // 從所有維度中找到對應的標籤
+                            const tagInfo = dimensions.flatMap(d => d.tags).find(t => t.slug === tagSlug);
+                            if (!tagInfo) return null;
+                            return (
+                              <button
+                                key={tagSlug}
+                                onClick={() => toggleTag(tagSlug)}
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 bg-violet-600 text-white text-[10px] rounded-full hover:bg-violet-700"
+                              >
+                                <span>{lang === 'zh' ? tagInfo.name_zh : tagInfo.name_en}</span>
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="p-2.5 max-h-64 overflow-y-auto">
+                      {!selectedGiftItem ? (
+                        // 品項列表（第一層）- 只顯示子維度有產品的品項
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {dimensions.find(d => d.slug === 'gift-type')?.tags
+                            .filter(tag => {
+                              // 檢查對應子維度是否有任何有產品的標籤
+                              const subDimSlug = giftItemToDimensionMap[tag.slug];
+                              if (!subDimSlug) return false;
+                              const subDim = dimensions.find(d => d.slug === subDimSlug);
+                              return subDim && subDim.tags.some(t => (t.productCount || 0) > 0);
+                            })
+                            .map((tag) => (
+                            <button
+                              key={tag.id}
+                              onClick={() => handleGiftItemSelect(tag.slug)}
+                              className="flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all bg-gray-50 text-gray-700 hover:bg-violet-50 hover:text-violet-700"
+                            >
+                              <span className="truncate">
+                                {lang === 'zh' ? tag.name_zh : tag.name_en}
+                              </span>
+                              <ChevronRight className="w-3 h-3 text-gray-400" />
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        // 子維度標籤列表（第二層）- 只顯示有產品的標籤
+                        giftSubDimension ? (
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {giftSubDimension.tags
+                              .filter(tag => (tag.productCount || 0) > 0)
+                              .map((tag) => {
+                              const isSelected = selectedTags.has(tag.slug);
+                              return (
+                                <button
+                                  key={tag.id}
+                                  onClick={() => toggleTag(tag.slug)}
+                                  className={`
+                                    flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all
+                                    ${isSelected
+                                      ? 'bg-violet-600 text-white shadow-sm'
+                                      : 'bg-gray-50 text-gray-700 hover:bg-violet-50 hover:text-violet-700'
+                                    }
+                                  `}
+                                >
+                                  <span className="truncate">
+                                    {lang === 'zh' ? tag.name_zh : tag.name_en}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-400 py-4 text-sm">
+                            {lang === 'zh' ? '載入中...' : 'Loading...'}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* 篩選維度 */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -1257,7 +1960,22 @@ export default function PackagingExplorerV2() {
 
                   {/* 維度列表 */}
                   <div className="max-h-[calc(100vh-280px)] overflow-y-auto">
-                    {dimensions.map((dimension) => {
+                    {dimensions
+                      .filter(dimension => {
+                        // 隱藏所有標籤都沒有產品的維度
+                        const hasProductsInTags = dimension.tags.some(tag => (tag.productCount || 0) > 0);
+                        if (!hasProductsInTags) return false;
+                        
+                        // 禮品類別：過濾品項維度和所有子維度
+                        if (activeCategory === 'gift') {
+                          // gift-type 是品項選擇器，不顯示在篩選列表
+                          if (dimension.slug === 'gift-type') return false;
+                          // 所有子維度也不顯示（它們只在品項選擇器內顯示）
+                          if (Object.values(giftItemToDimensionMap).includes(dimension.slug)) return false;
+                        }
+                        return true;
+                      })
+                      .map((dimension) => {
                       const Icon = iconMap[dimension.icon || 'Package'] || Package;
                       const isExpanded = expandedDimensions.has(dimension.slug);
                       
@@ -1349,6 +2067,13 @@ export default function PackagingExplorerV2() {
                 <div className="flex items-center justify-center h-64">
                   <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
                 </div>
+              ) : filterLoading ? (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <Loader2 className="w-8 h-8 text-violet-500 animate-spin" />
+                  <span className="mt-3 text-sm text-gray-500">
+                    {lang === 'zh' ? '篩選中...' : 'Filtering...'}
+                  </span>
+                </div>
               ) : products.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
                   <Package className="w-12 h-12 text-gray-300 mb-3" />
@@ -1366,6 +2091,22 @@ export default function PackagingExplorerV2() {
                 </div>
               ) : (
                 <>
+                  {/* 禮品隨機推薦提示 */}
+                  {activeCategory === 'gift' && showingGiftRandom && (
+                    <div className="mb-4 px-4 py-3 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-200">
+                      <div className="flex items-center gap-2 text-violet-700">
+                        <Sparkles className="w-5 h-5" />
+                        <span className="font-medium">
+                          {lang === 'zh' ? '隨機推薦' : 'Random Picks'}
+                        </span>
+                        <span className="text-violet-500 text-sm">
+                          {lang === 'zh' 
+                            ? '— 點選左側分類瀏覽更多' 
+                            : '— Select categories on the left to explore more'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {(() => {
                       // 渲染前再次去重，確保不會顯示重複產品

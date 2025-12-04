@@ -2,34 +2,26 @@
 const prisma = new PrismaClient();
 
 async function main() {
-  // 查詢 bag 類別的所有 tag IDs
-  const bagTags = await prisma.dimensionTagMapping.findMany({
-    where: { dimension: { category: 'bag' } },
-    include: { tag: true, dimension: true }
-  });
-  
-  console.log('Bag 類別標籤數量:', bagTags.length);
-  
-  // 查詢有這些標籤的產品中，名稱含有 "盒" 或 "禮" 的
-  const tagIds = bagTags.map(t => t.tagId);
-  const products = await prisma.product.findMany({
-    where: {
-      ProductTag: { some: { tagId: { in: tagIds } } },
-      OR: [
-        { name_zh: { contains: '盒' } },
-        { name_zh: { contains: '禮' } }
-      ]
-    },
+  // 查詢 gift-home 維度及其所有標籤
+  const dim = await prisma.filterDimension.findFirst({
+    where: { slug: 'gift-home' },
     include: {
-      ProductTag: { include: { Tag: true } }
-    },
-    take: 5
+      tagMappings: {
+        include: { tag: true },
+        orderBy: { order: 'asc' }
+      }
+    }
   });
   
-  console.log('含盒/禮的產品:', products.length);
-  products.forEach(p => {
-    const tags = p.ProductTag.map(pt => pt.Tag.name_zh).join(', ');
-    console.log(p.name_zh, '|', tags);
-  });
+  if (dim) {
+    console.log('gift-home 維度:', dim.name_zh);
+    console.log('包含的標籤:');
+    dim.tagMappings.forEach((m, i) => {
+      console.log('  ' + (i+1) + '. ' + m.tag.name_zh + ' (' + m.tag.slug + ') - order: ' + m.order);
+    });
+  } else {
+    console.log('找不到 gift-home 維度');
+  }
 }
+
 main().catch(console.error).finally(() => prisma.$disconnect());

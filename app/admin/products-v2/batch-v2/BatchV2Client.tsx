@@ -4,16 +4,46 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 
 interface Tag {
-  id: string;  // cuid string from database
+  id: string;
   name: string;
   name_en?: string;
   name_zh?: string;
-  slug?: string;
+  slug: string;
+  color?: string;
+}
+
+interface Dimension {
+  id: string;
+  slug: string;
+  name_zh: string;
+  name_en: string;
+  icon: string | null;
+  allow_multiple: boolean;
+  tags: Tag[];
 }
 
 interface ExtraImage {
   file: File;
   previewUrl: string;
+}
+
+interface AnalysisStep {
+  label: string;
+  result: string | Record<string, string[]>;
+  displayName?: string;
+  editable: boolean;
+  suggestions: string[];
+  dimension?: Dimension | null;
+  dimensions?: Dimension[];
+  selectedTags?: string[];
+  selectedMap?: Record<string, string[]>;
+}
+
+interface Analysis {
+  step1: AnalysisStep;
+  step2: AnalysisStep;
+  step3: AnalysisStep;
+  step4: AnalysisStep;
 }
 
 interface ProductItem {
@@ -26,11 +56,15 @@ interface ProductItem {
   selectedTags: Tag[];
   newTags: string[];
   customHint?: string;
-  showAllFields?: boolean; // 是否展開所有欄位
-  extraImages?: ExtraImage[]; // 額外子圖片
+  showAllFields?: boolean;
+  extraImages?: ExtraImage[];
+  detectedCategory?: string; // AI 偵測的類別
+  dimensions?: Dimension[]; // 維度樹結構
+  detectedTagMap?: Record<string, string[]>; // AI 偵測的標籤（按維度分組）
+  analysis?: Analysis; // 分層分析結果
 }
 
-export default function BatchUploadClient() {
+export default function BatchV2Client() {
   const [apiKey, setApiKey] = useState("");
   const [gptApiKey, setGptApiKey] = useState(""); // GPT API Key for translation
   const [products, setProducts] = useState<ProductItem[]>([]);
@@ -39,6 +73,7 @@ export default function BatchUploadClient() {
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [newTagInput, setNewTagInput] = useState({ name_zh: "", name_en: "", color: "#3B82F6" });
   const [currentProductForTag, setCurrentProductForTag] = useState<string | null>(null);
+  const [currentDimensionForTag, setCurrentDimensionForTag] = useState<string | null>(null); // 新增標籤的目標維度
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [aiHint, setAiHint] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +88,9 @@ export default function BatchUploadClient() {
   // TAG 展開控制
   const [expandedTagProducts, setExpandedTagProducts] = useState<Set<string>>(new Set());
   const [tagSearchTerms, setTagSearchTerms] = useState<Record<string, string>>({});
+  
+  // 維度展開控制（每個產品獨立）
+  const [expandedDimensions, setExpandedDimensions] = useState<Record<string, Set<string>>>({});
   
   // 時間追蹤
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -427,7 +465,7 @@ export default function BatchUploadClient() {
     }
   }, [showAItrendModal]);
 
-  // AI 分析單張圖片
+  // AI 分析單張圖片（使用新的維度架構）
   const analyzeImage = async (productId: string) => {
     const product = products.find((p) => p.id === productId);
     if (!product || !apiKey) return;
@@ -444,7 +482,7 @@ export default function BatchUploadClient() {
       formData.append("image", product.file);
       formData.append("userHint", product.customHint || aiHint);
 
-      const res = await fetch("/api/admin/products-v2/analyze-v2", {
+      const res = await fetch("/api/admin/products-v2/analyze-v3", {
         method: "POST",
         body: formData,
       });
@@ -455,37 +493,83 @@ export default function BatchUploadClient() {
         throw new Error(data.error || "分析失敗");
       }
 
+      // 從 API 回傳的維度樹中建立 slug -> tag 的映射
       const slugMap = new Map<string, Tag>();
-      existingTags.forEach((tag) => {
-        if (tag.slug) {
-          slugMap.set(tag.slug.toLowerCase(), tag);
-        }
+      const dimensions: Dimension[] = data.dimensions || [];
+      
+      dimensions.forEach((dim) => {
+        dim.tags.forEach((tag) => {
+          if (tag.slug) {
+            slugMap.set(tag.slug.toLowerCase(), tag);
+          }
+        });
       });
 
-      const detectedSlugs: string[] = data.selectedTagSlugs || [];
+      // 處理 AI 偵測到的標籤（按維度分組）
+      const detectedTagMap: Record<string, string[]> = data.detectedTagMap || {};
       const matchedTags: Tag[] = [];
       const unmatchedTagHints: Set<string> = new Set();
 
-      detectedSlugs.forEach((slug) => {
-        const found = slugMap.get(slug.toLowerCase());
-        if (found) {
-          if (!matchedTags.some((t) => t.id === found.id)) {
-            matchedTags.push(found);
-          }
-        } else {
-          unmatchedTagHints.add(slug.replace(/-/g, " "));
+      // 從每個維度中收集匹配的標籤（AI 偵測到的標籤自動勾選）
+      Object.values(detectedTagMap).forEach((tagSlugs: string[]) => {
+        if (Array.isArray(tagSlugs)) {
+          tagSlugs.forEach((slug) => {
+            const found = slugMap.get(slug.toLowerCase());
+            if (found) {
+              // 確保標籤被加入到 selectedTags（自動勾選）
+              if (!matchedTags.some((t) => t.id === found.id)) {
+                matchedTags.push(found);
+              }
+            } else {
+              unmatchedTagHints.add(slug.replace(/-/g, " "));
+            }
+          });
         }
       });
+      
+      // 額外處理 analysis 中的 selectedTags（確保 Step 2/3 的選中項也被勾選）
+      if (data.analysis) {
+        // Step 2 的 selectedTags（可能是維度 slug，也可能是標籤 slug）
+        const step2Selected = data.analysis.step2?.selectedTags || [];
+        step2Selected.forEach((slug: string) => {
+          // 先嘗試從 step2.dimension.tags 中找
+          const step2Tag = data.analysis.step2?.dimension?.tags?.find(
+            (t: Tag) => t.slug === slug
+          );
+          if (step2Tag && !matchedTags.some((t) => t.id === step2Tag.id)) {
+            matchedTags.push(step2Tag);
+          }
+        });
+        
+        // Step 3 的 selectedTags
+        const step3Selected = data.analysis.step3?.selectedTags || [];
+        step3Selected.forEach((slug: string) => {
+          const step3Tag = data.analysis.step3?.dimension?.tags?.find(
+            (t: Tag) => t.slug === slug
+          );
+          if (step3Tag && !matchedTags.some((t) => t.id === step3Tag.id)) {
+            matchedTags.push(step3Tag);
+          }
+        });
+        
+        // Step 4 的 selectedMap
+        const step4Map = data.analysis.step4?.selectedMap || {};
+        Object.entries(step4Map).forEach(([dimSlug, tagSlugs]) => {
+          const dim = data.analysis.step4?.dimensions?.find((d: Dimension) => d.slug === dimSlug);
+          if (dim && Array.isArray(tagSlugs)) {
+            (tagSlugs as string[]).forEach((slug) => {
+              const tag = dim.tags?.find((t: Tag) => t.slug === slug);
+              if (tag && !matchedTags.some((t) => t.id === tag.id)) {
+                matchedTags.push(tag);
+              }
+            });
+          }
+        });
+      }
 
+      // 加入 AI 建議的新標籤
       const suggestedNewTags: string[] = data.suggestedNewTags || [];
       suggestedNewTags.forEach((name) => {
-        if (name) {
-          unmatchedTagHints.add(name);
-        }
-      });
-
-      const legacySuggestedNames: string[] = data.productData?.suggestedTags || [];
-      legacySuggestedNames.forEach((name) => {
         if (name) {
           unmatchedTagHints.add(name);
         }
@@ -500,6 +584,10 @@ export default function BatchUploadClient() {
                 productData: data.productData,
                 selectedTags: matchedTags,
                 newTags: Array.from(unmatchedTagHints),
+                detectedCategory: data.detectedCategory,
+                dimensions: dimensions,
+                detectedTagMap: detectedTagMap,
+                analysis: data.analysis, // 新增分層分析結果
               }
             : p
         )
@@ -616,8 +704,8 @@ export default function BatchUploadClient() {
     return data.url;
   };
 
-  // 建立新標籤
-  const createNewTag = async (name_zh: string, name_en: string, color?: string): Promise<Tag> => {
+  // 建立新標籤（可選擇性地關聯到維度）
+  const createNewTag = async (name_zh: string, name_en: string, color?: string, dimensionId?: string | null): Promise<Tag> => {
     const baseSlug = name_en
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -630,7 +718,7 @@ export default function BatchUploadClient() {
     const res = await fetch("/api/admin/tags-v2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name_zh, name_zh, name_en, slug, color }),
+      body: JSON.stringify({ name: name_zh, name_zh, name_en, slug, color, dimensionId }),
     });
 
     const data = await res.json();
@@ -849,6 +937,61 @@ export default function BatchUploadClient() {
     );
   };
 
+  // 禮品類別專用：切換 Step 2 的品項類型，Step 3 跟著變
+  const switchGiftItemType = (productId: string, newItemSlug: string) => {
+    console.log('switchGiftItemType called:', productId, newItemSlug);
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id !== productId || !p.analysis) return p;
+        if (p.detectedCategory !== 'gift') return p;
+        
+        // 從 dimensions 中找到新的品項維度（例如 gift-home, gift-drinkware 等）
+        const newItemDimension = p.dimensions?.find(d => d.slug === newItemSlug);
+        console.log('newItemDimension:', newItemSlug, newItemDimension);
+        
+        if (!newItemDimension) {
+          console.warn('找不到維度:', newItemSlug, '可用維度:', p.dimensions?.map(d => d.slug));
+          return p;
+        }
+        
+        // Step2 的 tags 是品項類型列表（如 gift-home, gift-drinkware 等維度作為 tag 顯示）
+        // 找到對應的 Step2 tag
+        const step2Tag = p.analysis.step2.dimension?.tags.find(t => t.slug === newItemSlug);
+        
+        // 移除舊的 Step3 的標籤（不移除 Step2 的，因為那是維度選擇器）
+        const oldStep3Slugs = p.analysis.step3.dimension?.tags.map(t => t.slug) || [];
+        
+        const filteredTags = p.selectedTags.filter(t => 
+          !oldStep3Slugs.includes(t.slug)
+        );
+        
+        // Step2 的 displayName 從新維度取得
+        const newDisplayName = newItemDimension.name_zh || newItemDimension.name_en || newItemSlug;
+        
+        return {
+          ...p,
+          selectedTags: filteredTags,
+          analysis: {
+            ...p.analysis,
+            step2: {
+              ...p.analysis.step2,
+              result: newItemSlug,
+              displayName: newDisplayName,
+              selectedTags: [newItemSlug],
+            },
+            step3: {
+              ...p.analysis.step3,
+              dimension: newItemDimension, // 更新為新選擇的維度
+              result: '',
+              displayName: '',
+              selectedTags: [],
+            },
+          },
+        };
+      })
+    );
+  };
+
   // 新增標籤
   const handleAddNewTag = async () => {
     if (!newTagInput.name_zh || !currentProductForTag) return;
@@ -867,24 +1010,105 @@ export default function BatchUploadClient() {
     }
 
     try {
+      // 找到維度的真實 ID（如果有指定維度的話）
+      let dimensionId: string | null = null;
+      if (currentDimensionForTag && currentProductForTag) {
+        const product = products.find(p => p.id === currentProductForTag);
+        if (product?.analysis) {
+          const analysis = product.analysis;
+          // 從 Step 2 找
+          if (analysis.step2?.dimension?.slug === currentDimensionForTag) {
+            dimensionId = analysis.step2.dimension.id;
+          }
+          // 從 Step 3 找
+          else if (analysis.step3?.dimension?.slug === currentDimensionForTag) {
+            dimensionId = analysis.step3.dimension.id;
+          }
+          // 從 Step 4 找
+          else if (analysis.step4?.dimensions) {
+            const dim = analysis.step4.dimensions.find(d => d.slug === currentDimensionForTag);
+            if (dim) {
+              dimensionId = dim.id;
+            }
+          }
+        }
+        // fallback: 從 product.dimensions 找
+        if (!dimensionId && product?.dimensions) {
+          const dim = product.dimensions.find(d => d.slug === currentDimensionForTag);
+          if (dim) {
+            dimensionId = dim.id;
+          }
+        }
+        console.log('找到的 dimensionId:', dimensionId, 'for slug:', currentDimensionForTag);
+      }
+
       const newTag = await createNewTag(
         newTagInput.name_zh,
         newTagInput.name_en || newTagInput.name_zh,
-        newTagInput.color
+        newTagInput.color,
+        dimensionId
       );
       
       // 更新 existingTags，讓所有產品都可以選擇這個新標籤
       setExistingTags((prev) => [...prev, newTag]);
       
-      // 只將標籤加到當前產品，其他產品可從 existingTags 中自行選擇
+      // 更新產品狀態
       setProducts((prev) =>
         prev.map((p) => {
           if (p.id === currentProductForTag) {
-            return {
+            // 將新標籤加入到 selectedTags
+            let updatedProduct = {
               ...p,
               selectedTags: [...p.selectedTags, newTag],
               newTags: p.newTags.filter((t) => t !== newTagInput.name_zh),
             };
+            
+            // 如果有指定維度，也更新 analysis 中該維度的 tags 列表
+            if (currentDimensionForTag && updatedProduct.analysis) {
+              const analysis = { ...updatedProduct.analysis };
+              
+              // 檢查是否是 Step 2 的維度
+              if (analysis.step2?.dimension?.slug === currentDimensionForTag) {
+                analysis.step2 = {
+                  ...analysis.step2,
+                  dimension: {
+                    ...analysis.step2.dimension,
+                    tags: [...analysis.step2.dimension.tags, newTag],
+                  },
+                };
+              }
+              // 檢查是否是 Step 3 的維度
+              else if (analysis.step3?.dimension?.slug === currentDimensionForTag) {
+                analysis.step3 = {
+                  ...analysis.step3,
+                  dimension: {
+                    ...analysis.step3.dimension,
+                    tags: [...analysis.step3.dimension.tags, newTag],
+                  },
+                };
+              }
+              // 檢查是否是 Step 4 的維度
+              else if (analysis.step4?.dimensions) {
+                const dimIndex = analysis.step4.dimensions.findIndex(
+                  d => d.slug === currentDimensionForTag
+                );
+                if (dimIndex >= 0) {
+                  const updatedDims = [...analysis.step4.dimensions];
+                  updatedDims[dimIndex] = {
+                    ...updatedDims[dimIndex],
+                    tags: [...updatedDims[dimIndex].tags, newTag],
+                  };
+                  analysis.step4 = {
+                    ...analysis.step4,
+                    dimensions: updatedDims,
+                  };
+                }
+              }
+              
+              updatedProduct = { ...updatedProduct, analysis };
+            }
+            
+            return updatedProduct;
           }
           // 清除其他產品的 newTags 中相同名稱的項目（因為已建立為正式標籤）
           return {
@@ -897,6 +1121,7 @@ export default function BatchUploadClient() {
       setShowNewTagModal(false);
       setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
       setCurrentProductForTag(null);
+      setCurrentDimensionForTag(null);
       setDuplicateWarning(null);
     } catch (error: any) {
       alert(error.message);
@@ -1376,6 +1601,28 @@ export default function BatchUploadClient() {
                           重試
                         </button>
                       )}
+                      {/* 單獨上架按鈕 */}
+                      {product.status === "ready" && (
+                        <button
+                          onClick={async () => {
+                            await uploadProduct(product);
+                            const updated = products.find(p => p.id === product.id);
+                            if (updated?.status === "done") {
+                              alert(`✅ 「${product.productData?.name_zh || product.productData?.name}」上架成功！`);
+                            }
+                          }}
+                          disabled={isUploading}
+                          className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 disabled:opacity-50"
+                        >
+                          🚀 上架
+                        </button>
+                      )}
+                      {product.status === "done" && (
+                        <span className="text-green-600 text-sm font-medium">✓ 已上架</span>
+                      )}
+                      {product.status === "uploading" && (
+                        <span className="text-yellow-600 text-sm">上架中...</span>
+                      )}
                       <button
                         onClick={() => removeProduct(product.id)}
                         className="text-red-600 hover:text-red-800 text-sm"
@@ -1610,12 +1857,31 @@ export default function BatchUploadClient() {
                       {/* 所有欄位區域 */}
                       {product.showAllFields && renderAllFields(product)}
 
-                      {/* 標籤 */}
+                      {/* 標籤（維度樹狀結構） */}
                       <div className="pt-3 border-t border-gray-100">
-                        <label className="text-xs text-gray-500 mb-1 block">
-                          產品標籤
-                        </label>
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs text-gray-500 font-medium">
+                            產品標籤 {product.detectedCategory && (
+                              <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">
+                                {product.detectedCategory === 'print-packaging' ? '盒' : 
+                                 product.detectedCategory === 'bag' ? '袋' : '禮品'}
+                              </span>
+                            )}
+                          </label>
+                          <button
+                            onClick={() => {
+                              setCurrentProductForTag(product.id);
+                              setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
+                              setShowNewTagModal(true);
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            + 新增標籤
+                          </button>
+                        </div>
+
+                        {/* 已選標籤摘要 */}
+                        <div className="flex flex-wrap gap-1 mb-2">
                           {product.selectedTags.map((tag) => (
                             <span
                               key={tag.id}
@@ -1638,77 +1904,390 @@ export default function BatchUploadClient() {
                               {tagName} (新增)
                             </span>
                           ))}
-                          <button
-                            onClick={() => {
-                              setCurrentProductForTag(product.id);
-                              setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
-                              setShowNewTagModal(true);
-                            }}
-                            className="text-gray-400 hover:text-gray-600 text-xs"
-                          >
-                            + 新增標籤
-                          </button>
                         </div>
 
-                        {/* 現有標籤選擇 */}
-                        <div className="mt-2">
-                          {/* 標籤搜尋 */}
-                          <div className="mb-2">
-                            <input
-                              type="text"
-                              placeholder="🔍 搜尋標籤..."
-                              value={tagSearchTerms[product.id] || ""}
-                              onChange={(e) => setTagSearchTerms(prev => ({ ...prev, [product.id]: e.target.value }))}
-                              className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
-                            />
+                        {/* 分層標籤選擇器 - 使用 analysis 結構 */}
+                        {product.analysis && (
+                          <div className="space-y-3 bg-gray-50 rounded-lg p-3">
+                            {/* Step 1: 類別判斷（不可編輯） */}
+                            {product.analysis.step1 && (
+                              <div className="border border-gray-300 rounded-lg bg-white overflow-hidden">
+                                <div className="bg-gray-100 px-3 py-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-600 font-bold text-xs">Step 1</span>
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {product.analysis.step1.label}
+                                      </span>
+                                      <span className="text-xs text-gray-400">(自動判斷)</span>
+                                    </div>
+                                    {product.analysis.step1.displayName && (
+                                      <span className="text-sm text-gray-700 font-medium bg-gray-200 px-2 py-0.5 rounded">
+                                        {product.analysis.step1.displayName}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 2: 材質/家庭/項目偵測 */}
+                            {product.analysis.step2 && product.analysis.step2.dimension && (
+                              <div className="border border-blue-200 rounded-lg bg-white overflow-hidden">
+                                <div className="bg-blue-50 px-3 py-2 border-b border-blue-100">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-blue-600 font-bold text-xs">Step 2</span>
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {product.analysis.step2.label}
+                                      </span>
+                                      {product.detectedCategory === 'gift' && (
+                                        <span className="text-xs text-orange-500">(單選，切換後 Step3 會更新)</span>
+                                      )}
+                                    </div>
+                                    {product.analysis.step2.displayName && (
+                                      <span className="text-sm text-blue-600 font-medium">
+                                        → {product.analysis.step2.displayName}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {product.analysis.step2.suggestions && product.analysis.step2.suggestions.length > 0 && (
+                                    <div className="mt-1 text-xs text-gray-500">
+                                      💡 AI 建議: {product.analysis.step2.suggestions.map((s, i) => (
+                                        <span
+                                          key={i}
+                                          onClick={() => {
+                                            setCurrentProductForTag(product.id);
+                                            setCurrentDimensionForTag(product.analysis?.step2.dimension?.slug || null);
+                                            setNewTagInput({ name_zh: s, name_en: '', color: '#3B82F6' });
+                                            setShowNewTagModal(true);
+                                          }}
+                                          className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded cursor-pointer hover:bg-yellow-200 inline-block"
+                                        >
+                                          {s} +
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="px-3 py-2">
+                                  <div className="flex flex-wrap gap-1 items-center">
+                                    {product.analysis.step2.dimension.tags.map((tag) => {
+                                      const detectedTags = product.analysis?.step2.selectedTags || [];
+                                      const isDetected = detectedTags.includes(tag.slug);
+                                      
+                                      // 禮品類別：檢查是否為當前選中的品項類型
+                                      const isGiftSelected = product.detectedCategory === 'gift' && 
+                                        product.analysis?.step2.selectedTags?.includes(tag.slug);
+                                      // 非禮品類別：正常檢查 selectedTags
+                                      const isNormalSelected = product.detectedCategory !== 'gift' && 
+                                        product.selectedTags.some(t => t.id === tag.id);
+                                      const isSelected = isGiftSelected || isNormalSelected;
+                                      
+                                      return (
+                                        <span
+                                          key={tag.id}
+                                          onClick={() => {
+                                            if (product.detectedCategory === 'gift') {
+                                              // 禮品類別：切換品項類型，Step3 跟著變
+                                              switchGiftItemType(product.id, tag.slug);
+                                            } else {
+                                              toggleTag(product.id, tag);
+                                            }
+                                          }}
+                                          className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                            isSelected
+                                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                              : isDetected
+                                              ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                          }`}
+                                        >
+                                          {tag.name_zh} {isSelected && '✓'} {isDetected && !isSelected && '🤖'}
+                                        </span>
+                                      );
+                                    })}
+                                    {/* Step 2 新增標籤按鈕 */}
+                                    <span
+                                      onClick={() => {
+                                        setCurrentProductForTag(product.id);
+                                        setCurrentDimensionForTag(product.analysis?.step2.dimension?.slug || null);
+                                        setNewTagInput({ name_zh: '', name_en: '', color: '#3B82F6' });
+                                        setShowNewTagModal(true);
+                                      }}
+                                      className="px-2 py-1 rounded text-xs cursor-pointer border-2 border-dashed border-blue-300 text-blue-500 hover:bg-blue-50"
+                                    >
+                                      + 新增
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 3: 產品名稱偵測 */}
+                            {product.analysis.step3 && product.analysis.step3.dimension && (
+                              <div className="border border-purple-200 rounded-lg bg-white overflow-hidden">
+                                <div className="bg-purple-50 px-3 py-2 border-b border-purple-100">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-purple-600 font-bold text-xs">Step 3</span>
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {product.analysis.step3.label}
+                                      </span>
+                                    </div>
+                                    {product.analysis.step3.displayName && (
+                                      <span className="text-sm text-purple-600 font-medium">
+                                        → {product.analysis.step3.displayName}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {product.analysis.step3.suggestions && product.analysis.step3.suggestions.length > 0 && (
+                                    <div className="mt-1 text-xs text-gray-500">
+                                      💡 AI 建議: {product.analysis.step3.suggestions.map((s, i) => (
+                                        <span
+                                          key={i}
+                                          onClick={() => {
+                                            setCurrentProductForTag(product.id);
+                                            setCurrentDimensionForTag(product.analysis?.step3.dimension?.slug || null);
+                                            setNewTagInput({ name_zh: s, name_en: '', color: '#8B5CF6' });
+                                            setShowNewTagModal(true);
+                                          }}
+                                          className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded cursor-pointer hover:bg-yellow-200 inline-block"
+                                        >
+                                          {s} +
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="px-3 py-2">
+                                  <div className="flex flex-wrap gap-1 items-center">
+                                    {product.analysis.step3.dimension.tags.map((tag) => {
+                                      const isSelected = product.selectedTags.some(t => t.id === tag.id);
+                                      const detectedTags = product.analysis?.step3.selectedTags || [];
+                                      const isDetected = detectedTags.includes(tag.slug);
+                                      
+                                      return (
+                                        <span
+                                          key={tag.id}
+                                          onClick={() => toggleTag(product.id, tag)}
+                                          className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                            isSelected
+                                              ? 'bg-purple-500 text-white hover:bg-purple-600'
+                                              : isDetected
+                                              ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                          }`}
+                                        >
+                                          {tag.name_zh} {isSelected && '✓'} {isDetected && !isSelected && '🤖'}
+                                        </span>
+                                      );
+                                    })}
+                                    {/* Step 3 新增標籤按鈕 */}
+                                    <span
+                                      onClick={() => {
+                                        setCurrentProductForTag(product.id);
+                                        setCurrentDimensionForTag(product.analysis?.step3.dimension?.slug || null);
+                                        setNewTagInput({ name_zh: '', name_en: '', color: '#8B5CF6' });
+                                        setShowNewTagModal(true);
+                                      }}
+                                      className="px-2 py-1 rounded text-xs cursor-pointer border-2 border-dashed border-purple-300 text-purple-500 hover:bg-purple-50"
+                                    >
+                                      + 新增
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Step 4: 其他標籤偵測 */}
+                            {product.analysis.step4 && product.analysis.step4.dimensions && product.analysis.step4.dimensions.length > 0 && (
+                              <div className="border border-orange-200 rounded-lg bg-white overflow-hidden">
+                                <div className="bg-orange-50 px-3 py-2 border-b border-orange-100">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-orange-600 font-bold text-xs">Step 4</span>
+                                    <span className="text-sm font-medium text-gray-700">
+                                      {product.analysis.step4.label}
+                                    </span>
+                                    <span className="text-xs text-gray-400">(非必填)</span>
+                                  </div>
+                                  {product.analysis.step4.suggestions && product.analysis.step4.suggestions.length > 0 && (
+                                    <div className="mt-1 text-xs text-gray-500">
+                                      💡 AI 建議: {product.analysis.step4.suggestions.map((s, i) => (
+                                        <span
+                                          key={i}
+                                          onClick={() => {
+                                            setCurrentProductForTag(product.id);
+                                            setCurrentDimensionForTag(null); // Step4 建議不指定維度
+                                            setNewTagInput({ name_zh: s, name_en: '', color: '#F59E0B' });
+                                            setShowNewTagModal(true);
+                                          }}
+                                          className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded cursor-pointer hover:bg-yellow-200 inline-block"
+                                        >
+                                          {s} +
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="px-3 py-2 space-y-2">
+                                  {product.analysis.step4.dimensions.map((dimension) => {
+                                    const prodExpandedDims = expandedDimensions[product.id] || new Set();
+                                    const isExpanded = prodExpandedDims.has(dimension.slug);
+                                    const selectedMap = product.analysis?.step4.selectedMap || {};
+                                    const detectedInThisDim = selectedMap[dimension.slug] || [];
+
+                                    return (
+                                      <div key={dimension.id} className="border border-gray-200 rounded bg-gray-50">
+                                        <button
+                                          onClick={() => {
+                                            setExpandedDimensions(prev => {
+                                              const prodDims = new Set(prev[product.id] || new Set());
+                                              if (prodDims.has(dimension.slug)) {
+                                                prodDims.delete(dimension.slug);
+                                              } else {
+                                                prodDims.add(dimension.slug);
+                                              }
+                                              return { ...prev, [product.id]: prodDims };
+                                            });
+                                          }}
+                                          className="w-full px-2 py-1.5 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm">{isExpanded ? '▼' : '▶'}</span>
+                                            <span className="text-xs font-medium text-gray-600">
+                                              {dimension.name_zh}
+                                            </span>
+                                            {detectedInThisDim.length > 0 && (
+                                              <span className="px-1 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                                                🤖 {detectedInThisDim.length}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">
+                                              {dimension.tags.length} 標籤
+                                            </span>
+                                            {/* 每個 Step4 維度的新增按鈕 */}
+                                            <span
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCurrentProductForTag(product.id);
+                                                setCurrentDimensionForTag(dimension.slug);
+                                                setNewTagInput({ name_zh: '', name_en: '', color: '#F59E0B' });
+                                                setShowNewTagModal(true);
+                                              }}
+                                              className="px-1.5 py-0.5 rounded text-xs cursor-pointer border border-dashed border-orange-300 text-orange-500 hover:bg-orange-50"
+                                            >
+                                              +
+                                            </span>
+                                          </div>
+                                        </button>
+                                        {isExpanded && (
+                                          <div className="px-2 pb-2 pt-1 border-t border-gray-200">
+                                            <div className="flex flex-wrap gap-1 items-center">
+                                              {dimension.tags.map((tag) => {
+                                                const isSelected = product.selectedTags.some(t => t.id === tag.id);
+                                                const isDetected = detectedInThisDim.includes(tag.slug);
+                                                
+                                                return (
+                                                  <span
+                                                    key={tag.id}
+                                                    onClick={() => toggleTag(product.id, tag)}
+                                                    className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-colors ${
+                                                      isSelected
+                                                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                                        : isDetected
+                                                        ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                    }`}
+                                                  >
+                                                    {tag.name_zh} {isSelected && '✓'} {isDetected && !isSelected && '🤖'}
+                                                  </span>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex flex-wrap gap-1">
-                            {existingTags
-                              .filter(
-                                (t) => !product.selectedTags.some((st) => st.id === t.id)
-                              )
-                              .filter((t) => {
-                                const searchTerm = (tagSearchTerms[product.id] || "").toLowerCase();
-                                if (!searchTerm) return true;
-                                return (
-                                  (t.name_zh || "").toLowerCase().includes(searchTerm) ||
-                                  (t.name_en || "").toLowerCase().includes(searchTerm) ||
-                                  (t.name || "").toLowerCase().includes(searchTerm)
-                                );
-                              })
-                              .slice(0, expandedTagProducts.has(product.id) || tagSearchTerms[product.id] ? undefined : 10)
-                              .map((tag) => (
-                                <span
-                                  key={tag.id}
-                                  onClick={() => toggleTag(product.id, tag)}
-                                  className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs cursor-pointer hover:bg-gray-200"
-                                >
-                                  {tag.name_zh || tag.name}
-                                </span>
-                              ))}
+                        )}
+                        
+                        {/* 後備：如果沒有 analysis 但有 dimensions，仍顯示舊版維度 */}
+                        {!product.analysis && product.dimensions && product.dimensions.length > 0 && (
+                          <div className="space-y-2 bg-gray-50 rounded-lg p-3">
+                            {product.dimensions.map((dimension) => {
+                              const prodExpandedDims = expandedDimensions[product.id] || new Set();
+                              const isExpanded = prodExpandedDims.has(dimension.slug);
+                              const detectedInThisDim = product.detectedTagMap?.[dimension.slug] || [];
+
+                              return (
+                                <div key={dimension.id} className="border border-gray-200 rounded-lg bg-white">
+                                  <button
+                                    onClick={() => {
+                                      setExpandedDimensions(prev => {
+                                        const prodDims = new Set(prev[product.id] || new Set());
+                                        if (prodDims.has(dimension.slug)) {
+                                          prodDims.delete(dimension.slug);
+                                        } else {
+                                          prodDims.add(dimension.slug);
+                                        }
+                                        return { ...prev, [product.id]: prodDims };
+                                      });
+                                    }}
+                                    className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-lg">{isExpanded ? '▼' : '▶'}</span>
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {dimension.name_zh}
+                                      </span>
+                                      {detectedInThisDim.length > 0 && (
+                                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                                          AI 偵測 {detectedInThisDim.length}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-gray-400">
+                                      {dimension.tags.length} 個標籤
+                                    </span>
+                                  </button>
+                                  {isExpanded && (
+                                    <div className="px-3 pb-3 pt-1 border-t border-gray-100">
+                                      <div className="flex flex-wrap gap-1">
+                                        {dimension.tags.map((tag) => {
+                                          const isSelected = product.selectedTags.some(t => t.id === tag.id);
+                                          const isDetected = detectedInThisDim.includes(tag.slug);
+                                          
+                                          return (
+                                            <span
+                                              key={tag.id}
+                                              onClick={() => toggleTag(product.id, tag)}
+                                              className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                                isSelected
+                                                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                                  : isDetected
+                                                  ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                              }`}
+                                            >
+                                              {tag.name_zh} {isSelected && '✓'} {isDetected && !isSelected && '🤖'}
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
-                          {!tagSearchTerms[product.id] && existingTags.filter(t => !product.selectedTags.some(st => st.id === t.id)).length > 10 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setExpandedTagProducts(prev => {
-                                  const next = new Set(prev);
-                                  if (next.has(product.id)) {
-                                    next.delete(product.id);
-                                  } else {
-                                    next.add(product.id);
-                                  }
-                                  return next;
-                                });
-                              }}
-                              className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
-                            >
-                              {expandedTagProducts.has(product.id) 
-                                ? "收合標籤 ▲" 
-                                : `查看更多標籤 (${existingTags.filter(t => !product.selectedTags.some(st => st.id === t.id)).length - 10} 個) ▼`}
-                            </button>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1782,7 +2361,14 @@ export default function BatchUploadClient() {
       {showNewTagModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">新增標籤</h3>
+            <h3 className="text-lg font-semibold mb-2">新增標籤</h3>
+            
+            {/* 目標維度資訊 */}
+            {currentDimensionForTag && (
+              <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+                📁 將加入到維度: <span className="font-medium">{currentDimensionForTag}</span>
+              </div>
+            )}
             
             {/* 重複警告 */}
             {duplicateWarning && (
@@ -1937,6 +2523,7 @@ export default function BatchUploadClient() {
                   setShowNewTagModal(false);
                   setNewTagInput({ name_zh: "", name_en: "", color: "#3B82F6" });
                   setCurrentProductForTag(null);
+                  setCurrentDimensionForTag(null);
                   setDuplicateWarning(null);
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"

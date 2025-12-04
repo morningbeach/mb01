@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// 生成唯一 ID
+function generateId(prefix: string = 'prod'): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 10);
+  return `${prefix}-${timestamp}-${random}`;
+}
+
 // POST - 建立新產品
 export async function POST(req: NextRequest) {
   try {
@@ -52,10 +59,13 @@ export async function POST(req: NextRequest) {
       productData.sku = null;
     }
 
-    // 確保 version 為 2
+    // 確保 version 為 2，並生成唯一 ID
+    const now = new Date();
     const finalProductData = {
       ...productData,
+      id: generateId('prod'),
       version: 2,
+      updatedAt: now,
     };
 
     const product = await prisma.product.create({

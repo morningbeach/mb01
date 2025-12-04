@@ -1,6 +1,5 @@
-﻿// app/page.tsx - Landing Page V2
 import { prisma } from "@/lib/prisma";
-import LandingPageClient from "./landing-v2/LandingPageClient";
+import LandingPageClient from "./LandingPageClient";
 
 // Default config matching the one in Admin Editor
 const DEFAULT_CONFIG = {
@@ -29,7 +28,7 @@ const DEFAULT_CONFIG = {
 export const dynamic = "force-dynamic"; // Always fetch fresh data
 export const revalidate = 0; // Disable caching
 
-export default async function Home() {
+export default async function LandingPageV2() {
   // Fetch Config
   const configRecord = await prisma.siteSetting.findUnique({
     where: { key: "landing-v2-config" },

@@ -107,6 +107,8 @@ export async function GET(request: Request) {
     const filterMode = searchParams.get('mode') || 'any';
     // 類別篩選
     const category = searchParams.get('category') || '';
+    // 隨機產品模式
+    const random = searchParams.get('random') === 'true';
 
     // 如果有類別篩選，取得該類別下的所有 tag IDs（使用快取）
     let categoryTagIds: string[] = [];
@@ -136,6 +138,7 @@ export async function GET(request: Request) {
           },
         };
       } else {
+        // 其他類別（包含禮品）：使用維度下的所有標籤
         where.ProductTag = {
           some: {
             tagId: { in: categoryTagIds },
@@ -180,10 +183,24 @@ export async function GET(request: Request) {
       ];
     }
 
-    // 查詢產品
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
+    // 隨機產品模式：先取得所有符合條件的產品 ID，隨機抽取
+    let products: any[];
+    let total: number;
+    
+    if (random && category === 'gift' && tagSlugs.length === 0) {
+      // 禮品隨機模式：取得所有禮品產品 ID，隨機抽取 limit 個
+      const allProductIds = await prisma.product.findMany({
         where,
+        select: { id: true },
+      });
+      total = allProductIds.length;
+      
+      // Fisher-Yates 洗牌取前 limit 個
+      const shuffled = [...allProductIds].sort(() => Math.random() - 0.5);
+      const selectedIds = shuffled.slice(0, limit).map(p => p.id);
+      
+      products = await prisma.product.findMany({
+        where: { id: { in: selectedIds } },
         include: {
           ProductTag: {
             include: {
@@ -191,12 +208,28 @@ export async function GET(request: Request) {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.product.count({ where }),
-    ]);
+      });
+      // 再次打亂順序
+      products = products.sort(() => Math.random() - 0.5);
+    } else {
+      // 正常模式
+      [products, total] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          include: {
+            ProductTag: {
+              include: {
+                Tag: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        prisma.product.count({ where }),
+      ]);
+    }
 
     // 轉換為前端格式
     let result = products.map((p: any) => ({

@@ -11,6 +11,7 @@ const mainNav = [
   { href: "/admin/products-v2", label: "Products V2" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/pages", label: "Pages" },
+  { href: "/admin/landing-editor", label: "Landing V2" },
   { href: "/admin/images", label: "Images" },
   { href: "/admin/contact-buttons", label: "Contact Buttons" },
 ];
