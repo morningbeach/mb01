@@ -461,14 +461,8 @@ export default function PackagingExplorerV2() {
   useEffect(() => {
     if (initialLoaded) return;
     
-    // 確定實際要載入的類別（優先使用 URL 參數）
-    const categoryToLoad = getInitialCategory();
-    
-    // 如果 URL 指定的類別與當前不同，等待 setActiveCategory 生效
-    if (categoryToLoad !== activeCategory) {
-      setActiveCategory(categoryToLoad);
-      return; // 等待下次 effect 執行
-    }
+    // 等待 URL 參數初始化完成
+    if (!urlInitializedRef.current) return;
     
     // 防止重複載入
     if (loadingLockRef.current === activeCategory) return;
@@ -840,11 +834,13 @@ export default function PackagingExplorerV2() {
         
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
-        setShowingGiftRandom(true);
+        // 不需要重設 setShowingGiftRandom，它已經是 true
         setHasMore(false);
         console.log(`[禮品重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
         return;
       }
+      // 如果快取還沒準備好，什麼都不做
+      return;
     }
     
     // 包裝盒/提袋類別：如果已經在同一類別且沒有選擇標籤，重新隨機
@@ -2101,8 +2097,8 @@ export default function PackagingExplorerV2() {
                         </span>
                         <span className="text-violet-500 text-sm">
                           {lang === 'zh' 
-                            ? '— 點選左側分類瀏覽更多' 
-                            : '— Select categories on the left to explore more'}
+                            ? '— 雙擊刷新推薦' 
+                            : '— Tap again for more'}
                         </span>
                       </div>
                     </div>
