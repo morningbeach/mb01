@@ -187,8 +187,8 @@ export async function GET(request: Request) {
     let products: any[];
     let total: number;
     
-    if (random && category === 'gift' && tagSlugs.length === 0) {
-      // 禮品隨機模式：取得所有禮品產品 ID，隨機抽取 limit 個
+    if (random && category && tagSlugs.length === 0) {
+      // 隨機模式（所有類別）：取得所有產品 ID，隨機抽取 limit 個
       const allProductIds = await prisma.product.findMany({
         where,
         select: { id: true },

@@ -327,6 +327,34 @@ export default function PackagingExplorerV2() {
   const loadMore = useCallback(() => {
     if (loadingMore) return;
     
+    // 如果正在顯示隨機推薦，且滾到底部，載入完整產品列表
+    if (showingRandomPicks && ['gift', 'print-packaging', 'bag'].includes(activeCategory)) {
+      // 直接從 ref 讀取快取
+      let cached = null;
+      if (activeCategory === 'gift' && giftCache.current.products.length > 0) {
+        cached = giftCache.current;
+      } else if (activeCategory === 'print-packaging' && printPackagingCache.current.products.length > 0) {
+        cached = printPackagingCache.current;
+      } else if (activeCategory === 'bag' && bagCache.current.products.length > 0) {
+        cached = bagCache.current;
+      }
+      
+      if (cached && cached.products.length > 0) {
+        // 排除已顯示的隨機產品，把剩餘產品接在後面
+        const currentIds = new Set(products.map(p => p.id));
+        const remainingProducts = cached.products.filter(p => !currentIds.has(p.id));
+        
+        if (remainingProducts.length > 0) {
+          setProducts(prev => [...prev, ...remainingProducts]);
+          setTotalProducts(cached.total);
+          setShowingRandomPicks(false); // 不再是隨機模式
+          setHasMore(false);
+          setDisplayCount(prev => prev + 25); // 顯示更多
+          return;
+        }
+      }
+    }
+    
     // 如果已載入的產品還有剩餘，先顯示更多
     if (displayCount < products.length) {
       setDisplayCount(prev => Math.min(prev + 25, products.length));
@@ -335,7 +363,7 @@ export default function PackagingExplorerV2() {
     else if (hasMore) {
       loadProducts(false);
     }
-  }, [displayCount, products.length, hasMore, loadingMore, loadProducts]);
+  }, [displayCount, products.length, hasMore, loadingMore, loadProducts, showingRandomPicks, activeCategory, products]);
 
   // 無限滾動 - IntersectionObserver
   useEffect(() => {
@@ -499,7 +527,7 @@ export default function PackagingExplorerV2() {
             setProducts(randomProducts);
             setTotalProducts(randomProducts.length);
             setShowingRandomPicks(true);
-            setHasMore(false);
+            setHasMore(true); // 還有更多產品可載入
           }
           
           setLoading(false);
@@ -559,10 +587,10 @@ export default function PackagingExplorerV2() {
           }
         }
         
-        // 第二步：載入前 20 個產品
+        // 第二步：載入隨機 20 個產品（包裝盒/提袋也隨機推薦）
         const quickParams = new URLSearchParams();
         quickParams.append('category', activeCategory);
-        quickParams.append('page', '1');
+        quickParams.append('random', 'true');
         quickParams.append('limit', '20');
         
         const quickProductsRes = await fetch(`/api/products/filter?${quickParams.toString()}`);
@@ -573,9 +601,10 @@ export default function PackagingExplorerV2() {
           const data = await quickProductsRes.json();
           const rawProducts = data.products || [];
           quickProducts = dedupeProducts(rawProducts);
-          // 先顯示前 20 個
+          // 先顯示隨機 20 個
           setProducts(quickProducts);
-          setTotalProducts(data.pagination?.total || quickProducts.length);
+          setTotalProducts(quickProducts.length);
+          setShowingRandomPicks(true); // 顯示隨機推薦 banner
           setHasMore(true); // 還有更多
         }
         
@@ -835,7 +864,7 @@ export default function PackagingExplorerV2() {
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
         // 不需要重設 setShowingRandomPicks，它已經是 true
-        setHasMore(false);
+        setHasMore(true); // 還有更多產品可載入
         console.log(`[禮品重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
         return;
       }
@@ -855,7 +884,8 @@ export default function PackagingExplorerV2() {
         
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
-        setHasMore(false);
+        setShowingRandomPicks(true); // 顯示隨機推薦 banner
+        setHasMore(true); // 還有更多產品可載入
         console.log(`[${categoryId}重新隨機] 從快取隨機選擇 ${randomFromCache.length} 個新產品`);
         return;
       }
@@ -897,7 +927,7 @@ export default function PackagingExplorerV2() {
         setProducts(randomFromCache);
         setTotalProducts(randomFromCache.length);
         setShowingRandomPicks(true);
-        setHasMore(false);
+        setHasMore(true); // 還有更多產品可載入
         console.log(`[禮品切換] 從快取隨機選擇 ${randomFromCache.length} 個產品`);
         return;
       }
@@ -935,7 +965,7 @@ export default function PackagingExplorerV2() {
           setProducts(randomProducts);
           setTotalProducts(randomProducts.length);
           setShowingRandomPicks(true);
-          setHasMore(false);
+          setHasMore(true); // 還有更多產品可載入
         }
         
         // 背景預載所有禮品產品
@@ -978,12 +1008,16 @@ export default function PackagingExplorerV2() {
     setPage(1);
     
     if (hasCache) {
-      // 使用快取，瞬間切換
-      setProducts(cached.products);
+      // 使用快取，從快取隨機選擇 20 個產品顯示
+      const shuffled = [...cached.products].sort(() => Math.random() - 0.5);
+      const randomFromCache = shuffled.slice(0, 20);
+      
+      setProducts(randomFromCache);
       setDimensions(cached.dimensions);
       setExpandedDimensions(new Set(cached.dimensions.slice(0, 2).map((d: Dimension) => d.slug)));
-      setHasMore(cached.total > cached.products.length);
-      setTotalProducts(cached.total);
+      setTotalProducts(randomFromCache.length);
+      setShowingRandomPicks(true); // 顯示隨機推薦 banner
+      setHasMore(true); // 還有更多產品可載入
       
       // 延遲解除快取模式，確保 React 完成本次更新
       requestAnimationFrame(() => {
@@ -1001,10 +1035,10 @@ export default function PackagingExplorerV2() {
     setTransitioning(true);
     
     try {
-      // 第一階段：快速載入前 20 個
+      // 第一階段：隨機載入 20 個產品
       const quickParams = new URLSearchParams();
       quickParams.append('category', categoryId);
-      quickParams.append('page', '1');
+      quickParams.append('random', 'true');
       quickParams.append('limit', '20');
       
       const [quickProductsRes, dimensionsRes] = await Promise.all([
@@ -1032,9 +1066,10 @@ export default function PackagingExplorerV2() {
         const rawProducts = data.products || [];
         const quickProducts = dedupeProducts(rawProducts);
         
-        // 先顯示前 20 個
+        // 先顯示隨機 20 個
         setProducts(quickProducts);
-        setTotalProducts(data.pagination?.total || quickProducts.length);
+        setTotalProducts(quickProducts.length);
+        setShowingRandomPicks(true); // 顯示隨機推薦 banner
         setHasMore(true);
         setTransitioning(false);
         
@@ -1127,7 +1162,7 @@ export default function PackagingExplorerV2() {
               setProducts([]);
               setTotalProducts(0);
             }
-            setHasMore(false);
+            setHasMore(true); // 還有更多產品可載入
             setDisplayCount(15);
           } else {
             // 其他類別：恢復快取資料
@@ -1213,7 +1248,7 @@ export default function PackagingExplorerV2() {
         setProducts([]);
         setTotalProducts(0);
       }
-      setHasMore(false);
+      setHasMore(true); // 還有更多產品可載入
       setDisplayCount(15);
       return;
     }
