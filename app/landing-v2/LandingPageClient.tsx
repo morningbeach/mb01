@@ -574,7 +574,7 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
               <CTAButton href="/contact" variant="primary" size="lg">
                 {t(finalCTA.primary)}
               </CTAButton>
-              <CTAButton href="/case" variant="secondary" size="lg">
+              <CTAButton href="/packaging-explorer" variant="secondary" size="lg">
                 {t(finalCTA.secondary)}
               </CTAButton>
             </div>
