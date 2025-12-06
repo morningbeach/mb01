@@ -39,6 +39,34 @@ export function FloatingQuoteButton() {
       .catch(console.error);
   }, []);
 
+  // 中文版：直接顯示 LINE 按鈕，不展開選單
+  if (lang === "zh") {
+    const handleDirectLineClick = () => {
+      fireMetaContactEvent("Lead");
+      fireGTMEvent("contact_click", {
+        channel: "line",
+        label: "LINE 詢價",
+        DLV: "line",
+      });
+      window.open("https://line.me/R/ti/p/@gya2047g?oat_content=url&ts=11280956", "_blank");
+    };
+
+    return (
+      <button
+        onClick={handleDirectLineClick}
+        className="fixed z-50 group transition-all duration-300 md:right-6 md:top-1/2 md:-translate-y-1/2 md:bottom-auto md:translate-x-0 right-4 bottom-4 w-16 h-16 rounded-full flex items-center justify-center shadow-xl"
+        aria-label="LINE 詢價"
+      >
+        <div className="bg-[#06C755] text-white w-full h-full rounded-full flex flex-col items-center justify-center gap-1">
+          <LineIcon />
+          <span className="text-[10px] font-medium leading-tight">LINE詢價</span>
+        </div>
+        <div className="hidden md:block absolute inset-0 bg-[#06C755] rounded-full animate-ping opacity-20 -z-10"></div>
+      </button>
+    );
+  }
+
+  // 英文版：保持原有邏輯
   const handleLineClick = () => {
     // GTM 會處理 Google Ads 轉換追蹤
     fireMetaContactEvent("Lead");

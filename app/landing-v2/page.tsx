@@ -21,12 +21,13 @@ const DEFAULT_CONFIG = {
   selectedCaseIds: [],
   trustedBy: { text: "", images: [] },
   selectedBlogIds: [],
+  featuredProductCategory: "none" as const,
   solutions: [],
   aiSettings: { openaiKey: "", geminiKey: "" },
 };
 
-export const dynamic = "force-dynamic"; // Always fetch fresh data
-export const revalidate = 0; // Disable caching
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function LandingPageV2() {
   // Fetch Config
@@ -52,5 +53,6 @@ export default async function LandingPageV2() {
     orderBy: { createdAt: "desc" },
   });
 
+  // 產品資料在 Client Component 中獲取（使用 /api/products/filter，與 packaging-explorer 一致）
   return <LandingPageClient config={config} cases={cases} blogs={blogs} />;
 }

@@ -323,7 +323,7 @@ export function SiteFooter() {
             </div>
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 md:p-8 shadow-lg">
               <ContactForm 
-                variant="compact" 
+                variant="full" 
                 source="footer-form"
               />
             </div>

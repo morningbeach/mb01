@@ -26,6 +26,7 @@ interface LandingPageConfig {
     images: string[];
   };
   selectedBlogIds: string[];
+  featuredProductCategory: "print-packaging" | "bag" | "gift" | "none"; // 新增：最新商品輪播的類別
   solutions: {
     image: string;
     imageOpacity: number;
@@ -145,6 +146,7 @@ const DEFAULT_CONFIG: LandingPageConfig = {
   selectedCaseIds: [],
   trustedBy: { text: "科技,金融,美妝,文創,零售,餐飲,旅遊,禮品通路", images: [] },
   selectedBlogIds: [],
+  featuredProductCategory: "none", // 新增預設值
   solutions: DEFAULT_SOLUTIONS,
   services: DEFAULT_SERVICES,
   aiSettings: { openaiKey: "", geminiKey: "" },
@@ -382,6 +384,44 @@ export default function LandingEditorPage() {
                 }
                 showUpload={true}
               />
+            </div>
+          </div>
+        </Section>
+
+        {/* Featured Products Carousel - 最新商品輪播 */}
+        <Section title="3.5 最新商品輪播">
+          <div className="space-y-4">
+            <p className="text-sm text-zinc-400">選擇要在首頁展示的商品類別（隨機顯示該類別12項商品）</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { value: "none", label: "不顯示", desc: "關閉商品輪播" },
+                { value: "print-packaging", label: "包裝盒", desc: "紙器包裝、卡紙盒等" },
+                { value: "bag", label: "提袋", desc: "帆布袋、紙袋、布袋等" },
+                { value: "gift", label: "禮品", desc: "禁品、贈品、配件等" },
+              ].map((option) => (
+                <label 
+                  key={option.value}
+                  className={`relative flex flex-col items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                    config.featuredProductCategory === option.value
+                      ? "border-emerald-500 bg-emerald-500/10"
+                      : "border-white/10 hover:border-white/30 bg-white/5"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="featuredProductCategory"
+                    value={option.value}
+                    checked={config.featuredProductCategory === option.value}
+                    onChange={(e) => updateConfig("featuredProductCategory", e.target.value as any)}
+                    className="sr-only"
+                  />
+                  <span className="text-lg font-medium">{option.label}</span>
+                  <span className="text-xs text-zinc-500 mt-1 text-center">{option.desc}</span>
+                  {config.featuredProductCategory === option.value && (
+                    <div className="absolute top-2 right-2 w-3 h-3 bg-emerald-500 rounded-full" />
+                  )}
+                </label>
+              ))}
             </div>
           </div>
         </Section>

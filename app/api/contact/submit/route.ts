@@ -1,6 +1,7 @@
 // app/api/contact/submit/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
     // 儲存到資料庫
     const inquiry = await prisma.contactInquiry.create({
       data: {
+        id: randomUUID(),
         name,
         email,
         company,
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
         ipAddress,
         userAgent,
         status: "NEW",
+        updatedAt: new Date(),
       },
     });
 

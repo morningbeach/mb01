@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/app/contexts/LanguageContext";
@@ -26,6 +27,7 @@ interface LandingPageConfig {
     images: string[];
   };
   selectedBlogIds: string[];
+  featuredProductCategory?: "print-packaging" | "bag" | "gift" | "none"; // 新增：最新商品輪播的類別
   solutions: {
     image: string;
     imageOpacity?: number;
@@ -48,6 +50,7 @@ interface LandingPageClientProps {
   config: LandingPageConfig;
   cases: any[];
   blogs: any[];
+  featuredProducts?: any[]; // 新增：最新商品
 }
 
 // --- Data & Copy (Defaults/Fallbacks) ---
@@ -170,9 +173,51 @@ const defaultSolutions = [
 
 // --- Components ---
 
-export default function LandingPageClient({ config, cases, blogs }: LandingPageClientProps) {
+export default function LandingPageClient({ config, cases, blogs, featuredProducts: initialProducts = [] }: LandingPageClientProps) {
   const { lang } = useLanguage();
   const t = (copy: Copy) => (lang === "zh" ? copy.zh : copy.en);
+  
+  // 在 Client 端獲取產品資料（與 packaging-explorer 一致的方式）
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>(initialProducts);
+  const [productsLoading, setProductsLoading] = useState(false);
+
+  // Debug: 顯示設定
+  useEffect(() => {
+    console.log('[Landing] featuredProductCategory:', config.featuredProductCategory);
+  }, [config.featuredProductCategory]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!config.featuredProductCategory || config.featuredProductCategory === "none") {
+        console.log('[Landing] Category is none or empty, skipping fetch');
+        setFeaturedProducts([]);
+        return;
+      }
+      
+      setProductsLoading(true);
+      console.log('[Landing] Fetching products for category:', config.featuredProductCategory);
+      try {
+        const url = `/api/products/filter?category=${config.featuredProductCategory}&random=true&limit=12`;
+        console.log('[Landing] Fetch URL:', url);
+        const res = await fetch(url);
+        console.log('[Landing] Response status:', res.status);
+        if (res.ok) {
+          const data = await res.json();
+          console.log('[Landing] Products received:', data.products?.length || 0);
+          setFeaturedProducts(data.products || []);
+        }
+      } catch (e) {
+        console.error('[Landing] Failed to fetch featured products:', e);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+    
+    // 每次都重新獲取（因為設定可能變了）
+    if (config.featuredProductCategory && config.featuredProductCategory !== "none") {
+      fetchProducts();
+    }
+  }, [config.featuredProductCategory]);
 
   // Filter selected cases
   const displayCases = cases.filter(c => config.selectedCaseIds.includes(c.id));
@@ -184,8 +229,21 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
   // Parse trusted by brands
   const trustedBrands = config.trustedBy.text.split(",").map(s => s.trim()).filter(s => s);
 
+  // 商品輪播類別標題
+  const categoryLabels: Record<string, Copy> = {
+    "print-packaging": { en: "Latest Packaging Boxes", zh: "最新包裝盒" },
+    bag: { en: "Latest Bags", zh: "最新提袋" },
+    gift: { en: "Latest Gift Items", zh: "最新禮品" },
+  };
+  
+  const categoryLinks: Record<string, string> = {
+    "print-packaging": "/packaging-explorer?category=print-packaging",
+    bag: "/packaging-explorer?category=bag",
+    gift: "/packaging-explorer?category=gift",
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-white text-gray-900 selection:bg-emerald-500/30">
       <SiteHeader />
       
       <main className="relative">
@@ -193,7 +251,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
         <HeroSection config={config} t={t} />
 
         {/* Core Values */}
-        <section className="relative z-10 bg-black px-6 py-32">
+        <section className="relative z-10 bg-gray-50 px-6 py-32">
           <div className="mx-auto max-w-7xl">
             <SectionHeader 
               kicker={t({ en: "Core Values", zh: "核心價值" })} 
@@ -203,13 +261,13 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
               {coreValues.map((item, i) => (
                 <div 
                   key={i} 
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 transition duration-500 hover:bg-white/10"
+                  className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-8 shadow-sm transition duration-500 hover:shadow-lg"
                 >
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                     <span className="text-xl font-bold">{i + 1}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-white">{t(item.title)}</h3>
-                  <p className="mt-4 text-base leading-relaxed text-white/60 group-hover:text-white/80">
+                  <h3 className="text-xl font-bold text-gray-900">{t(item.title)}</h3>
+                  <p className="mt-4 text-base leading-relaxed text-gray-600 group-hover:text-gray-800">
                     {t(item.description)}
                   </p>
                 </div>
@@ -218,8 +276,94 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
           </div>
         </section>
 
+        {/* Featured Products Carousel - 最新商品輪播 */}
+        {config.featuredProductCategory && config.featuredProductCategory !== "none" && (
+          <section className="bg-white px-6 py-24 overflow-hidden">
+            <div className="mx-auto max-w-7xl">
+              <div className="flex items-center justify-between mb-12">
+                <SectionHeader 
+                  kicker={t({ en: "New Arrivals", zh: "最新商品" })} 
+                  title={t(categoryLabels[config.featuredProductCategory] || { en: "Featured Products", zh: "精選商品" })} 
+                />
+                <Link 
+                  href={categoryLinks[config.featuredProductCategory] || "/packaging-explorer"}
+                  className="hidden md:inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:border-gray-400"
+                >
+                  {t({ en: "View All", zh: "查看全部" })}
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              
+              {/* 輪播容器 */}
+              <div className="relative">
+                {productsLoading ? (
+                  <div className="flex gap-6 overflow-hidden">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="flex-none w-64">
+                        <div className="aspect-square rounded-2xl bg-gray-200 animate-pulse" />
+                        <div className="mt-4 h-5 w-3/4 rounded bg-gray-200 animate-pulse" />
+                      </div>
+                    ))}
+                  </div>
+                ) : featuredProducts.length > 0 ? (
+                  <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {featuredProducts.map((product) => (
+                      <Link 
+                        key={product.id}
+                        href={`/products/${product.slug || product.id}`}
+                        className="group flex-none w-64 snap-start"
+                      >
+                        <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100">
+                          {product.coverImage ? (
+                            <Image 
+                              src={product.coverImage} 
+                              alt={lang === "zh" ? product.name_zh : product.name_en} 
+                              fill 
+                              className="object-cover transition duration-500 group-hover:scale-105" 
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full bg-gray-200">
+                              <span className="text-gray-400 text-sm">No Image</span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                        <h4 className="mt-4 text-base font-medium text-gray-900 group-hover:text-emerald-600 transition line-clamp-2">
+                          {lang === "zh" ? product.name_zh : product.name_en}
+                        </h4>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">{t({ en: "No products found", zh: "暫無商品" })}</p>
+                )}
+                
+                {/* 漸層遮罩效果 */}
+                {featuredProducts.length > 0 && (
+                  <div className="absolute right-0 top-0 bottom-4 w-24 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                )}
+              </div>
+              
+              {/* 手機版查看全部按鈕 */}
+              <div className="mt-8 text-center md:hidden">
+                <Link 
+                  href={categoryLinks[config.featuredProductCategory] || "/packaging-explorer"}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700"
+                >
+                  {t({ en: "View All", zh: "查看全部" })}
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Services */}
-        <section className="bg-zinc-900/50 px-6 py-32">
+        <section className="bg-white px-6 py-32">
           <div className="mx-auto max-w-7xl">
             <SectionHeader 
               kicker={t({ en: "Services", zh: "服務" })} 
@@ -229,7 +373,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
               {(config.services && config.services.length > 0 ? config.services : services).map((item, i) => {
                 const overlayOpacity = (item as any).overlayOpacity ?? 40;
                 return (
-                  <div key={i} className="group relative overflow-hidden rounded-[2rem] bg-black p-10 shadow-2xl ring-1 ring-white/10">
+                  <div key={i} className="group relative overflow-hidden rounded-[2rem] bg-gray-900 p-10 shadow-xl">
                     {/* Background Image */}
                     {item.image && (
                       <div 
@@ -247,7 +391,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
                     />
                     <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
                     <h3 className="relative text-2xl font-bold text-white">{t(item.title)}</h3>
-                    <p className="relative mt-4 text-lg text-white/60">{t(item.description)}</p>
+                    <p className="relative mt-4 text-lg text-white/70">{t(item.description)}</p>
                   </div>
                 );
               })}
@@ -256,7 +400,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
         </section>
 
         {/* Solutions (Dynamic) */}
-        <section className="px-6 py-32">
+        <section className="bg-gray-50 px-6 py-32">
           <div className="mx-auto max-w-7xl">
             <SectionHeader 
               kicker={t({ en: "Solutions", zh: "產品類別" })} 
@@ -305,23 +449,23 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
         </section>
 
         {/* How It Works */}
-        <section className="border-y border-white/5 bg-white/5 px-6 py-32">
+        <section className="border-y border-gray-200 bg-white px-6 py-32">
           <div className="mx-auto max-w-7xl">
             <SectionHeader 
               kicker={t({ en: "Process", zh: "流程" })} 
               title={t({ en: "How It Works", zh: "合作流程" })} 
             />
             <div className="mt-20 relative">
-              <div className="absolute left-0 top-1/2 hidden h-0.5 w-full -translate-y-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent md:block" />
+              <div className="absolute left-0 top-1/2 hidden h-0.5 w-full -translate-y-1/2 bg-gradient-to-r from-transparent via-gray-300 to-transparent md:block" />
               
               <div className="grid gap-12 md:grid-cols-4">
                 {workflow.map((step, i) => (
                   <div key={i} className="relative flex flex-col items-center text-center">
-                    <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-black text-xl font-bold text-white shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                    <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-xl font-bold text-gray-900 shadow-lg">
                       {i + 1}
                     </div>
-                    <h4 className="text-lg font-bold text-white">{t(step.title).split("→")[0].trim()}</h4>
-                    <p className="mt-2 text-sm text-white/50">{t(step.title).split("→")[1]?.trim()}</p>
+                    <h4 className="text-lg font-bold text-gray-900">{t(step.title).split("→")[0].trim()}</h4>
+                    <p className="mt-2 text-sm text-gray-500">{t(step.title).split("→")[1]?.trim()}</p>
                   </div>
                 ))}
               </div>
@@ -331,7 +475,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
 
         {/* Case Studies (Dynamic) */}
         {displayCases.length > 0 && (
-            <section className="px-6 py-32">
+            <section className="bg-white px-6 py-32">
             <div className="mx-auto max-w-7xl">
                 <SectionHeader 
                 kicker={t({ en: "Case Studies", zh: "案例" })} 
@@ -340,13 +484,13 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
                 <div className="mt-16 grid gap-8 md:grid-cols-3">
                 {displayCases.map((item, i) => (
                     <div key={item.id} className="group space-y-4">
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-zinc-900">
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-gray-100 shadow-md">
                         {item.coverImage ? (
                             <Image src={item.coverImage} alt={item.title_zh} fill className="object-cover transition duration-700 group-hover:scale-105" />
                         ) : (
-                            <div className="h-full w-full bg-zinc-800" />
+                            <div className="h-full w-full bg-gray-200" />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 transition group-hover:opacity-40" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 transition group-hover:opacity-40" />
                         <div className="absolute bottom-0 left-0 p-8">
                         <p className="text-sm font-medium uppercase tracking-wider text-emerald-400">Case Study</p>
                         <h3 className="mt-2 text-2xl font-bold text-white">{item.title_zh}</h3>
@@ -361,7 +505,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
 
         {/* Blog Section (Dynamic) */}
         {displayBlogs.length > 0 && (
-            <section className="bg-zinc-900/30 px-6 py-32">
+            <section className="bg-gray-50 px-6 py-32">
                 <div className="mx-auto max-w-7xl">
                     <SectionHeader 
                         kicker={t({ en: "Blog", zh: "部落格" })} 
@@ -369,16 +513,16 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
                     />
                     <div className="mt-16 grid gap-8 md:grid-cols-3">
                         {displayBlogs.map((blog) => (
-                            <Link href={`/blog/${blog.slug}`} key={blog.id} className="group block overflow-hidden rounded-3xl bg-black border border-white/10 hover:border-white/30 transition">
+                            <Link href={`/blog/${blog.slug}`} key={blog.id} className="group block overflow-hidden rounded-3xl bg-white border border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md transition">
                                 <div className="relative aspect-video w-full overflow-hidden">
                                     {blog.coverImage ? (
                                         <Image src={blog.coverImage} alt={blog.title} fill className="object-cover transition duration-500 group-hover:scale-105" />
                                     ) : (
-                                        <div className="h-full w-full bg-zinc-800" />
+                                        <div className="h-full w-full bg-gray-100" />
                                     )}
                                 </div>
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold text-white group-hover:text-emerald-400 transition">{blog.title}</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition">{blog.title}</h3>
                                 </div>
                             </Link>
                         ))}
@@ -388,9 +532,9 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
         )}
 
         {/* Trusted By (Dynamic) */}
-        <section className="border-t border-white/10 bg-black px-6 py-24 text-center">
+        <section className="border-t border-gray-200 bg-gray-50 px-6 py-24 text-center">
           <div className="mx-auto max-w-4xl space-y-8">
-            <h3 className="text-2xl font-semibold text-white">
+            <h3 className="text-2xl font-semibold text-gray-900">
               {t({ en: "Trusted by forward-thinking brands across Asia.", zh: "深受亞洲領先品牌信任。" })}
             </h3>
             
@@ -398,7 +542,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
             {config.trustedBy.images.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-8 mb-8">
                     {config.trustedBy.images.map((url, idx) => (
-                        <div key={idx} className="relative h-12 w-32 opacity-50 hover:opacity-100 transition">
+                        <div key={idx} className="relative h-12 w-32 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition">
                             <Image src={url} alt="Brand Logo" fill className="object-contain" />
                         </div>
                     ))}
@@ -410,7 +554,7 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
               {trustedBrands.map((brand) => (
                 <span 
                   key={brand} 
-                  className="rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm text-white/60 backdrop-blur-sm transition hover:border-white/30 hover:text-white"
+                  className="rounded-full border border-gray-200 bg-white px-6 py-2 text-sm text-gray-600 shadow-sm transition hover:border-gray-300 hover:text-gray-900"
                 >
                   {brand}
                 </span>
@@ -421,9 +565,9 @@ export default function LandingPageClient({ config, cases, blogs }: LandingPageC
 
         {/* Final CTA */}
         <section className="relative overflow-hidden px-6 py-40 text-center">
-          <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-900 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white" />
           <div className="relative z-10 mx-auto max-w-3xl space-y-10">
-            <h2 className="text-5xl font-bold tracking-tight text-white md:text-6xl">
+            <h2 className="text-5xl font-bold tracking-tight text-gray-900 md:text-6xl">
               {t(finalCTA.heading)}
             </h2>
             <div className="flex flex-wrap justify-center gap-4">
@@ -471,7 +615,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         </div>
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           <div className="space-y-8">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-400">MBPACK.CO</p>
+            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
             <h1 className="text-5xl font-bold tracking-tight text-white md:text-7xl lg:text-8xl">{t(heroData.headline)}</h1>
             <p className="mx-auto max-w-3xl text-xl font-medium leading-relaxed text-white/90 md:text-2xl">{t(heroData.subheadline)}</p>
             <p className="mx-auto max-w-2xl text-base text-white/70 md:text-lg">{t(heroData.support)}</p>
@@ -489,7 +633,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-0" />
         <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center min-h-[80vh]">
           <div className="space-y-8">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-400">MBPACK.CO</p>
+            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
             <h1 className="text-5xl font-bold tracking-tight text-white md:text-6xl lg:text-7xl">{t(heroData.headline)}</h1>
             <p className="max-w-xl text-xl font-medium leading-relaxed text-white/90">{t(heroData.subheadline)}</p>
             <p className="max-w-lg text-base text-white/70">{t(heroData.support)}</p>
@@ -516,7 +660,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
           <div className="h-full w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/40 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
-          <p className="mb-8 text-sm font-bold uppercase tracking-[0.5em] text-emerald-400">MBPACK.CO</p>
+          <p className="mb-8 text-sm font-bold uppercase tracking-[0.5em] text-emerald-300">MBPACK.CO</p>
           <h1 className="text-6xl font-black tracking-tighter text-white md:text-8xl lg:text-[10rem] leading-none">{t(heroData.headline)}</h1>
           <p className="mx-auto mt-12 max-w-2xl text-lg text-white/60">{t(heroData.subheadline)}</p>
           <div className="mt-12">
@@ -552,7 +696,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-32">
           <div className="mx-auto max-w-4xl">
             <div className="rounded-[3rem] border border-white/10 bg-black/60 p-12 backdrop-blur-xl md:p-16">
-              <p className="text-center text-sm font-bold uppercase tracking-[0.3em] text-emerald-400">MBPACK.CO</p>
+              <p className="text-center text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
               <h1 className="mt-8 text-center text-4xl font-bold tracking-tight text-white md:text-6xl">{t(heroData.headline)}</h1>
               <p className="mx-auto mt-8 max-w-2xl text-center text-lg text-white/80">{t(heroData.subheadline)}</p>
               <p className="mx-auto mt-4 max-w-xl text-center text-sm text-white/60">{t(heroData.support)}</p>
@@ -586,7 +730,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
           </div>
           <div className="relative flex items-center px-8 py-20 lg:px-16">
             <div className="space-y-8">
-              <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-400">MBPACK.CO</p>
+              <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
               <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">{t(heroData.headline)}</h1>
               <p className="max-w-lg text-lg text-white/80">{t(heroData.subheadline)}</p>
               <p className="max-w-md text-sm text-white/60">{t(heroData.support)}</p>
@@ -620,8 +764,8 @@ function HeroCTAs({ t }: { t: (copy: Copy) => string }) {
 function SectionHeader({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div className="space-y-3 text-center md:text-left">
-      <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-400">{kicker}</p>
-      <h2 className="text-4xl font-bold tracking-tight text-white md:text-5xl">{title}</h2>
+      <p className="text-sm font-bold uppercase tracking-[0.2em] text-emerald-600">{kicker}</p>
+      <h2 className="text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">{title}</h2>
     </div>
   );
 }
@@ -645,8 +789,8 @@ function CTAButton({
   };
 
   const variants = {
-    primary: "bg-white text-black hover:bg-emerald-400 hover:scale-105 hover:shadow-[0_0_30px_rgba(52,211,153,0.4)]",
-    secondary: "border border-white/30 bg-white/5 text-white backdrop-blur-sm hover:bg-white/10 hover:border-white hover:scale-105",
+    primary: "bg-gray-900 text-white hover:bg-emerald-600 hover:scale-105 hover:shadow-lg",
+    secondary: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 hover:border-gray-400 hover:scale-105",
   };
 
   return (
