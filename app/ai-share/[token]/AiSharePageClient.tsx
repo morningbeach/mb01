@@ -149,14 +149,6 @@ export default function AiSharePageClient({
                   />
                 </div>
                 
-                {/* 提示詞 */}
-                {shareData.prompt && (
-                  <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-500 mb-1">設計提示詞</p>
-                    <p className="text-gray-700">{shareData.prompt}</p>
-                  </div>
-                )}
-                
                 {/* 操作按鈕 */}
                 <div className="flex flex-wrap gap-3 mb-4">
                   <button

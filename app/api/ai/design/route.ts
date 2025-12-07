@@ -6,6 +6,11 @@ import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 import { cookies } from "next/headers";
 
+// 強制使用 Node.js runtime（sharp 需要 Node.js）
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // 60 秒超時
+
 // 每日使用限制
 const DAILY_LIMIT = 10;
 
@@ -132,10 +137,11 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     
     console.log("[AI Design] Watermark added successfully, result size:", result.length);
     return result;
-  } catch (error) {
-    console.error("[AI Design] Watermark error:", error);
+  } catch (error: any) {
+    console.error("[AI Design] Watermark error:", error?.message || error);
+    console.error("[AI Design] Watermark error stack:", error?.stack);
     // 如果添加浮水印失敗，返回原圖
-    console.log("[AI Design] Returning original image without watermark");
+    console.log("[AI Design] Returning original image without watermark due to error");
     return imageBuffer;
   }
 }
