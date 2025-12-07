@@ -174,16 +174,14 @@ export default function AiDesignModal({ product, onClose, lang = 'zh' }: AiDesig
     if (!result?.resultUrl) return;
     
     try {
-      const response = await fetch(result.resultUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Use download API to bypass CORS
+      const downloadUrl = `/api/ai/download?url=${encodeURIComponent(result.resultUrl)}`;
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = `ai-design-${result.shareToken}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('下載失敗:', err);
     }

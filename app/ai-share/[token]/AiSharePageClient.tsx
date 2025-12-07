@@ -50,16 +50,14 @@ export default function AiSharePageClient({
   // 下載圖片
   const handleDownload = async () => {
     try {
-      const response = await fetch(shareData.resultUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Use download API to bypass CORS
+      const downloadUrl = `/api/ai/download?url=${encodeURIComponent(shareData.resultUrl)}`;
       const a = document.createElement('a');
-      a.href = url;
+      a.href = downloadUrl;
       a.download = `ai-design-${Date.now()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('下載失敗:', err);
     }
