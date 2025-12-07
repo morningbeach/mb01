@@ -6,28 +6,22 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
+  // 添加連線池參數到 DATABASE_URL
+  const connectionLimit = 3; // Vercel serverless 每個函數限制連線數
+  const connectionTimeout = 10; // 連線超時 10 秒
+  const poolTimeout = 10; // 連線池超時 10 秒
+  
+  const baseUrl = process.env.DATABASE_URL || '';
+  
+  // 如果 URL 已經包含參數，使用 & 連接，否則使用 ?
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  const urlWithParams = `${baseUrl}${separator}connection_limit=${connectionLimit}&connect_timeout=${connectionTimeout}&pool_timeout=${poolTimeout}`;
+  
   return new PrismaClient({
-    log: ["error", "warn"],
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-    // 連線池配置 - 防止 "Too many connections" 錯誤
-    // Supabase 免費方案連線限制較低，需要控制連線數
-  }).$extends({
-    query: {
-      async $allOperations({ operation, model, args, query }) {
-        const start = Date.now();
-        const result = await query(args);
-        const duration = Date.now() - start;
-        
-        // 記錄慢查詢
-        if (duration > 1000) {
-          console.warn(`[Prisma] Slow query: ${model}.${operation} took ${duration}ms`);
-        }
-        
-        return result;
+        url: urlWithParams,
       },
     },
   });
@@ -38,4 +32,11 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 // 確保連線在 global 中被重用（開發環境 hot reload 時不會重複建立）
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
+}
+
+// Graceful shutdown - 確保在 serverless 函數結束時關閉連線
+if (typeof window === 'undefined') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
 }
