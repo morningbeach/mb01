@@ -88,7 +88,7 @@ function generateShareToken(): string {
   return token;
 }
 
-// 添加浮水印到圖片
+// 添加浮水印到圖片（使用簡單的半透明條帶）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -98,39 +98,32 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 計算字體大小（較小的浮水印）
-    const fontSize = Math.max(12, Math.floor(width / 50));
-    const padding = Math.floor(fontSize * 0.8);
+    // 計算浮水印尺寸
+    const barHeight = Math.max(24, Math.floor(height / 30));
+    const fontSize = Math.max(10, Math.floor(barHeight * 0.5));
     
-    // 建立 SVG 浮水印（右下角，較小字體）
-    const svgWatermark = `
-      <svg width="${width}" height="${height}">
-        <style>
-          .watermark {
-            fill: rgba(0, 0, 0, 0.6);
-            font-size: ${fontSize}px;
-            font-family: Arial, sans-serif;
-            font-weight: 500;
-          }
-        </style>
+    // 建立底部半透明條帶 + 文字的 SVG
+    // 使用 web-safe 字體和簡單樣式
+    const svgWatermark = Buffer.from(`
+      <svg width="${width}" height="${barHeight}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${barHeight}" fill="rgba(0,0,0,0.5)"/>
         <text 
-          x="${width - padding}" 
-          y="${height - padding}" 
-          class="watermark" 
+          x="${width - 10}" 
+          y="${barHeight / 2 + fontSize / 3}" 
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="${fontSize}"
+          fill="white"
           text-anchor="end"
-          filter="drop-shadow(1px 1px 2px rgba(255,255,255,0.5))"
-        >${WATERMARK_TEXT}</text>
+        >mbpack.co</text>
       </svg>
-    `;
+    `);
     
-    const watermarkBuffer = Buffer.from(svgWatermark);
-    
-    // 合成圖片
+    // 合成圖片 - 放在底部
     const result = await image
       .composite([
         {
-          input: watermarkBuffer,
-          gravity: "southeast",
+          input: svgWatermark,
+          gravity: "south",
         },
       ])
       .toBuffer();
