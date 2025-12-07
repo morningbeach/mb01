@@ -46,8 +46,8 @@ async function checkAdminSession(request: NextRequest): Promise<boolean> {
   }
 }
 
-// 浮水印文字
-const WATERMARK_TEXT = "mbpack.co | 清晨沙攤 AI包裝工廠";
+// 浮水印文字（使用英文避免 serverless 環境中文字體問題）
+const WATERMARK_TEXT = "mbpack.co | AI Packaging Design";
 
 // 取得 UTC+8 的今日日期字串（YYYY-MM-DD）
 function getTodayUTC8(): string {
