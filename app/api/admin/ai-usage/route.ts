@@ -2,6 +2,7 @@
 // 管理後台 - AI 使用統計
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFriendlyErrorMessage, getErrorStatusCode } from "@/lib/error-handler";
 
 // 強制使用 Node.js runtime（不使用 Edge）
 export const runtime = 'nodejs';
@@ -130,9 +131,13 @@ export async function GET(request: NextRequest) {
     
   } catch (error: any) {
     console.error("[Admin AI Usage] GET Error:", error);
+    
+    const errorMessage = getUserFriendlyErrorMessage(error, 'zh');
+    const statusCode = getErrorStatusCode(error);
+    
     return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
+      { success: false, error: errorMessage },
+      { status: statusCode }
     );
   }
 }

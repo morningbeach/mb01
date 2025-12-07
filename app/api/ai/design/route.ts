@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 import { cookies } from "next/headers";
+import { getUserFriendlyErrorMessage, getErrorStatusCode } from "@/lib/error-handler";
 
 // 強制使用 Node.js runtime（sharp 需要 Node.js）
 export const runtime = 'nodejs';
@@ -136,8 +137,8 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 根據圖片寬度調整浮水印大小（25% 寬度）
-    const targetWidth = Math.floor(width * 0.25);
+    // 根據圖片寬度調整浮水印大小（32% 寬度）
+    const targetWidth = Math.floor(width * 0.32);
     
     // 調整浮水印大小（允許放大）
     const resizedWatermark = await sharp(watermarkBuffer)
@@ -383,12 +384,16 @@ export async function POST(request: NextRequest) {
     
   } catch (error: any) {
     console.error("[AI Design] Error:", error);
+    
+    const errorMessage = getUserFriendlyErrorMessage(error, 'zh');
+    const statusCode = getErrorStatusCode(error);
+    
     return NextResponse.json(
       { 
         success: false, 
-        error: error.message || "圖片生成失敗" 
+        error: errorMessage || "圖片生成失敗"
       },
-      { status: 500 }
+      { status: statusCode }
     );
   }
 }
@@ -421,9 +426,13 @@ export async function GET(request: NextRequest) {
     
   } catch (error: any) {
     console.error("[AI Design] GET Error:", error);
+    
+    const errorMessage = getUserFriendlyErrorMessage(error, 'zh');
+    const statusCode = getErrorStatusCode(error);
+    
     return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
+      { success: false, error: errorMessage },
+      { status: statusCode }
     );
   }
 }
