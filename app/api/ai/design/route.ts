@@ -14,9 +14,9 @@ export const maxDuration = 60; // 60 秒超時
 // 每日使用限制
 const DAILY_LIMIT = 10;
 
-// 預先生成的浮水印圖片 URL（放在 public 資料夾）
-// 這個 PNG 是在本地用中文字體生成的，包含 "mbpack.co | 清晨沙灘 AI包裝工廠"
-const WATERMARK_PNG_URL = "https://www.mbpack.co/watermark-cn.png";
+// 預先生成的浮水印圖片（上傳到 R2）
+// 這個 PNG 是在本地用「微軟正黑體」生成的，包含中文 "mbpack.co | 清晨沙灘 AI包裝工廠"
+const WATERMARK_PNG_URL = "https://img.mbpack.co/watermark-cn.png";
 
 // 快取浮水印圖片
 let cachedWatermarkBuffer: Buffer | null = null;
@@ -28,12 +28,8 @@ async function getWatermarkBuffer(): Promise<Buffer | null> {
   }
   
   try {
-    console.log("[AI Design] Downloading watermark PNG from:", WATERMARK_PNG_URL);
-    const response = await fetch(WATERMARK_PNG_URL, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-      },
-    });
+    console.log("[AI Design] Downloading watermark PNG from R2:", WATERMARK_PNG_URL);
+    const response = await fetch(WATERMARK_PNG_URL);
     
     if (!response.ok) {
       console.error("[AI Design] Failed to download watermark:", response.status);
