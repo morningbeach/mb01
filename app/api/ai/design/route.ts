@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 import { cookies } from "next/headers";
-import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
 
 // 強制使用 Node.js runtime（sharp 需要 Node.js）
 export const runtime = 'nodejs';
@@ -15,35 +14,38 @@ export const maxDuration = 60; // 60 秒超時
 // 每日使用限制
 const DAILY_LIMIT = 10;
 
-// 字體是否已註冊
-let fontRegistered = false;
+// 預先生成的浮水印圖片 URL（放在 public 資料夾）
+// 這個 PNG 是在本地用中文字體生成的，包含 "mbpack.co | 清晨沙灘 AI包裝工廠"
+const WATERMARK_PNG_URL = "https://www.mbpack.co/watermark-cn.png";
 
-// 註冊 Google Noto Sans TC 字體（從 CDN 下載）
-async function ensureFontRegistered(): Promise<boolean> {
-  if (fontRegistered) return true;
+// 快取浮水印圖片
+let cachedWatermarkBuffer: Buffer | null = null;
+
+// 下載浮水印圖片（帶快取）
+async function getWatermarkBuffer(): Promise<Buffer | null> {
+  if (cachedWatermarkBuffer) {
+    return cachedWatermarkBuffer;
+  }
   
   try {
-    // 下載 Noto Sans TC 字體
-    const fontUrl = "https://fonts.gstatic.com/s/notosanstc/v35/-nFuOG829Oofr2wohFbTp9ifNAn722rq0MXz76Cy_C8arSzBA.ttf";
-    console.log("[AI Design] Downloading Noto Sans TC font...");
+    console.log("[AI Design] Downloading watermark PNG from:", WATERMARK_PNG_URL);
+    const response = await fetch(WATERMARK_PNG_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
     
-    const fontResponse = await fetch(fontUrl);
-    if (!fontResponse.ok) {
-      console.error("[AI Design] Failed to download font:", fontResponse.status);
-      return false;
+    if (!response.ok) {
+      console.error("[AI Design] Failed to download watermark:", response.status);
+      return null;
     }
     
-    const fontBuffer = Buffer.from(await fontResponse.arrayBuffer());
-    console.log("[AI Design] Font downloaded, size:", fontBuffer.length);
-    
-    // 註冊字體
-    GlobalFonts.register(fontBuffer, "NotoSansTC");
-    fontRegistered = true;
-    console.log("[AI Design] Font registered successfully");
-    return true;
+    cachedWatermarkBuffer = Buffer.from(await response.arrayBuffer());
+    console.log("[AI Design] Watermark downloaded, size:", cachedWatermarkBuffer.length);
+    return cachedWatermarkBuffer;
   } catch (error: any) {
-    console.error("[AI Design] Font registration error:", error?.message || error);
-    return false;
+    console.error("[AI Design] Watermark download error:", error?.message || error);
+    return null;
   }
 }
 
@@ -118,39 +120,7 @@ function generateShareToken(): string {
   return token;
 }
 
-// 浮水印文字（中文 + 英文）
-const WATERMARK_TEXT_CN = "mbpack.co | 清晨沙灘 AI包裝工廠";
-
-// 使用 @napi-rs/canvas 創建浮水印圖片
-async function createWatermarkImage(width: number): Promise<Buffer> {
-  // 確保字體已註冊
-  await ensureFontRegistered();
-  
-  const fontSize = Math.max(12, Math.floor(width / 55));
-  const padding = Math.floor(fontSize * 0.8);
-  const canvasWidth = width;
-  const canvasHeight = fontSize + padding * 2;
-  
-  // 創建 canvas
-  const canvas = createCanvas(canvasWidth, canvasHeight);
-  const ctx = canvas.getContext("2d");
-  
-  // 透明背景（不需要填充）
-  
-  // 設定字體
-  ctx.font = `${fontSize}px "NotoSansTC", Arial, sans-serif`;
-  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-  ctx.textAlign = "right";
-  ctx.textBaseline = "bottom";
-  
-  // 繪製文字
-  ctx.fillText(WATERMARK_TEXT_CN, canvasWidth - padding, canvasHeight - padding);
-  
-  // 轉換為 PNG buffer
-  return canvas.toBuffer("image/png");
-}
-
-// 添加浮水印到圖片
+// 添加浮水印到圖片（使用預先生成的 PNG）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -160,15 +130,27 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 使用 canvas 創建浮水印圖片
-    const watermarkBuffer = await createWatermarkImage(width);
-    console.log("[AI Design] Watermark image created, size:", watermarkBuffer.length);
+    // 下載預先生成的浮水印 PNG
+    const watermarkBuffer = await getWatermarkBuffer();
+    
+    if (!watermarkBuffer) {
+      console.error("[AI Design] Could not get watermark, returning original image");
+      return imageBuffer;
+    }
+    
+    // 根據圖片寬度調整浮水印大小
+    const watermarkWidth = Math.max(200, Math.floor(width * 0.35));
+    const resizedWatermark = await sharp(watermarkBuffer)
+      .resize(watermarkWidth, null, { fit: 'inside' })
+      .toBuffer();
+    
+    console.log("[AI Design] Watermark resized to width:", watermarkWidth);
     
     // 合成圖片 - 放在右下角
     const result = await image
       .composite([
         {
-          input: watermarkBuffer,
+          input: resizedWatermark,
           gravity: "southeast",
         },
       ])
