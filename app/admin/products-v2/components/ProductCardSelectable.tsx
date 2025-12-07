@@ -19,6 +19,8 @@ export function ProductCardSelectable({
 }: ProductCardSelectableProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(product.enableAiGen || false);
+  const [toggling, setToggling] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -45,6 +47,34 @@ export function ProductCardSelectable({
     } catch (error: any) {
       alert(`刪除失敗: ${error.message}`);
       setDeleting(false);
+    }
+  };
+
+  const handleToggleAi = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (toggling) return;
+    setToggling(true);
+    
+    const newValue = !aiEnabled;
+    
+    try {
+      const response = await fetch(`/api/admin/products-v2/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enableAiGen: newValue }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("更新失敗");
+      }
+      
+      setAiEnabled(newValue);
+    } catch (error: any) {
+      alert(`AI 功能切換失敗: ${error.message}`);
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -148,6 +178,13 @@ export function ProductCardSelectable({
       {selectionMode && isSelected && (
         <div className="absolute inset-0 bg-blue-500/20 ring-4 ring-inset ring-blue-500 rounded-xl pointer-events-none"></div>
       )}
+
+      {/* AI 狀態標記 - 選擇模式時顯示，非選擇模式在外面有按鈕 */}
+      {selectionMode && aiEnabled && (
+        <div className="absolute bottom-2 right-2 bg-purple-500 text-white rounded-lg px-2 py-1 text-xs font-medium flex items-center gap-1">
+          ✨ AI
+        </div>
+      )}
     </>
   );
 
@@ -210,6 +247,38 @@ export function ProductCardSelectable({
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
             />
           </svg>
+        )}
+      </button>
+
+      {/* AI 功能開關按鈕 */}
+      <button
+        onClick={handleToggleAi}
+        disabled={toggling}
+        className={`absolute bottom-2 right-2 rounded-lg p-2 transition-all ${
+          aiEnabled 
+            ? "bg-purple-500 text-white hover:bg-purple-600" 
+            : "bg-white/80 text-zinc-400 hover:bg-white hover:text-purple-500 border border-zinc-200"
+        } ${toggling ? "opacity-50 cursor-not-allowed" : ""}`}
+        title={aiEnabled ? "關閉 AI 功能" : "開啟 AI 功能"}
+      >
+        {toggling ? (
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        ) : (
+          <span className="text-sm font-medium">✨</span>
         )}
       </button>
     </div>

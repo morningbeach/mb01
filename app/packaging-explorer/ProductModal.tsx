@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, ExternalLink, MessageCircle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ExternalLink, MessageCircle, Sparkles } from 'lucide-react';
+import AiDesignModal from './AiDesignModal';
 
 interface Product {
   id: string;
@@ -18,6 +19,7 @@ interface Product {
   material?: string;
   specs?: string;
   moq?: number;
+  enableAiGen?: boolean;
   ProductTag?: Array<{
     Tag: {
       id: string;
@@ -37,6 +39,7 @@ interface ProductModalProps {
 
 export default function ProductModal({ product, onClose, lang = 'zh' }: ProductModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showAiDesign, setShowAiDesign] = useState(false);
   
   // 取得所有圖片
   const allImages = product ? [
@@ -207,6 +210,16 @@ export default function ProductModal({ product, onClose, lang = 'zh' }: ProductM
 
               {/* 按鈕組 */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                {/* AI 設計按鈕 - 醒目的漸層按鈕 */}
+                {product.enableAiGen && product.coverImage && (
+                  <button
+                    onClick={() => setShowAiDesign(true)}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg shadow-purple-300"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {lang === 'zh' ? 'AI 設計' : 'AI Design'}
+                  </button>
+                )}
                 <Link
                   href={`/products/${product.slug}`}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
@@ -226,6 +239,15 @@ export default function ProductModal({ product, onClose, lang = 'zh' }: ProductM
           </div>
         </motion.div>
       </motion.div>
+      
+      {/* AI 設計彈窗 */}
+      {showAiDesign && product && (
+        <AiDesignModal
+          product={product}
+          onClose={() => setShowAiDesign(false)}
+          lang={lang}
+        />
+      )}
     </AnimatePresence>
   );
 }

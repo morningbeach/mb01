@@ -105,6 +105,46 @@ export async function PUT(
   }
 }
 
+// PATCH - 部分更新產品（用於快速切換欄位如 enableAiGen）
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await req.json();
+    
+    // 只允許更新特定欄位
+    const allowedFields = ['enableAiGen', 'status', 'featured'];
+    const updateData: any = {};
+    
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        updateData[field] = body[field];
+      }
+    }
+    
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { success: false, message: "沒有可更新的欄位" },
+        { status: 400 }
+      );
+    }
+
+    const product = await prisma.product.update({
+      where: { id: params.id },
+      data: updateData,
+    });
+
+    return NextResponse.json({ success: true, product });
+  } catch (error: any) {
+    console.error("部分更新產品失敗:", error);
+    return NextResponse.json(
+      { success: false, message: error.message || "更新失敗" },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE - 刪除產品
 export async function DELETE(
   req: NextRequest,

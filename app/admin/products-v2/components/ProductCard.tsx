@@ -11,6 +11,8 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(product.enableAiGen || false);
+  const [toggling, setToggling] = useState(false);
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,6 +39,33 @@ export function ProductCard({ product }: ProductCardProps) {
     } catch (error: any) {
       alert(`刪除失敗: ${error.message}`);
       setDeleting(false);
+    }
+  };
+
+  // 切換 AI 功能開關
+  const handleToggleAi = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setToggling(true);
+    const newValue = !aiEnabled;
+    
+    try {
+      const response = await fetch(`/api/admin/products-v2/${product.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enableAiGen: newValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error("更新失敗");
+      }
+
+      setAiEnabled(newValue);
+    } catch (error: any) {
+      alert(`切換失敗: ${error.message}`);
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -93,7 +122,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* 狀態角標 */}
-        <div className="absolute top-2 right-2">
+        <div className="absolute top-2 right-2 flex items-center gap-1.5">
           {product.status === "ACTIVE" && (
             <div className="w-3 h-3 rounded-full bg-green-500 ring-2 ring-white"></div>
           )}
@@ -105,6 +134,35 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </Link>
+
+      {/* AI 功能開關 - 右下角 */}
+      <button
+        onClick={handleToggleAi}
+        disabled={toggling}
+        className={`absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all ${
+          aiEnabled
+            ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
+            : "bg-white/90 text-zinc-600 border border-zinc-300 hover:border-purple-400"
+        } ${toggling ? "opacity-50 cursor-wait" : "cursor-pointer hover:scale-105"}`}
+        title={aiEnabled ? "點擊關閉 AI 設計" : "點擊開啟 AI 設計"}
+      >
+        {toggling ? (
+          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        ) : (
+          <>
+            <span>✨</span>
+            <span>AI</span>
+            {aiEnabled && (
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </>
+        )}
+      </button>
 
       {/* 刪除按鈕 */}
       <button

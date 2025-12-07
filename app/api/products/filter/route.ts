@@ -244,6 +244,7 @@ export async function GET(request: Request) {
       material: p.material,
       specs: p.specs,
       moq: p.moq,
+      enableAiGen: p.enableAiGen || false,
       ProductTag: p.ProductTag,
       tags: p.ProductTag.map((pt: any) => ({
         id: pt.Tag.id,

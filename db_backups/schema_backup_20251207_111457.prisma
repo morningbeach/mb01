@@ -327,12 +327,10 @@ model Product {
   shortDesc_zh      String?
   unit_en           String?
   unit_zh           String?
-  enableAiGen       Boolean        @default(false)
   GiftSet           GiftSet?
   GiftSetItem       GiftSetItem[]
   ProductImage      ProductImage[]
   ProductTag        ProductTag[]
-  AiUsageLog        AiUsageLog[]
 }
 
 model ProductImage {
@@ -461,51 +459,6 @@ model DimensionTagMapping {
   @@index([tagId])
 }
 
-// AI 生圖使用記錄
-model AiUsageLog {
-  id          String   @id @default(cuid())
-  ipAddress   String
-  productId   String?
-  productSlug String?
-  resultUrl   String?
-  prompt      String?
-  shareToken  String?  @unique
-  createdAt   DateTime @default(now())
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-
-  @@index([ipAddress])
-  @@index([createdAt])
-  @@index([shareToken])
-}
-
-// AI 提示詞範本
-model AiPromptTemplate {
-  id        String   @id @default(cuid())
-  name_zh   String
-  name_en   String
-  prompt    String
-  order     Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([order])
-}
-
-// AI 詢價記錄（達到限制時收集 Email）
-model AiInquiry {
-  id         String   @id @default(cuid())
-  email      String
-  ipAddress  String
-  productId  String?
-  message    String?
-  createdAt  DateTime @default(now())
-
-  @@index([email])
-  @@index([createdAt])
-}
-
 enum Category {
   GIFT
   GIFT_BOX
@@ -544,7 +497,6 @@ enum InquiryType {
   PARTNERSHIP
   COMPLAINT
   OTHER
-  AI_DESIGN
 }
 
 enum PageType {

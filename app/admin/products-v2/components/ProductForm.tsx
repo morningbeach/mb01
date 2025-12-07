@@ -47,6 +47,7 @@ export function ProductForm({ product }: ProductFormProps) {
     tagIds: product?.ProductTag?.map((pt: any) => pt.tagId) || [],
     seoTitle: product?.seoTitle || "",
     seoDescription: product?.seoDescription || "",
+    enableAiGen: product?.enableAiGen || false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -486,21 +487,42 @@ export function ProductForm({ product }: ProductFormProps) {
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="mb-4 text-lg font-semibold text-zinc-900">狀態設定</h2>
         
-        <div>
-          <label className="block text-sm font-medium text-zinc-700">
-            發布狀態
-          </label>
-          <select
-            value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
-          >
-            {statuses.map((status) => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700">
+              發布狀態
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2"
+            >
+              {statuses.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* AI 設計功能 */}
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-100">
+            <input
+              type="checkbox"
+              id="enableAiGen"
+              checked={formData.enableAiGen}
+              onChange={(e) => setFormData({ ...formData, enableAiGen: e.target.checked })}
+              className="h-5 w-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+            />
+            <div>
+              <label htmlFor="enableAiGen" className="block text-sm font-medium text-zinc-800 cursor-pointer">
+                ✨ 啟用 AI 設計功能
+              </label>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                開啟後，用戶可在產品頁面使用 AI 生成客製化包裝設計
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

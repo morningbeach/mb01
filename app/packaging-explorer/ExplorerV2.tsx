@@ -9,6 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { SiteHeader } from '../../components/SiteShell';
 import { SiteFooter } from '../../components/SiteFooter';
 import ProductModal from './ProductModal';
+import AiDesignModal from './AiDesignModal';
 import {
   Package, ShoppingBag, Gift, Layers, Target, Sparkles,
   Paintbrush, Leaf, Star, ChevronDown, ChevronRight, X, Search,
@@ -51,6 +52,7 @@ interface Product {
   material?: string;
   specs?: string;
   moq?: number;
+  enableAiGen?: boolean;
   ProductTag?: Array<{ Tag: Tag }>;
 }
 
@@ -115,6 +117,7 @@ export default function PackagingExplorerV2() {
   const [transitioning, setTransitioning] = useState(false); // 過渡動畫狀態
   const [expandedDimensions, setExpandedDimensions] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [aiDesignProduct, setAiDesignProduct] = useState<Product | null>(null); // AI 設計專用
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -2172,10 +2175,24 @@ export default function PackagingExplorerV2() {
                             </div>
                           )}
                         </div>
-                        <div className="p-3">
-                          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <div className="p-3 flex items-start justify-between gap-2">
+                          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
                             {lang === 'zh' ? product.name_zh : product.name_en}
                           </h3>
+                          {/* AI 設計按鈕 - 點擊直接開啟 AI Modal */}
+                          {product.enableAiGen && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setAiDesignProduct(product);
+                              }}
+                              className="shrink-0 px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium flex items-center gap-0.5 hover:from-purple-600 hover:to-blue-600 transition-all"
+                              title={lang === 'zh' ? '進入 AI 設計' : 'Enter AI Design'}
+                            >
+                              <span>✨</span>
+                              <span>AI</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -2212,6 +2229,15 @@ export default function PackagingExplorerV2() {
           <ProductModal
             product={selectedProduct}
             onClose={() => setSelectedProduct(null)}
+            lang={lang}
+          />
+        )}
+
+        {/* AI 設計 Modal - 從產品卡片 AI 按鈕直接開啟 */}
+        {aiDesignProduct && (
+          <AiDesignModal
+            product={aiDesignProduct}
+            onClose={() => setAiDesignProduct(null)}
             lang={lang}
           />
         )}
