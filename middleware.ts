@@ -66,10 +66,16 @@ export async function middleware(req: NextRequest) {
   const cookie = req.headers.get("cookie") || "";
   try {
     const validateUrl = new URL("/api/admin/session/validate", req.url);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超時
+    
     const res = await fetch(validateUrl.toString(), {
       method: "GET",
       headers: { cookie },
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
@@ -77,8 +83,14 @@ export async function middleware(req: NextRequest) {
         return response;
       }
     }
-  } catch (e) {
-    console.error("Session validate fetch error:", e);
+  } catch (e: any) {
+    // 如果驗證失敗（網路錯誤、超時等），對於非 admin 頁面，允許繼續
+    console.error("Session validate fetch error:", e?.message || e);
+    // 如果是超時或網路錯誤，暫時允許訪問（避免整站崩潰）
+    if (e?.name === 'AbortError' || e?.message?.includes('fetch')) {
+      console.warn("Session validation timeout/error - allowing access temporarily");
+      return response;
+    }
   }
 
   // 5. 驗證失敗
