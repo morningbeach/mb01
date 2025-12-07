@@ -135,19 +135,24 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     }
     
     // 根據圖片寬度調整浮水印大小
-    const watermarkWidth = Math.max(200, Math.floor(width * 0.35));
+    const watermarkWidth = Math.max(180, Math.floor(width * 0.3));
     const resizedWatermark = await sharp(watermarkBuffer)
-      .resize(watermarkWidth, null, { fit: 'inside' })
+      .resize(watermarkWidth, null, { 
+        fit: 'inside',
+        withoutEnlargement: true 
+      })
+      .png() // 確保輸出為 PNG 格式保留透明度
       .toBuffer();
     
     console.log("[AI Design] Watermark resized to width:", watermarkWidth);
     
-    // 合成圖片 - 放在右下角
+    // 合成圖片 - 放在右下角，使用 over 混合模式確保透明度正確
     const result = await image
       .composite([
         {
           input: resizedWatermark,
           gravity: "southeast",
+          blend: "over", // 使用 over 混合模式，正確處理 alpha 通道
         },
       ])
       .toBuffer();
