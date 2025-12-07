@@ -136,8 +136,8 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 根據圖片寬度調整浮水印大小
-    const targetWidth = Math.max(150, Math.floor(width * 0.25));
+    // 根據圖片寬度調整浮水印大小（放大 50%）
+    const targetWidth = Math.max(225, Math.floor(width * 0.375));
     
     // 調整浮水印大小
     const resizedWatermark = await sharp(watermarkBuffer)
@@ -149,14 +149,21 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
       .png()
       .toBuffer();
     
-    console.log("[AI Design] Watermark resized to width:", targetWidth);
+    // 計算位置（往中間移動）
+    const watermarkMeta = await sharp(resizedWatermark).metadata();
+    const watermarkHeight = watermarkMeta.height || 0;
+    const paddingRight = Math.floor(width * 0.15); // 右邊距離 15%
+    const paddingBottom = Math.floor(height * 0.08); // 底部距離 8%
     
-    // 把浮水印蓋在右下角
+    console.log("[AI Design] Watermark resized to width:", targetWidth, "position: right", paddingRight, "bottom", paddingBottom);
+    
+    // 把浮水印蓋在右下角（往中間偏移）
     const result = await image
       .composite([
         {
           input: resizedWatermark,
-          gravity: "southeast",
+          left: width - (watermarkMeta.width || 0) - paddingRight,
+          top: height - watermarkHeight - paddingBottom,
           blend: "over"
         },
       ])
