@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { 
   ArrowLeft, Loader2, Users, Calendar, TrendingUp, 
-  ExternalLink, Mail, RefreshCw
+  ExternalLink, Mail, RefreshCw, Trash2
 } from 'lucide-react';
 
 interface UsageStats {
@@ -42,6 +42,7 @@ export default function AiUsagePage() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [days, setDays] = useState(7);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -77,6 +78,34 @@ export default function AiUsagePage() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const handleDelete = async (logId: string) => {
+    if (!confirm('確定要刪除這筆記錄嗎？')) {
+      return;
+    }
+
+    setDeletingId(logId);
+    try {
+      const res = await fetch('/api/admin/ai-usage/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logId }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // 從列表中移除
+        setRecentLogs(logs => logs.filter(log => log.id !== logId));
+      } else {
+        alert('刪除失敗：' + (data.error || '未知錯誤'));
+      }
+    } catch (err: any) {
+      console.error('刪除失敗:', err);
+      alert('刪除失敗：' + (err?.message || '未知錯誤'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -196,7 +225,7 @@ export default function AiUsagePage() {
                 <h2 className="text-lg font-semibold mb-4">最近使用記錄</h2>
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {recentLogs.map((log) => (
-                    <div key={log.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={log.id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg group">
                       {log.resultUrl && (
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 shrink-0">
                           <Image
@@ -231,6 +260,18 @@ export default function AiUsagePage() {
                           <span>{formatDate(log.createdAt)}</span>
                         </div>
                       </div>
+                      <button
+                        onClick={() => handleDelete(log.id)}
+                        disabled={deletingId === log.id}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg disabled:opacity-50"
+                        title="刪除"
+                      >
+                        {deletingId === log.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </button>
                     </div>
                   ))}
                   {recentLogs.length === 0 && (
