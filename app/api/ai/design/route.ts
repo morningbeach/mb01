@@ -88,7 +88,10 @@ function generateShareToken(): string {
   return token;
 }
 
-// 添加浮水印到圖片（使用外部 Google Fonts 載入中文字體）
+// 浮水印 PNG 圖片 URL（從自己的網站載入）
+const WATERMARK_PNG_URL = "https://www.mbpack.co/watermark.png";
+
+// 添加浮水印到圖片（使用預製的 PNG 圖片）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -98,61 +101,40 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 計算浮水印尺寸
-    const barHeight = Math.max(28, Math.floor(height / 25));
-    const fontSize = Math.max(12, Math.floor(barHeight * 0.45));
-    
-    // 浮水印文字
-    const watermarkText = "mbpack.co | 清晨沙攤 AI包裝工廠";
-    
-    // 下載 Google Noto Sans TC 字體的 woff2 並轉為 base64
-    // 使用較小的字體子集 URL
-    let fontBase64 = "";
+    // 嘗試下載浮水印 PNG
+    let watermarkBuffer: Buffer | null = null;
     try {
-      const fontUrl = "https://fonts.gstatic.com/s/notosanstc/v35/-nFuOG829Oofr2wohFbTp9ifNAn722rq0MXz76Cy_CpOtma3uNQ.woff2";
-      const fontResponse = await fetch(fontUrl);
-      if (fontResponse.ok) {
-        const fontBuffer = await fontResponse.arrayBuffer();
-        fontBase64 = Buffer.from(fontBuffer).toString('base64');
-        console.log("[AI Design] Font loaded, size:", fontBase64.length);
+      const response = await fetch(WATERMARK_PNG_URL);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        watermarkBuffer = Buffer.from(arrayBuffer);
+        console.log("[AI Design] Watermark PNG loaded, size:", watermarkBuffer.length);
       }
-    } catch (fontError) {
-      console.log("[AI Design] Font loading failed, using fallback");
+    } catch (fetchError) {
+      console.log("[AI Design] Failed to fetch watermark PNG");
     }
     
-    // 建立 SVG 浮水印（內嵌字體）
-    const svgWatermark = Buffer.from(`
-      <svg width="${width}" height="${barHeight}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            @font-face {
-              font-family: 'NotoSansTC';
-              src: url(data:font/woff2;base64,${fontBase64}) format('woff2');
-            }
-            .watermark-text {
-              font-family: 'NotoSansTC', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
-              font-size: ${fontSize}px;
-              fill: white;
-              font-weight: 400;
-            }
-          </style>
-        </defs>
-        <rect width="${width}" height="${barHeight}" fill="rgba(0,0,0,0.45)"/>
-        <text 
-          x="${width - 15}" 
-          y="${barHeight / 2 + fontSize / 3}" 
-          class="watermark-text"
-          text-anchor="end"
-        >${watermarkText}</text>
-      </svg>
-    `);
+    // 如果沒有浮水印圖片，返回原圖
+    if (!watermarkBuffer) {
+      console.log("[AI Design] No watermark available, returning original");
+      return imageBuffer;
+    }
     
-    // 合成圖片 - 放在底部
+    // 計算浮水印大小（寬度約為圖片的 40%）
+    const watermarkWidth = Math.floor(width * 0.4);
+    
+    // 調整浮水印大小
+    const resizedWatermark = await sharp(watermarkBuffer)
+      .resize(watermarkWidth, null, { fit: 'inside' })
+      .toBuffer();
+    
+    // 合成圖片 - 放在右下角
     const result = await image
       .composite([
         {
-          input: svgWatermark,
-          gravity: "south",
+          input: resizedWatermark,
+          gravity: "southeast",
+          blend: 'over',
         },
       ])
       .toBuffer();
@@ -163,6 +145,10 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     console.error("[AI Design] Watermark error:", error?.message || error);
     console.error("[AI Design] Watermark error stack:", error?.stack);
     // 如果添加浮水印失敗，返回原圖
+    console.log("[AI Design] Returning original image without watermark due to error");
+    return imageBuffer;
+  }
+}
     console.log("[AI Design] Returning original image without watermark due to error");
     return imageBuffer;
   }
