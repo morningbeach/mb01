@@ -142,10 +142,12 @@ export async function POST(request: NextRequest) {
     
     // 取得 API Key（僅伺服器端）
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log("[AI Design] API Key exists:", !!apiKey, "Length:", apiKey?.length || 0);
+    
     if (!apiKey) {
-      console.error("[AI Design] Missing GEMINI_API_KEY");
+      console.error("[AI Design] Missing GEMINI_API_KEY - Please set it in Vercel Environment Variables");
       return NextResponse.json(
-        { success: false, error: "服務暫時無法使用" },
+        { success: false, error: "服務暫時無法使用（API Key 未設定）" },
         { status: 503 }
       );
     }
