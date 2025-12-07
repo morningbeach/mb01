@@ -86,10 +86,12 @@ function generateShareToken(): string {
 // 添加浮水印到圖片
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
+    console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
     const image = sharp(imageBuffer);
     const metadata = await image.metadata();
     const width = metadata.width || 800;
     const height = metadata.height || 800;
+    console.log("[AI Design] Image dimensions:", width, "x", height);
     
     // 計算字體大小（較小的浮水印）
     const fontSize = Math.max(12, Math.floor(width / 50));
@@ -128,10 +130,12 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
       ])
       .toBuffer();
     
+    console.log("[AI Design] Watermark added successfully, result size:", result.length);
     return result;
   } catch (error) {
     console.error("[AI Design] Watermark error:", error);
     // 如果添加浮水印失敗，返回原圖
+    console.log("[AI Design] Returning original image without watermark");
     return imageBuffer;
   }
 }

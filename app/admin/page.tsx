@@ -131,6 +131,20 @@ export default function AdminDashboardPage() {
             {showAIStudioDropdown && (
               <div className="absolute left-0 right-0 top-full z-10 mt-2 overflow-hidden rounded-lg border border-purple-200 bg-white shadow-lg">
                 <a
+                  href="/admin/ai-prompts"
+                  className="block border-b border-zinc-100 px-4 py-3 text-sm transition-colors hover:bg-purple-50"
+                >
+                  <div className="font-semibold text-zinc-900">✨ AI Design 範本</div>
+                  <div className="text-xs text-zinc-500">管理 AI 包裝設計的提示詞範本</div>
+                </a>
+                <a
+                  href="/admin/ai-usage"
+                  className="block border-b border-zinc-100 px-4 py-3 text-sm transition-colors hover:bg-purple-50"
+                >
+                  <div className="font-semibold text-zinc-900">📈 AI Design 統計</div>
+                  <div className="text-xs text-zinc-500">查看 AI 設計功能的使用統計</div>
+                </a>
+                <a
                   href="/admin/ai-studio/gift-box-radar"
                   className="block border-b border-zinc-100 px-4 py-3 text-sm transition-colors hover:bg-purple-50"
                 >

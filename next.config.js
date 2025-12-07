@@ -60,6 +60,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  // 確保 sharp 在 serverless 環境中可用
+  serverExternalPackages: ['sharp'],
+  
   experimental: {
     serverActions: {
       allowedOrigins: [
