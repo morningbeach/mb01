@@ -10,7 +10,7 @@ async function createWatermark() {
   // 浮水印文字
   const text = 'mbpack.co | 清晨沙攤 AI包裝工廠';
   
-  // 創建 SVG - 白色文字 + 黑色描邊（無背景色塊）
+  // 創建 SVG - 黑色文字，無描邊，透明背景
   const width = 380;
   const height = 30;
   const svg = `
@@ -20,12 +20,9 @@ async function createWatermark() {
         y="${height / 2 + 5}" 
         font-family="Microsoft JhengHei, PingFang TC, Noto Sans TC, sans-serif"
         font-size="14"
-        font-weight="600"
+        font-weight="500"
         text-anchor="middle"
-        fill="white"
-        stroke="black"
-        stroke-width="2.5"
-        paint-order="stroke fill"
+        fill="rgba(0,0,0,0.7)"
       >${text}</text>
     </svg>
   `;

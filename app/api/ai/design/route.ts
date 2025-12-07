@@ -88,10 +88,10 @@ function generateShareToken(): string {
   return token;
 }
 
-// 浮水印 PNG 圖片 URL（從自己的網站載入）
-const WATERMARK_PNG_URL = "https://www.mbpack.co/watermark.png";
+// 浮水印文字
+const WATERMARK_TEXT = "mbpack.co | 清晨沙攤 AI包裝工廠";
 
-// 添加浮水印到圖片（使用預製的 PNG 圖片）
+// 添加浮水印到圖片（使用 SVG + Google Fonts）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -101,40 +101,76 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 嘗試下載浮水印 PNG
-    let watermarkBuffer: Buffer | null = null;
+    // 計算字體大小
+    const fontSize = Math.max(12, Math.floor(width / 55));
+    const padding = Math.floor(fontSize * 1.2);
+    
+    // 下載 Google Noto Sans TC 字體
+    let fontData = "";
     try {
-      const response = await fetch(WATERMARK_PNG_URL);
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        watermarkBuffer = Buffer.from(arrayBuffer);
-        console.log("[AI Design] Watermark PNG loaded, size:", watermarkBuffer.length);
+      // 使用 Google Fonts CSS API 獲取字體 URL
+      const cssUrl = "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap";
+      const cssResponse = await fetch(cssUrl, {
+        headers: {
+          // 模擬瀏覽器請求以獲取 woff2 格式
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
+      
+      if (cssResponse.ok) {
+        const cssText = await cssResponse.text();
+        // 從 CSS 中提取字體 URL
+        const fontUrlMatch = cssText.match(/url\((https:\/\/fonts\.gstatic\.com[^)]+\.woff2)\)/);
+        if (fontUrlMatch) {
+          const fontUrl = fontUrlMatch[1];
+          const fontResponse = await fetch(fontUrl);
+          if (fontResponse.ok) {
+            const fontBuffer = await fontResponse.arrayBuffer();
+            fontData = Buffer.from(fontBuffer).toString('base64');
+            console.log("[AI Design] Google Font loaded successfully");
+          }
+        }
       }
-    } catch (fetchError) {
-      console.log("[AI Design] Failed to fetch watermark PNG");
+    } catch (fontError) {
+      console.log("[AI Design] Font loading failed, will use system font");
     }
     
-    // 如果沒有浮水印圖片，返回原圖
-    if (!watermarkBuffer) {
-      console.log("[AI Design] No watermark available, returning original");
-      return imageBuffer;
-    }
+    // 建立 SVG 浮水印
+    const svgHeight = fontSize + padding;
+    const fontFaceRule = fontData ? `
+      @font-face {
+        font-family: 'NotoSansTC';
+        src: url(data:font/woff2;base64,${fontData}) format('woff2');
+      }
+    ` : '';
     
-    // 計算浮水印大小（寬度約為圖片的 40%）
-    const watermarkWidth = Math.floor(width * 0.4);
+    const fontFamily = fontData 
+      ? "'NotoSansTC', sans-serif"
+      : "system-ui, -apple-system, sans-serif";
     
-    // 調整浮水印大小
-    const resizedWatermark = await sharp(watermarkBuffer)
-      .resize(watermarkWidth, null, { fit: 'inside' })
-      .toBuffer();
+    const svgWatermark = `
+      <svg width="${width}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
+        <style>${fontFaceRule}</style>
+        <text 
+          x="${width - padding}" 
+          y="${svgHeight - padding/2}" 
+          font-family="${fontFamily}"
+          font-size="${fontSize}"
+          font-weight="400"
+          fill="rgba(0,0,0,0.6)"
+          text-anchor="end"
+        >${WATERMARK_TEXT}</text>
+      </svg>
+    `;
+    
+    const watermarkBuffer = Buffer.from(svgWatermark);
     
     // 合成圖片 - 放在右下角
     const result = await image
       .composite([
         {
-          input: resizedWatermark,
+          input: watermarkBuffer,
           gravity: "southeast",
-          blend: 'over',
         },
       ])
       .toBuffer();
@@ -143,13 +179,7 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     return result;
   } catch (error: any) {
     console.error("[AI Design] Watermark error:", error?.message || error);
-    console.error("[AI Design] Watermark error stack:", error?.stack);
     // 如果添加浮水印失敗，返回原圖
-    console.log("[AI Design] Returning original image without watermark due to error");
-    return imageBuffer;
-  }
-}
-    console.log("[AI Design] Returning original image without watermark due to error");
     return imageBuffer;
   }
 }
