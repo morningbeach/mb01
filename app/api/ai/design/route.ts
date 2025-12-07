@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { uploadToR2 } from "@/lib/r2";
 import sharp from "sharp";
 import { cookies } from "next/headers";
+import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
 
 // 強制使用 Node.js runtime（sharp 需要 Node.js）
 export const runtime = 'nodejs';
@@ -13,6 +14,38 @@ export const maxDuration = 60; // 60 秒超時
 
 // 每日使用限制
 const DAILY_LIMIT = 10;
+
+// 字體是否已註冊
+let fontRegistered = false;
+
+// 註冊 Google Noto Sans TC 字體（從 CDN 下載）
+async function ensureFontRegistered(): Promise<boolean> {
+  if (fontRegistered) return true;
+  
+  try {
+    // 下載 Noto Sans TC 字體
+    const fontUrl = "https://fonts.gstatic.com/s/notosanstc/v35/-nFuOG829Oofr2wohFbTp9ifNAn722rq0MXz76Cy_C8arSzBA.ttf";
+    console.log("[AI Design] Downloading Noto Sans TC font...");
+    
+    const fontResponse = await fetch(fontUrl);
+    if (!fontResponse.ok) {
+      console.error("[AI Design] Failed to download font:", fontResponse.status);
+      return false;
+    }
+    
+    const fontBuffer = Buffer.from(await fontResponse.arrayBuffer());
+    console.log("[AI Design] Font downloaded, size:", fontBuffer.length);
+    
+    // 註冊字體
+    GlobalFonts.register(fontBuffer, "NotoSansTC");
+    fontRegistered = true;
+    console.log("[AI Design] Font registered successfully");
+    return true;
+  } catch (error: any) {
+    console.error("[AI Design] Font registration error:", error?.message || error);
+    return false;
+  }
+}
 
 // 檢查是否為 admin 登入狀態
 async function checkAdminSession(request: NextRequest): Promise<boolean> {
@@ -45,9 +78,6 @@ async function checkAdminSession(request: NextRequest): Promise<boolean> {
     return false;
   }
 }
-
-// 浮水印文字（使用英文避免 serverless 環境中文字體問題）
-const WATERMARK_TEXT = "mbpack.co | AI Packaging Design";
 
 // 取得 UTC+8 的今日日期字串（YYYY-MM-DD）
 function getTodayUTC8(): string {
@@ -88,10 +118,39 @@ function generateShareToken(): string {
   return token;
 }
 
-// 浮水印文字
-const WATERMARK_TEXT = "mbpack.co | 清晨沙攤 AI包裝工廠";
+// 浮水印文字（中文 + 英文）
+const WATERMARK_TEXT_CN = "mbpack.co | 清晨沙灘 AI包裝工廠";
 
-// 添加浮水印到圖片（使用 SVG + Google Fonts）
+// 使用 @napi-rs/canvas 創建浮水印圖片
+async function createWatermarkImage(width: number): Promise<Buffer> {
+  // 確保字體已註冊
+  await ensureFontRegistered();
+  
+  const fontSize = Math.max(12, Math.floor(width / 55));
+  const padding = Math.floor(fontSize * 0.8);
+  const canvasWidth = width;
+  const canvasHeight = fontSize + padding * 2;
+  
+  // 創建 canvas
+  const canvas = createCanvas(canvasWidth, canvasHeight);
+  const ctx = canvas.getContext("2d");
+  
+  // 透明背景（不需要填充）
+  
+  // 設定字體
+  ctx.font = `${fontSize}px "NotoSansTC", Arial, sans-serif`;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  
+  // 繪製文字
+  ctx.fillText(WATERMARK_TEXT_CN, canvasWidth - padding, canvasHeight - padding);
+  
+  // 轉換為 PNG buffer
+  return canvas.toBuffer("image/png");
+}
+
+// 添加浮水印到圖片
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -101,69 +160,9 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 計算字體大小
-    const fontSize = Math.max(12, Math.floor(width / 55));
-    const padding = Math.floor(fontSize * 1.2);
-    
-    // 下載 Google Noto Sans TC 字體
-    let fontData = "";
-    try {
-      // 使用 Google Fonts CSS API 獲取字體 URL
-      const cssUrl = "https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400&display=swap";
-      const cssResponse = await fetch(cssUrl, {
-        headers: {
-          // 模擬瀏覽器請求以獲取 woff2 格式
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      
-      if (cssResponse.ok) {
-        const cssText = await cssResponse.text();
-        // 從 CSS 中提取字體 URL
-        const fontUrlMatch = cssText.match(/url\((https:\/\/fonts\.gstatic\.com[^)]+\.woff2)\)/);
-        if (fontUrlMatch) {
-          const fontUrl = fontUrlMatch[1];
-          const fontResponse = await fetch(fontUrl);
-          if (fontResponse.ok) {
-            const fontBuffer = await fontResponse.arrayBuffer();
-            fontData = Buffer.from(fontBuffer).toString('base64');
-            console.log("[AI Design] Google Font loaded successfully");
-          }
-        }
-      }
-    } catch (fontError) {
-      console.log("[AI Design] Font loading failed, will use system font");
-    }
-    
-    // 建立 SVG 浮水印
-    const svgHeight = fontSize + padding;
-    const fontFaceRule = fontData ? `
-      @font-face {
-        font-family: 'NotoSansTC';
-        src: url(data:font/woff2;base64,${fontData}) format('woff2');
-      }
-    ` : '';
-    
-    const fontFamily = fontData 
-      ? "'NotoSansTC', sans-serif"
-      : "system-ui, -apple-system, sans-serif";
-    
-    const svgWatermark = `
-      <svg width="${width}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
-        <style>${fontFaceRule}</style>
-        <text 
-          x="${width - padding}" 
-          y="${svgHeight - padding/2}" 
-          font-family="${fontFamily}"
-          font-size="${fontSize}"
-          font-weight="400"
-          fill="rgba(0,0,0,0.6)"
-          text-anchor="end"
-        >${WATERMARK_TEXT}</text>
-      </svg>
-    `;
-    
-    const watermarkBuffer = Buffer.from(svgWatermark);
+    // 使用 canvas 創建浮水印圖片
+    const watermarkBuffer = await createWatermarkImage(width);
+    console.log("[AI Design] Watermark image created, size:", watermarkBuffer.length);
     
     // 合成圖片 - 放在右下角
     const result = await image

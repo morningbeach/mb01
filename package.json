@@ -15,6 +15,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.934.0",
     "@google/generative-ai": "^0.24.1",
+    "@napi-rs/canvas": "^0.1.84",
     "@prisma/client": "^6.19.0",
     "@vercel/kv": "^3.0.0",
     "apify-client": "^2.20.0",
