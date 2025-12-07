@@ -41,6 +41,7 @@ export default function AiUsagePage() {
   const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [days, setDays] = useState(7);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -48,16 +49,21 @@ export default function AiUsagePage() {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/ai-usage?days=${days}`);
       const data = await res.json();
+      console.log('[AI Usage] API Response:', data);
       if (data.success) {
         setStats(data.stats);
-        setRecentLogs(data.recentLogs);
-        setInquiries(data.inquiries);
+        setRecentLogs(data.recentLogs || []);
+        setInquiries(data.inquiries || []);
+      } else {
+        setError(data.error || '載入失敗');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('載入失敗:', err);
+      setError(err?.message || '載入失敗');
     } finally {
       setLoading(false);
     }
@@ -113,7 +119,18 @@ export default function AiUsagePage() {
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
           </div>
-        ) : stats && (
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <p className="text-red-600 font-medium mb-2">載入失敗</p>
+            <p className="text-red-500 text-sm">{error}</p>
+            <button 
+              onClick={loadData}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              重試
+            </button>
+          </div>
+        ) : stats ? (
           <>
             {/* 統計卡片 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -255,6 +272,10 @@ export default function AiUsagePage() {
               </div>
             </div>
           </>
+        ) : (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-gray-500">暫無資料</p>
+          </div>
         )}
       </div>
     </div>
