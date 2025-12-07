@@ -15,7 +15,7 @@ interface ShareData {
   product: {
     id: string;
     slug: string;
-    name_zh: string;
+    name_zh: string | null;
     name_en: string | null;
     coverImage: string | null;
   } | null;

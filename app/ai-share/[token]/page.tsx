@@ -2,6 +2,7 @@
 // AI 設計分享頁面 - 首頁背景 + 彈窗覆蓋
 import { prisma } from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
+import { Metadata } from "next";
 import AiSharePageClient from "./AiSharePageClient";
 
 // Default config matching the homepage
@@ -32,6 +33,60 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+}
+
+// Generate metadata for OG image preview
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  
+  const usageLog = await prisma.aiUsageLog.findUnique({
+    where: { shareToken: token },
+    include: {
+      product: {
+        select: { name_zh: true, name_en: true },
+      },
+    },
+  });
+  
+  if (!usageLog || !usageLog.resultUrl) {
+    return {
+      title: "AI 包裝設計",
+      description: "清晨沙灘 AI 包裝工廠",
+    };
+  }
+  
+  const title = usageLog.product?.name_zh 
+    ? `${usageLog.product.name_zh} - AI 包裝設計`
+    : "AI 包裝設計作品";
+  
+  const description = usageLog.prompt 
+    ? `${usageLog.prompt.substring(0, 100)}...`
+    : "由 AI 生成的包裝設計作品 | mbpack.co 清晨沙灘 AI包裝工廠";
+  
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: usageLog.resultUrl,
+          width: 1024,
+          height: 1024,
+          alt: title,
+        },
+      ],
+      type: "website",
+      siteName: "MBPACK 清晨沙灘 AI包裝工廠",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [usageLog.resultUrl],
+    },
+  };
 }
 
 export default async function AiSharePage({ params }: PageProps) {
