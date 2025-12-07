@@ -136,8 +136,8 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     const height = metadata.height || 800;
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 根據圖片寬度調整浮水印大小（40% 寬度）
-    const targetWidth = Math.floor(width * 0.4);
+    // 根據圖片寬度調整浮水印大小（70% 寬度）
+    const targetWidth = Math.floor(width * 0.7);
     
     // 調整浮水印大小（允許放大）
     const resizedWatermark = await sharp(watermarkBuffer)
