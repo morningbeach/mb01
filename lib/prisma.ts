@@ -8,8 +8,28 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   return new PrismaClient({
     log: ["error", "warn"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
     // 連線池配置 - 防止 "Too many connections" 錯誤
-    datasourceUrl: process.env.DATABASE_URL,
+    // Supabase 免費方案連線限制較低，需要控制連線數
+  }).$extends({
+    query: {
+      async $allOperations({ operation, model, args, query }) {
+        const start = Date.now();
+        const result = await query(args);
+        const duration = Date.now() - start;
+        
+        // 記錄慢查詢
+        if (duration > 1000) {
+          console.warn(`[Prisma] Slow query: ${model}.${operation} took ${duration}ms`);
+        }
+        
+        return result;
+      },
+    },
   });
 }
 
