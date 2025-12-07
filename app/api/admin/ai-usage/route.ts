@@ -3,6 +3,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// 強制使用 Node.js runtime（不使用 Edge）
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // 取得 UTC+8 的今日開始時間
 function getTodayStartUTC8(): Date {
   const now = new Date();

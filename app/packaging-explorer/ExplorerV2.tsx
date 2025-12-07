@@ -2139,6 +2139,21 @@ export default function PackagingExplorerV2() {
                             : '— Tap again for more'}
                         </span>
                       </div>
+                      <div className="mt-1 text-sm text-violet-600/80 flex items-center gap-1">
+                        <span>
+                          {lang === 'zh' 
+                            ? '點擊產品上的' 
+                            : 'Click the'}
+                        </span>
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs rounded-md font-medium">
+                          ✨AI
+                        </span>
+                        <span>
+                          {lang === 'zh' 
+                            ? '試試一鍵智慧設計' 
+                            : 'for instant AI design'}
+                        </span>
+                      </div>
                     </div>
                   )}
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
