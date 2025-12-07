@@ -16,7 +16,8 @@ const DAILY_LIMIT = 10;
 
 // 預先生成的浮水印圖片（上傳到 R2）
 // 這個 PNG 是在本地用「微軟正黑體」生成的，包含中文 "mbpack.co | 清晨沙灘 AI包裝工廠"
-const WATERMARK_PNG_URL = "https://img.mbpack.co/watermark-cn.png";
+// 加上版本號避免快取問題
+const WATERMARK_PNG_URL = "https://img.mbpack.co/watermark-cn.png?v=2";
 
 // 快取浮水印圖片
 let cachedWatermarkBuffer: Buffer | null = null;
@@ -116,17 +117,12 @@ function generateShareToken(): string {
   return token;
 }
 
-// 添加浮水印到圖片（使用預先生成的 PNG）
+// 添加浮水印到圖片（使用 R2 上的 PNG 浮水印）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
-    const image = sharp(imageBuffer);
-    const metadata = await image.metadata();
-    const width = metadata.width || 800;
-    const height = metadata.height || 800;
-    console.log("[AI Design] Image dimensions:", width, "x", height);
     
-    // 下載預先生成的浮水印 PNG
+    // 下載浮水印 PNG
     const watermarkBuffer = await getWatermarkBuffer();
     
     if (!watermarkBuffer) {
@@ -134,25 +130,34 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
       return imageBuffer;
     }
     
+    const image = sharp(imageBuffer);
+    const metadata = await image.metadata();
+    const width = metadata.width || 800;
+    const height = metadata.height || 800;
+    console.log("[AI Design] Image dimensions:", width, "x", height);
+    
     // 根據圖片寬度調整浮水印大小
-    const watermarkWidth = Math.max(180, Math.floor(width * 0.3));
+    const targetWidth = Math.max(150, Math.floor(width * 0.25));
+    
+    // 調整浮水印大小
     const resizedWatermark = await sharp(watermarkBuffer)
-      .resize(watermarkWidth, null, { 
+      .resize(targetWidth, null, { 
         fit: 'inside',
-        withoutEnlargement: true 
+        withoutEnlargement: true,
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
       })
-      .png() // 確保輸出為 PNG 格式保留透明度
+      .png()
       .toBuffer();
     
-    console.log("[AI Design] Watermark resized to width:", watermarkWidth);
+    console.log("[AI Design] Watermark resized to width:", targetWidth);
     
-    // 合成圖片 - 放在右下角，使用 over 混合模式確保透明度正確
+    // 把浮水印蓋在右下角
     const result = await image
       .composite([
         {
           input: resizedWatermark,
           gravity: "southeast",
-          blend: "over", // 使用 over 混合模式，正確處理 alpha 通道
+          blend: "over"
         },
       ])
       .toBuffer();
@@ -161,7 +166,6 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     return result;
   } catch (error: any) {
     console.error("[AI Design] Watermark error:", error?.message || error);
-    // 如果添加浮水印失敗，返回原圖
     return imageBuffer;
   }
 }
