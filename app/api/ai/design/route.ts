@@ -88,7 +88,7 @@ function generateShareToken(): string {
   return token;
 }
 
-// 添加浮水印到圖片（使用 Base64 編碼的字體路徑圖形）
+// 添加浮水印到圖片（使用外部 Google Fonts 載入中文字體）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -99,39 +99,51 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
     // 計算浮水印尺寸
-    const barHeight = Math.max(24, Math.floor(height / 28));
-    const scale = barHeight / 24; // 基準縮放比例
+    const barHeight = Math.max(28, Math.floor(height / 25));
+    const fontSize = Math.max(12, Math.floor(barHeight * 0.45));
     
-    // 使用 SVG path 繪製 "mbpack.co" 文字（手繪路徑，不依賴字體）
-    // 簡化版：M B P A C K . C O
-    const textWidth = 180 * scale;
-    const textHeight = 14 * scale;
-    const textX = width - textWidth - 15;
-    const textY = (barHeight - textHeight) / 2;
+    // 浮水印文字
+    const watermarkText = "mbpack.co | 清晨沙攤 AI包裝工廠";
     
+    // 下載 Google Noto Sans TC 字體的 woff2 並轉為 base64
+    // 使用較小的字體子集 URL
+    let fontBase64 = "";
+    try {
+      const fontUrl = "https://fonts.gstatic.com/s/notosanstc/v35/-nFuOG829Oofr2wohFbTp9ifNAn722rq0MXz76Cy_CpOtma3uNQ.woff2";
+      const fontResponse = await fetch(fontUrl);
+      if (fontResponse.ok) {
+        const fontBuffer = await fontResponse.arrayBuffer();
+        fontBase64 = Buffer.from(fontBuffer).toString('base64');
+        console.log("[AI Design] Font loaded, size:", fontBase64.length);
+      }
+    } catch (fontError) {
+      console.log("[AI Design] Font loading failed, using fallback");
+    }
+    
+    // 建立 SVG 浮水印（內嵌字體）
     const svgWatermark = Buffer.from(`
       <svg width="${width}" height="${barHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            @font-face {
+              font-family: 'NotoSansTC';
+              src: url(data:font/woff2;base64,${fontBase64}) format('woff2');
+            }
+            .watermark-text {
+              font-family: 'NotoSansTC', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+              font-size: ${fontSize}px;
+              fill: white;
+              font-weight: 400;
+            }
+          </style>
+        </defs>
         <rect width="${width}" height="${barHeight}" fill="rgba(0,0,0,0.45)"/>
-        <g transform="translate(${textX}, ${textY}) scale(${scale})">
-          <!-- m -->
-          <path d="M0,14 L0,4 L2,4 L2,5 C2.5,4.3 3.5,4 4.5,4 C5.5,4 6.3,4.5 6.8,5.2 C7.3,4.5 8.3,4 9.5,4 C11.5,4 12.5,5.5 12.5,7.5 L12.5,14 L10.5,14 L10.5,8 C10.5,6.5 10,5.8 8.8,5.8 C7.6,5.8 7,6.8 7,8 L7,14 L5,14 L5,8 C5,6.5 4.5,5.8 3.3,5.8 C2.1,5.8 1.8,6.8 1.8,8 L1.8,14 Z" fill="white"/>
-          <!-- b -->
-          <path d="M16,14 L16,0 L18,0 L18,5 C18.5,4.3 19.5,4 20.5,4 C23,4 25,6 25,9 C25,12 23,14 20.5,14 C19.5,14 18.5,13.7 18,13 L18,14 Z M20,12.2 C21.8,12.2 23,11 23,9 C23,7 21.8,5.8 20,5.8 C18.2,5.8 17.8,7 17.8,9 C17.8,11 18.2,12.2 20,12.2 Z" fill="white"/>
-          <!-- p -->
-          <path d="M28,18 L28,4 L30,4 L30,5 C30.5,4.3 31.5,4 32.5,4 C35,4 37,6 37,9 C37,12 35,14 32.5,14 C31.5,14 30.5,13.7 30,13 L30,18 Z M32,12.2 C33.8,12.2 35,11 35,9 C35,7 33.8,5.8 32,5.8 C30.2,5.8 29.8,7 29.8,9 C29.8,11 30.2,12.2 32,12.2 Z" fill="white"/>
-          <!-- a -->
-          <path d="M40,14 L40,12.8 C39.3,13.6 38.3,14 37,14 C35,14 43.5,13 43.5,11 C43.5,9.5 44.5,8.5 46.5,8.5 L48,8.5 L48,8 C48,6.5 47.3,5.8 45.8,5.8 C44.5,5.8 43.8,6.3 43.5,7.2 L41.8,6.5 C42.3,5 43.8,4 45.8,4 C48.5,4 50,5.5 50,8 L50,14 Z M48,10 L46.2,10 C45.2,10 44.7,10.4 44.7,11.2 C44.7,12 45.3,12.5 46.5,12.5 C47.8,12.5 48,11.5 48,10.5 Z" fill="white"/>
-          <!-- c -->
-          <path d="M53,9 C53,6 55,4 58,4 C60,4 61.5,5 62,6.8 L60,7.5 C59.7,6.5 59,5.8 58,5.8 C56.2,5.8 55,7 55,9 C55,11 56.2,12.2 58,12.2 C59,12.2 59.7,11.5 60,10.5 L62,11.2 C61.5,13 60,14 58,14 C55,14 53,12 53,9 Z" fill="white"/>
-          <!-- k -->
-          <path d="M65,14 L65,0 L67,0 L67,8 L71,4 L73.5,4 L69.5,8.5 L74,14 L71.5,14 L68,9.5 L67,10.5 L67,14 Z" fill="white"/>
-          <!-- . -->
-          <circle cx="78" cy="13" r="1.5" fill="white"/>
-          <!-- c -->
-          <path d="M83,9 C83,6 85,4 88,4 C90,4 91.5,5 92,6.8 L90,7.5 C89.7,6.5 89,5.8 88,5.8 C86.2,5.8 85,7 85,9 C85,11 86.2,12.2 88,12.2 C89,12.2 89.7,11.5 90,10.5 L92,11.2 C91.5,13 90,14 88,14 C85,14 83,12 83,9 Z" fill="white"/>
-          <!-- o -->
-          <path d="M95,9 C95,6 97,4 100,4 C103,4 105,6 105,9 C105,12 103,14 100,14 C97,14 95,12 95,9 Z M100,12.2 C101.8,12.2 103,11 103,9 C103,7 101.8,5.8 100,5.8 C98.2,5.8 97,7 97,9 C97,11 98.2,12.2 100,12.2 Z" fill="white"/>
-        </g>
+        <text 
+          x="${width - 15}" 
+          y="${barHeight / 2 + fontSize / 3}" 
+          class="watermark-text"
+          text-anchor="end"
+        >${watermarkText}</text>
       </svg>
     `);
     
