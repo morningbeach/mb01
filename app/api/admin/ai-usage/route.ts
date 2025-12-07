@@ -27,12 +27,13 @@ export async function GET(request: NextRequest) {
     const { start, end } = getDateRange(days);
     const todayStart = getTodayStartUTC8();
     
+    console.log("[Admin AI Usage] Fetching stats for days:", days);
+    
     // 並行查詢
     const [
       totalUsage,
       todayUsage,
       uniqueIPs,
-      usageByDate,
       topProducts,
       recentLogs,
       inquiries,
@@ -54,17 +55,6 @@ export async function GET(request: NextRequest) {
           createdAt: { gte: start },
         },
       }),
-      
-      // 每日使用量（過去 N 天）
-      prisma.$queryRaw`
-        SELECT 
-          DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei') as date,
-          COUNT(*) as count
-        FROM "AiUsageLog"
-        WHERE created_at >= ${start}
-        GROUP BY DATE(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Taipei')
-        ORDER BY date DESC
-      `,
       
       // 熱門產品
       prisma.aiUsageLog.groupBy({
@@ -98,6 +88,26 @@ export async function GET(request: NextRequest) {
         orderBy: { createdAt: "desc" },
       }),
     ]);
+    
+    // 簡化的每日統計 - 從最近的記錄中計算
+    const allLogs = await prisma.aiUsageLog.findMany({
+      where: { createdAt: { gte: start } },
+      select: { createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    
+    // 依日期分組
+    const dateCount: Record<string, number> = {};
+    allLogs.forEach((log) => {
+      const date = log.createdAt.toISOString().split("T")[0];
+      dateCount[date] = (dateCount[date] || 0) + 1;
+    });
+    
+    const usageByDate = Object.entries(dateCount)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    
+    console.log("[Admin AI Usage] Stats loaded successfully");
     
     return NextResponse.json({
       success: true,
