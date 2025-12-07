@@ -7,10 +7,10 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // 中文專業提示詞
 const PROMPT_ZH = `你是一位擁有20年經驗的包裝結構工程師。你的任務是根據圖片，產出一份專業的工廠生產工藝單。
 
-首先判斷這張圖片是否為包裝盒/包裝袋相關產品。如果不是（例如是動物、人物、風景等），請直接回傳：
-{ "error": true, "message": "此圖片不是包裝產品，無法進行分析" }
+首先判斷這張圖片是否為包裝盒/包裝袋相關產品。如果不是（例如是動物、人物、風景等），請直接回覆：
+「⚠️ 此圖片不是包裝產品，無法進行分析」
 
-如果是包裝產品，請使用繁體中文，依照以下格式輸出專業分析：
+如果是包裝產品，請使用繁體中文，依照以下格式輸出專業分析（純文字格式，不要使用 JSON）：
 
 ## 📦 結構分析
 - **盒型/袋型**: (例如：天地蓋盒、飛機盒、手提袋、夾鏈袋等)
@@ -32,15 +32,15 @@ const PROMPT_ZH = `你是一位擁有20年經驗的包裝結構工程師。你�
 - **生產週期**: (預估天數)
 - **注意事項**: (品質控制要點)
 
-請確保輸出專業、精緻，適合提供給工廠作為生產參考。`;
+重要：請直接輸出 Markdown 格式的分析報告，不要使用 JSON 格式，不要包含任何程式碼區塊。`;
 
 // 英文專業提示詞
 const PROMPT_EN = `You are a packaging structural engineer with 20 years of experience. Your task is to produce a professional factory production specification sheet based on the image.
 
-First, determine if this image shows a packaging box/bag product. If not (e.g., animals, people, landscapes), please return:
-{ "error": true, "message": "This image is not a packaging product and cannot be analyzed" }
+First, determine if this image shows a packaging box/bag product. If not (e.g., animals, people, landscapes), please reply:
+"⚠️ This image is not a packaging product and cannot be analyzed"
 
-If it is a packaging product, please output a professional analysis in English following this format:
+If it is a packaging product, please output a professional analysis in English following this format (plain text format, DO NOT use JSON):
 
 ## 📦 Structure Analysis
 - **Box/Bag Type**: (e.g., Rigid Box, Mailer Box, Tote Bag, Zipper Pouch, etc.)
@@ -62,7 +62,7 @@ If it is a packaging product, please output a professional analysis in English f
 - **Production Lead Time**: (Estimated days)
 - **Quality Notes**: (Quality control key points)
 
-Please ensure the output is professional and refined, suitable for factory production reference.`;
+IMPORTANT: Output the analysis report directly in Markdown format. DO NOT use JSON format. DO NOT include any code blocks.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -145,21 +145,37 @@ export async function POST(request: NextRequest) {
     }
 
     // 檢查是否為錯誤回應（不是包裝產品）
-    if (textContent.includes('"error": true') || textContent.includes('"error":true')) {
+    if (textContent.includes('⚠️') && (textContent.includes('不是包裝產品') || textContent.includes('not a packaging product'))) {
+      return NextResponse.json({
+        success: false,
+        error: textContent.trim(),
+      });
+    }
+
+    // 清理可能的 JSON 殘留格式
+    let cleanedContent = textContent;
+    // 移除可能的 ```json 或 ``` 包裝
+    cleanedContent = cleanedContent.replace(/```json\s*/gi, '').replace(/```\s*/gi, '');
+    // 移除可能的 JSON 開頭
+    if (cleanedContent.trim().startsWith('{')) {
       try {
-        const errorJson = JSON.parse(textContent);
-        return NextResponse.json({
-          success: false,
-          error: errorJson.message || "此圖片無法分析",
-        });
+        const jsonData = JSON.parse(cleanedContent);
+        if (jsonData.analysis) {
+          cleanedContent = jsonData.analysis;
+        } else if (jsonData.error) {
+          return NextResponse.json({
+            success: false,
+            error: jsonData.message || "此圖片無法分析",
+          });
+        }
       } catch {
-        // 不是 JSON 格式，繼續處理
+        // 不是有效的 JSON，保持原樣
       }
     }
 
     return NextResponse.json({
       success: true,
-      analysis: textContent,
+      analysis: cleanedContent.trim(),
     });
 
   } catch (error: any) {
