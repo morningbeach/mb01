@@ -88,7 +88,7 @@ function generateShareToken(): string {
   return token;
 }
 
-// 添加浮水印到圖片（使用簡單的半透明條帶）
+// 添加浮水印到圖片（使用純圖形，不依賴字體）
 async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   try {
     console.log("[AI Design] Adding watermark, buffer size:", imageBuffer.length);
@@ -99,22 +99,24 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     console.log("[AI Design] Image dimensions:", width, "x", height);
     
     // 計算浮水印尺寸
-    const barHeight = Math.max(24, Math.floor(height / 30));
-    const fontSize = Math.max(10, Math.floor(barHeight * 0.5));
+    const barHeight = Math.max(20, Math.floor(height / 35));
+    const dotSize = Math.floor(barHeight * 0.3);
+    const spacing = Math.floor(dotSize * 0.8);
     
-    // 建立底部半透明條帶 + 文字的 SVG
-    // 使用 web-safe 字體和簡單樣式
+    // 建立底部半透明條帶 + 圓點圖案（代表 mbpack.co）
+    // M B P A C K . C O = 9 個圓點
+    const dots = [];
+    const startX = width - 10 - (9 * (dotSize + spacing));
+    for (let i = 0; i < 9; i++) {
+      const x = startX + i * (dotSize + spacing);
+      const y = barHeight / 2;
+      dots.push(`<circle cx="${x}" cy="${y}" r="${dotSize / 2}" fill="rgba(255,255,255,0.8)"/>`);
+    }
+    
     const svgWatermark = Buffer.from(`
       <svg width="${width}" height="${barHeight}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${width}" height="${barHeight}" fill="rgba(0,0,0,0.5)"/>
-        <text 
-          x="${width - 10}" 
-          y="${barHeight / 2 + fontSize / 3}" 
-          font-family="Arial, Helvetica, sans-serif"
-          font-size="${fontSize}"
-          fill="white"
-          text-anchor="end"
-        >mbpack.co</text>
+        <rect width="${width}" height="${barHeight}" fill="rgba(0,0,0,0.4)"/>
+        ${dots.join('')}
       </svg>
     `);
     
