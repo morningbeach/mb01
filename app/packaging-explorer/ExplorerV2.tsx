@@ -2125,35 +2125,23 @@ export default function PackagingExplorerV2() {
                 </div>
               ) : (
                 <>
-                  {/* 隨機推薦提示（禮品 / 包裝盒 / 提袋） */}
+                  {/* AI 功能提示（禮品 / 包裝盒 / 提袋） */}
                   {['gift','print-packaging','bag'].includes(activeCategory) && showingRandomPicks && (
-                    <div className="mb-4 px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-200">
-                      {/* AI 功能提示 - 更顯眼 */}
-                      <div className="mb-3 flex items-center justify-center gap-2 text-center">
-                        <span className="text-violet-700 font-medium text-base">
+                    <div className="mb-4 px-6 py-5 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl border border-violet-200">
+                      {/* AI 功能提示 - 更大更顯眼 */}
+                      <div className="flex items-center justify-center gap-3 text-center">
+                        <span className="text-violet-800 font-semibold text-lg">
                           {lang === 'zh' 
                             ? '點擊產品上的' 
                             : 'Click the'}
                         </span>
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-sm rounded-lg font-bold shadow-md">
+                        <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-base rounded-xl font-bold shadow-lg animate-pulse">
                           ✨ AI
                         </span>
-                        <span className="text-violet-700 font-medium text-base">
+                        <span className="text-violet-800 font-semibold text-lg">
                           {lang === 'zh' 
                             ? '試試一鍵智慧設計' 
                             : 'for instant AI design'}
-                        </span>
-                      </div>
-                      {/* 隨機推薦 - 更小 */}
-                      <div className="flex items-center justify-center gap-1.5 text-violet-500/70">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span className="text-xs">
-                          {lang === 'zh' ? '隨機推薦' : 'Random Picks'}
-                        </span>
-                        <span className="text-xs">
-                          {lang === 'zh' 
-                            ? '— 雙擊刷新' 
-                            : '— Tap again'}
                         </span>
                       </div>
                     </div>
