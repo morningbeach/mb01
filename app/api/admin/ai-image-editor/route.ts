@@ -14,67 +14,88 @@ const s3Client = new S3Client({
 const BUCKET_NAME = process.env.R2_BUCKET_NAME as string;
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL as string;
 
-// List images from /AItrend/ folder
+// List images from both /AItrend/ and /uploads/AItrend/ folders
 async function listAItrendImages(folderPath?: string): Promise<string[]> {
-  const prefix = folderPath ? `AItrend/${folderPath}/` : 'AItrend/';
+  const allImages: string[] = [];
+  
+  // Paths to check
+  const prefixes = folderPath 
+    ? [`AItrend/${folderPath}/`, `uploads/AItrend/${folderPath}/`]
+    : ['AItrend/', 'uploads/AItrend/'];
   
   try {
-    const command = new ListObjectsV2Command({
-      Bucket: BUCKET_NAME,
-      Prefix: prefix,
-      MaxKeys: 1000,
-    });
+    for (const prefix of prefixes) {
+      const command = new ListObjectsV2Command({
+        Bucket: BUCKET_NAME,
+        Prefix: prefix,
+        MaxKeys: 1000,
+      });
 
-    const response = await s3Client.send(command);
-    
-    if (!response.Contents) {
-      return [];
+      const response = await s3Client.send(command);
+      
+      if (response.Contents) {
+        // Filter for image files only and exclude /ok/ subdirectories
+        const imageUrls = response.Contents
+          .filter(item => {
+            if (!item.Key) return false;
+            const key = item.Key;
+            // Skip if it's in /ok/ subfolder
+            if (key.includes('/ok/')) return false;
+            // Only include image files
+            return /\.(jpg|jpeg|png|gif|webp)$/i.test(key);
+          })
+          .map(item => `${R2_PUBLIC_URL}/${item.Key}`);
+        
+        allImages.push(...imageUrls);
+      }
     }
-
-    // Filter for image files only and exclude /ok/ subdirectories
-    const imageUrls = response.Contents
-      .filter(item => {
-        if (!item.Key) return false;
-        const key = item.Key;
-        // Skip if it's in /ok/ subfolder
-        if (key.includes('/ok/')) return false;
-        // Only include image files
-        return /\.(jpg|jpeg|png|gif|webp)$/i.test(key);
-      })
-      .map(item => `${R2_PUBLIC_URL}/${item.Key}`);
-
-    return imageUrls;
+    
+    console.log(`[AI Image Editor] Found ${allImages.length} images in folder: ${folderPath || 'root'}`);
+    return allImages;
   } catch (error) {
     console.error('Error listing AItrend images:', error);
     throw error;
   }
 }
 
-// List available date folders
+// List available date folders from both AItrend/ and uploads/AItrend/
 async function listDateFolders(): Promise<string[]> {
   try {
-    const command = new ListObjectsV2Command({
+    const allFolders = new Set<string>();
+    
+    // Check AItrend/ (root level)
+    const cmd1 = new ListObjectsV2Command({
       Bucket: BUCKET_NAME,
       Prefix: 'AItrend/',
       Delimiter: '/',
     });
-
-    const response = await s3Client.send(command);
+    const res1 = await s3Client.send(cmd1);
     
-    if (!response.CommonPrefixes) {
-      return [];
-    }
-
-    const folders = response.CommonPrefixes
-      .map(prefix => {
+    if (res1.CommonPrefixes) {
+      res1.CommonPrefixes.forEach(prefix => {
         const match = prefix.Prefix?.match(/AItrend\/(.+)\/$/);
-        return match ? match[1] : null;
-      })
-      .filter((f): f is string => f !== null)
-      .sort()
-      .reverse(); // Most recent first
+        if (match) allFolders.add(match[1]);
+      });
+    }
+    
+    // Check uploads/AItrend/
+    const cmd2 = new ListObjectsV2Command({
+      Bucket: BUCKET_NAME,
+      Prefix: 'uploads/AItrend/',
+      Delimiter: '/',
+    });
+    const res2 = await s3Client.send(cmd2);
+    
+    if (res2.CommonPrefixes) {
+      res2.CommonPrefixes.forEach(prefix => {
+        const match = prefix.Prefix?.match(/uploads\/AItrend\/(.+)\/$/);
+        if (match) allFolders.add(match[1]);
+      });
+    }
+    
+    console.log('[AI Image Editor] Found folders:', Array.from(allFolders));
 
-    return folders;
+    return Array.from(allFolders).sort().reverse(); // Most recent first
   } catch (error) {
     console.error('Error listing date folders:', error);
     return [];
