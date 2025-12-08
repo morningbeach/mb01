@@ -246,8 +246,18 @@ export async function POST(request: NextRequest) {
     }
     
     const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = Buffer.from(imageBuffer).toString("base64");
-    const mimeType = imageResponse.headers.get("content-type") || "image/jpeg";
+    let processedBuffer = Buffer.from(imageBuffer);
+    let mimeType = imageResponse.headers.get("content-type") || "image/jpeg";
+    
+    // 如果是 avif 或其他不支援的格式，轉換為 PNG
+    const unsupportedFormats = ['image/avif', 'image/webp', 'image/heic', 'image/heif'];
+    if (unsupportedFormats.includes(mimeType)) {
+      console.log("[AI Design] Converting unsupported format:", mimeType, "to PNG");
+      processedBuffer = await sharp(processedBuffer).png().toBuffer();
+      mimeType = "image/png";
+    }
+    
+    const base64Image = processedBuffer.toString("base64");
     
     // 使用 Gemini 3 Pro Image Preview 模型（支援圖片生成與編輯）
     const selectedModel = "gemini-3-pro-image-preview";
