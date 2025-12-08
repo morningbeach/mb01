@@ -26,11 +26,23 @@ export async function GET(req: NextRequest) {
 
     const imageBuffer = await response.arrayBuffer();
     
+    // 從 URL 取得副檔名
+    const urlPath = new URL(imageUrl).pathname;
+    const ext = urlPath.split('.').pop()?.toLowerCase() || 'png';
+    
+    // 從 response 取得實際的 content-type
+    const contentType = response.headers.get('content-type') || `image/${ext}`;
+    
+    // 根據副檔名決定下載檔名
+    const filename = `ai-design-${Date.now()}.${ext}`;
+    
+    console.log('[AI Download] Content-Type:', contentType, 'Extension:', ext);
+    
     // Return the image with proper headers for download
     return new NextResponse(imageBuffer, {
       headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="ai-design-${Date.now()}.png"`,
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-cache',
       },
     });

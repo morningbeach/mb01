@@ -159,6 +159,7 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
     console.log("[AI Design] Watermark resized to width:", targetWidth, "position: right", paddingRight, "bottom", paddingBottom);
     
     // 把浮水印蓋在右下角（往中間偏移）
+    // 同時將輸出轉換為 PNG 格式（避免 avif 等格式下載問題）
     const result = await image
       .composite([
         {
@@ -168,6 +169,7 @@ async function addWatermark(imageBuffer: Buffer, mimeType: string): Promise<Buff
           blend: "over"
         },
       ])
+      .png() // 強制輸出為 PNG 格式
       .toBuffer();
     
     console.log("[AI Design] Watermark added successfully, result size:", result.length);
@@ -339,20 +341,20 @@ export async function POST(request: NextRequest) {
     // 將 base64 轉換為 Buffer
     let editedBuffer = Buffer.from(editedImageData, "base64");
     
-    // 添加浮水印
+    // 添加浮水印（同時會轉換為 PNG 格式）
     editedBuffer = await addWatermark(editedBuffer, editedMimeType);
     
     // 生成分享 Token
     const shareToken = generateShareToken();
     
     // 上傳到 R2（uploads/USERAISHOW/{YYYYMMDD}/）
+    // 統一使用 PNG 格式
     const todayStr = getTodayUTC8().replace(/-/g, "");
-    const ext = editedMimeType.split("/")[1] || "png";
-    const filename = `uploads/USERAISHOW/${todayStr}/ai_${Date.now()}_${shareToken}.${ext}`;
+    const filename = `uploads/USERAISHOW/${todayStr}/ai_${Date.now()}_${shareToken}.png`;
     
     console.log("[AI Design] Uploading to R2:", filename);
     
-    const uploadedUrl = await uploadToR2(filename, editedBuffer, editedMimeType);
+    const uploadedUrl = await uploadToR2(filename, editedBuffer, "image/png");
     
     console.log("[AI Design] Upload success:", uploadedUrl);
     
