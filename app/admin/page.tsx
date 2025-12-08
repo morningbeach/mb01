@@ -252,6 +252,23 @@ export default function AdminDashboardPage() {
           </a>
 
           <a
+            href="/admin/video-uploader"
+            className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+          >
+            <div className="mb-3 text-2xl">🎬</div>
+            <h3 className="mb-2 text-base font-bold text-zinc-900">
+              影片上傳器
+            </h3>
+            <p className="mb-3 text-xs leading-relaxed text-zinc-600">
+              上傳 MP4 影片到 CDN，取得網址用於首頁背景
+            </p>
+            <div className="flex items-center gap-1 text-xs font-semibold text-zinc-700">
+              <span>上傳影片</span>
+              <span className="transition-transform group-hover:translate-x-1">→</span>
+            </div>
+          </a>
+
+          <a
             href="/admin/footer"
             className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
           >
