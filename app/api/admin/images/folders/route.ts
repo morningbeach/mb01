@@ -12,8 +12,10 @@ interface FolderInfo {
 
 export async function GET() {
   try {
-    // 列出 uploads/ 下的所有檔案
-    const r2Files = await listR2Objects({ prefix: "uploads/", maxKeys: 1000 });
+    // 列出 uploads/ 下的所有檔案（增加限制到 10000）
+    const r2Files = await listR2Objects({ prefix: "uploads/", maxKeys: 10000 });
+    
+    console.log(`[Folders API] Found ${r2Files.length} files in R2`);
     
     // 建立資料夾統計 Map
     const folderMap = new Map<string, number>();

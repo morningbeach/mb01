@@ -12,8 +12,10 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    // 1. 從 R2 列出所有檔案（取得總數需要一次取全部）
-    const r2Files = await listR2Objects({ prefix, maxKeys: 1000 });
+    // 1. 從 R2 列出所有檔案（增加限制到 10000 以取得完整資料）
+    const r2Files = await listR2Objects({ prefix, maxKeys: 10000 });
+    
+    console.log(`[Images API] Found ${r2Files.length} files with prefix: ${prefix}`);
     
     // 過濾出圖片檔案（非資料夾）
     const imageFiles = r2Files.filter((f) => {

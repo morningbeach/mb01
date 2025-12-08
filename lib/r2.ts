@@ -104,27 +104,45 @@ export async function listR2Objects(options?: {
   const prefix = options?.prefix ?? "";
   const maxKeys = options?.maxKeys ?? 1000;
 
-  const command = new ListObjectsV2Command({
-    Bucket: bucketName,
-    Prefix: prefix,
-    MaxKeys: maxKeys,
-  });
+  const allItems: Array<{ key: string; url: string; size: number; lastModified: string }> = [];
+  let continuationToken: string | undefined;
 
-  const res = await r2Client.send(command);
+  // 使用分頁取得所有檔案
+  do {
+    const command = new ListObjectsV2Command({
+      Bucket: bucketName,
+      Prefix: prefix,
+      MaxKeys: Math.min(maxKeys, 1000), // AWS S3 單次最多 1000
+      ContinuationToken: continuationToken,
+    });
 
-  const items =
-    res.Contents?.filter((obj) => !!obj.Key).map((obj) => {
-      const key = obj.Key!;
-      const url = `${publicBaseUrl}/${key}`;
-      return {
-        key,
-        url,
-        size: Number(obj.Size ?? 0),
-        lastModified: obj.LastModified?.toISOString() ?? new Date().toISOString(),
-      };
-    }) ?? [];
+    const res = await r2Client.send(command);
 
-  return items;
+    const items =
+      res.Contents?.filter((obj) => !!obj.Key).map((obj) => {
+        const key = obj.Key!;
+        const url = `${publicBaseUrl}/${key}`;
+        return {
+          key,
+          url,
+          size: Number(obj.Size ?? 0),
+          lastModified: obj.LastModified?.toISOString() ?? new Date().toISOString(),
+        };
+      }) ?? [];
+
+    allItems.push(...items);
+
+    // 檢查是否還有更多資料
+    continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+
+    // 如果已達到 maxKeys 限制，停止
+    if (allItems.length >= maxKeys) {
+      break;
+    }
+  } while (continuationToken);
+
+  // 只返回 maxKeys 數量的結果
+  return allItems.slice(0, maxKeys);
 }
 
 export const R2_PUBLIC_BASE_URL = publicBaseUrl;
