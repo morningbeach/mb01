@@ -53,5 +53,32 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <LandingPageClient config={config} cases={cases} blogs={blogs} />;
+  // Fetch 28 random products with cover image
+  const allProducts = await prisma.product.findMany({
+    where: { 
+      isPublished: true,
+      coverImage: { not: null }
+    },
+    select: { 
+      id: true, 
+      name_zh: true, 
+      name_en: true,
+      slug: true, 
+      coverImage: true,
+      tags: {
+        select: {
+          tag: {
+            select: { name_zh: true, name_en: true, slug: true }
+          }
+        },
+        take: 3 // 只取前3個標籤
+      }
+    },
+  });
+  
+  // 隨機打亂並取28個
+  const shuffled = allProducts.sort(() => Math.random() - 0.5);
+  const randomProducts = shuffled.slice(0, 28);
+
+  return <LandingPageClient config={config} cases={cases} blogs={blogs} randomProducts={randomProducts} />;
 }

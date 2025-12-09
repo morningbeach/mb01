@@ -51,6 +51,7 @@ interface LandingPageClientProps {
   cases: any[];
   blogs: any[];
   featuredProducts?: any[]; // 新增：最新商品
+  randomProducts?: any[]; // 新增：隨機產品
 }
 
 // --- Data & Copy (Defaults/Fallbacks) ---
@@ -173,7 +174,7 @@ const defaultSolutions = [
 
 // --- Components ---
 
-export default function LandingPageClient({ config, cases, blogs, featuredProducts: initialProducts = [] }: LandingPageClientProps) {
+export default function LandingPageClient({ config, cases, blogs, featuredProducts: initialProducts = [], randomProducts = [] }: LandingPageClientProps) {
   const { lang } = useLanguage();
   const t = (copy: Copy) => (lang === "zh" ? copy.zh : copy.en);
   
@@ -447,6 +448,114 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
             </div>
           </div>
         </section>
+
+        {/* Random Products Showcase */}
+        {randomProducts.length > 0 && (
+          <section className="bg-white px-6 py-20">
+            <div className="mx-auto max-w-7xl">
+              <SectionHeader 
+                kicker={t({ en: "Products", zh: "精選產品" })} 
+                title={t({ en: "Explore Our Collection", zh: "瀏覽產品" })} 
+              />
+              
+              {/* Desktop: 7 columns x 4 rows grid */}
+              <div className="hidden md:grid mt-12 grid-cols-4 lg:grid-cols-7 gap-4">
+                {randomProducts.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug}`}
+                    className="group block"
+                  >
+                    <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 shadow-sm transition-all group-hover:shadow-lg group-hover:scale-[1.02]">
+                      {product.coverImage && (
+                        <Image
+                          src={product.coverImage}
+                          alt={lang === 'zh' ? product.name_zh : product.name_en}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 1024px) 25vw, 14vw"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="mt-2">
+                      <h4 className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        {lang === 'zh' ? product.name_zh : product.name_en}
+                      </h4>
+                      {product.tags && product.tags.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {product.tags.slice(0, 2).map((t: any, idx: number) => (
+                            <span 
+                              key={idx} 
+                              className="inline-block px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-600 rounded"
+                            >
+                              {lang === 'zh' ? t.tag.name_zh : t.tag.name_en}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Mobile: Horizontal scroll carousel */}
+              <div className="md:hidden mt-8 -mx-6 px-6 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
+                  {randomProducts.map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug}`}
+                      className="group block w-36 flex-shrink-0"
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 shadow-sm">
+                        {product.coverImage && (
+                          <Image
+                            src={product.coverImage}
+                            alt={lang === 'zh' ? product.name_zh : product.name_en}
+                            fill
+                            className="object-cover"
+                            sizes="144px"
+                          />
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                          {lang === 'zh' ? product.name_zh : product.name_en}
+                        </h4>
+                        {product.tags && product.tags.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {product.tags.slice(0, 2).map((t: any, idx: number) => (
+                              <span 
+                                key={idx} 
+                                className="inline-block px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-600 rounded"
+                              >
+                                {lang === 'zh' ? t.tag.name_zh : t.tag.name_en}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* View All Button */}
+              <div className="mt-8 text-center">
+                <Link
+                  href="/packaging-explorer"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+                >
+                  {t({ en: "View All Products", zh: "瀏覽所有產品" })}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* How It Works */}
         <section className="border-y border-gray-200 bg-white px-6 py-32">
