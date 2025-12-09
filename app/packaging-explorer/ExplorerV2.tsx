@@ -1750,14 +1750,14 @@ export default function PackagingExplorerV2() {
         </AnimatePresence>
 
         {/* 主內容區 - 全寬版面，左右只留少許留白 */}
-        <div className="w-full mx-auto px-3 sm:px-4 lg:px-6 py-4">
-          <div className="flex gap-5">
+        <div className="w-full mx-auto px-2 sm:px-3 lg:px-4 py-4">
+          <div className="flex gap-4">
             {/* 左側篩選面板 - 桌面版 */}
-            <div className="w-56 shrink-0 hidden lg:block">
+            <div className="w-72 shrink-0 hidden lg:block">
               <div className="sticky top-[72px] space-y-3">
                 {/* 類別選擇 - 原版樣式 */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                  <div className="grid grid-cols-2 gap-1.5">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                  <div className="grid grid-cols-2 gap-2">
                     {categories.map((cat) => {
                       const Icon = cat.icon;
                       const isActive = activeCategory === cat.id;
@@ -1768,7 +1768,7 @@ export default function PackagingExplorerV2() {
                           onClick={() => !isDisabled && handleCategoryChange(cat.id)}
                           disabled={isDisabled}
                           className={`
-                            flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200
+                            flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200
                             ${isDisabled 
                               ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
                               : isActive 
@@ -1777,7 +1777,7 @@ export default function PackagingExplorerV2() {
                             }
                           `}
                         >
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-5 h-5" />
                           <span className="truncate w-full text-center">
                             {lang === 'zh' ? cat.name_zh.replace('（暫未開放）', '') : cat.name_en.replace(' (Coming Soon)', '')}
                           </span>
@@ -1787,23 +1787,23 @@ export default function PackagingExplorerV2() {
                   </div>
                   
                   {/* 篩選模式 & 數量 */}
-                  <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs">
+                      <div className="flex items-center gap-2 text-sm">
                         <button
                           onClick={() => setFilterMode('any')}
-                          className={`px-2 py-1 rounded transition-colors ${filterMode === 'any' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                          className={`px-3 py-1.5 rounded transition-colors ${filterMode === 'any' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
                         >
                           OR
                         </button>
                         <button
                           onClick={() => setFilterMode('all')}
-                          className={`px-2 py-1 rounded ${filterMode === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
+                          className={`px-3 py-1.5 rounded ${filterMode === 'all' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
                         >
                           AND
                         </button>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-sm text-gray-500">
                         <span className="font-semibold text-gray-900">{totalProducts}</span>
                         <span> {lang === 'zh' ? '個產品' : ' products'}</span>
                       </span>
@@ -1929,15 +1929,15 @@ export default function PackagingExplorerV2() {
                 {/* 篩選維度 */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                   {/* 搜尋框 */}
-                  <div className="p-2.5 border-b border-gray-100">
+                  <div className="p-3 border-b border-gray-100">
                     <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder={lang === 'zh' ? '搜尋產品...' : 'Search...'}
-                        className="w-full pl-8 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-10 py-2.5 text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                       {searchQuery && (
                         <button
@@ -1952,9 +1952,9 @@ export default function PackagingExplorerV2() {
                               }
                             }
                           }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-5 h-5" />
                         </button>
                       )}
                     </div>
@@ -1962,29 +1962,29 @@ export default function PackagingExplorerV2() {
                   
                   {/* 已選標籤 */}
                   {selectedTags.size > 0 && (
-                    <div className="p-2.5 bg-blue-50 border-b border-blue-100">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-medium text-blue-700">
+                    <div className="p-3 bg-blue-50 border-b border-blue-100">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-700">
                           {lang === 'zh' ? '已選' : 'Selected'} ({selectedTags.size})
                         </span>
                         <button
                           onClick={clearAllTags}
-                          className="text-xs text-blue-600 hover:text-blue-800"
+                          className="text-sm text-blue-600 hover:text-blue-800"
                         >
                           {lang === 'zh' ? '清除' : 'Clear'}
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {Array.from(selectedTags).map(slug => {
                           const tag = dimensions.flatMap(d => d.tags).find(t => t.slug === slug);
                           return tag ? (
                             <button
                               key={slug}
                               onClick={() => toggleTag(slug)}
-                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                             >
                               {lang === 'zh' ? tag.name_zh : tag.name_en}
-                              <X className="w-2.5 h-2.5" />
+                              <X className="w-3.5 h-3.5" />
                             </button>
                           ) : null;
                         })}
@@ -2017,26 +2017,26 @@ export default function PackagingExplorerV2() {
                         <div key={dimension.id} className="border-b border-gray-50 last:border-b-0">
                           <button
                             onClick={() => toggleDimension(dimension.slug)}
-                            className="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50"
                           >
-                            <div className="flex items-center gap-1.5">
-                              <Icon className="w-3.5 h-3.5 text-gray-400" />
-                              <span className="font-medium text-gray-800 text-xs">
+                            <div className="flex items-center gap-2">
+                              <Icon className="w-4 h-4 text-gray-400" />
+                              <span className="font-medium text-gray-800 text-sm">
                                 {lang === 'zh' ? dimension.name_zh : dimension.name_en}
                               </span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-sm text-gray-400">
                                 {dimension.tags.length}
                               </span>
                             </div>
                             <ChevronDown
-                              className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-100 ${
+                              className={`w-4 h-4 text-gray-400 transition-transform duration-100 ${
                                 isExpanded ? 'rotate-180' : ''
                               }`}
                             />
                           </button>
                           
                           {isExpanded && (
-                            <div className="px-2.5 pb-2 flex flex-wrap gap-1">
+                            <div className="px-3 pb-3 flex flex-wrap gap-1.5">
                               {dimension.tags.map((tag) => {
                                 const isSelected = selectedTags.has(tag.slug);
                                 return (
@@ -2044,7 +2044,7 @@ export default function PackagingExplorerV2() {
                                     key={tag.id}
                                     onClick={() => toggleTag(tag.slug)}
                                     className={`
-                                      px-1.5 py-0.5 rounded text-xs transition-colors
+                                      px-2 py-1 rounded text-sm transition-colors
                                       ${isSelected
                                         ? 'bg-blue-600 text-white'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -2053,7 +2053,7 @@ export default function PackagingExplorerV2() {
                                   >
                                     {lang === 'zh' ? tag.name_zh : tag.name_en}
                                     {tag.productCount !== undefined && tag.productCount > 0 && (
-                                      <span className={`ml-0.5 ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
+                                      <span className={`ml-1 ${isSelected ? 'text-blue-200' : 'text-gray-400'}`}>
                                         {tag.productCount}
                                       </span>
                                     )}
@@ -2071,9 +2071,9 @@ export default function PackagingExplorerV2() {
                 {/* 舊版瀏覽按鈕 - 在篩選面板底部 */}
                 <Link
                   href="/catalog-tree"
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <TreePine className="w-3 h-3" />
+                  <TreePine className="w-4 h-4" />
                   <span>{lang === 'zh' ? '舊版瀏覽' : 'Classic'}</span>
                 </Link>
               </div>
