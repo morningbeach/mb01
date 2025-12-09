@@ -54,31 +54,37 @@ export default async function Home() {
   });
 
   // Fetch 28 random products with cover image
-  const allProducts = await prisma.product.findMany({
-    where: { 
-      isPublished: true,
-      coverImage: { not: null }
-    },
-    select: { 
-      id: true, 
-      name_zh: true, 
-      name_en: true,
-      slug: true, 
-      coverImage: true,
-      tags: {
-        select: {
-          tag: {
-            select: { name_zh: true, name_en: true, slug: true }
-          }
-        },
-        take: 3 // 只取前3個標籤
-      }
-    },
-  });
-  
-  // 隨機打亂並取28個
-  const shuffled = allProducts.sort(() => Math.random() - 0.5);
-  const randomProducts = shuffled.slice(0, 28);
+  let randomProducts: any[] = [];
+  try {
+    const allProducts = await prisma.product.findMany({
+      where: { 
+        isPublished: true,
+        coverImage: { not: null }
+      },
+      select: { 
+        id: true, 
+        name_zh: true, 
+        name_en: true,
+        slug: true, 
+        coverImage: true,
+        tags: {
+          select: {
+            tag: {
+              select: { name_zh: true, name_en: true, slug: true }
+            }
+          },
+          take: 3 // 只取前3個標籤
+        }
+      },
+    });
+    
+    // 隨機打亂並取28個
+    const shuffled = allProducts.sort(() => Math.random() - 0.5);
+    randomProducts = shuffled.slice(0, 28);
+  } catch (error) {
+    console.error('[Home] Failed to fetch random products:', error);
+    // 繼續執行，randomProducts 保持為空陣列
+  }
 
   return <LandingPageClient config={config} cases={cases} blogs={blogs} randomProducts={randomProducts} />;
 }
