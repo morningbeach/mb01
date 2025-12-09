@@ -2133,14 +2133,14 @@ export default function PackagingExplorerV2() {
                         <span className="text-violet-800 font-semibold text-lg">
                           {lang === 'zh' 
                             ? '點擊產品上的' 
-                            : 'Click the'}
+                            : 'Click'}
                         </span>
                         <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-base rounded-xl font-bold shadow-lg animate-pulse">
-                          ✨ AI
+                          ✨ {lang === 'zh' ? '一鍵設計' : 'AI Design'}
                         </span>
                         <span className="text-violet-800 font-semibold text-lg">
                           {lang === 'zh' 
-                            ? '試試一鍵智慧設計' 
+                            ? '試試智慧包裝設計' 
                             : 'for instant AI design'}
                         </span>
                       </div>
@@ -2191,11 +2191,11 @@ export default function PackagingExplorerV2() {
                                 e.stopPropagation();
                                 setAiDesignProduct(product);
                               }}
-                              className="shrink-0 px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium flex items-center gap-0.5 hover:from-purple-600 hover:to-blue-600 transition-all"
-                              title={lang === 'zh' ? '進入 AI 設計' : 'Enter AI Design'}
+                              className="shrink-0 px-2 py-1 rounded bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium flex items-center gap-1 hover:from-purple-600 hover:to-blue-600 transition-all"
+                              title={lang === 'zh' ? '一鍵設計' : 'AI Design'}
                             >
                               <span>✨</span>
-                              <span>AI</span>
+                              <span>{lang === 'zh' ? '一鍵設計' : 'AI Design'}</span>
                             </button>
                           )}
                         </div>
