@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import sharp from 'sharp';
 
 export async function GET(req: NextRequest) {
   try {
@@ -33,15 +34,40 @@ export async function GET(req: NextRequest) {
     // 從 response 取得實際的 content-type
     const contentType = response.headers.get('content-type') || `image/${ext}`;
     
-    // 根據副檔名決定下載檔名
-    const filename = `ai-design-${Date.now()}.${ext}`;
+    console.log('[AI Download] Original Content-Type:', contentType, 'Extension:', ext);
     
-    console.log('[AI Download] Content-Type:', contentType, 'Extension:', ext);
+    // 如果是 AVIF 或 WebP，轉換為 PNG
+    const needsConversion = ext === 'avif' || ext === 'webp' || 
+                           contentType.includes('avif') || contentType.includes('webp');
+    
+    let finalBuffer: ArrayBuffer | Buffer = imageBuffer;
+    let finalContentType = contentType;
+    let finalExt = ext;
+    
+    if (needsConversion) {
+      console.log('[AI Download] Converting to PNG...');
+      try {
+        finalBuffer = await sharp(Buffer.from(imageBuffer))
+          .png({ quality: 95 })
+          .toBuffer();
+        finalContentType = 'image/png';
+        finalExt = 'png';
+        console.log('[AI Download] Conversion successful');
+      } catch (convError) {
+        console.error('[AI Download] Conversion failed, using original:', convError);
+        // 轉換失敗就用原始格式
+      }
+    }
+    
+    // 根據副檔名決定下載檔名
+    const filename = `ai-design-${Date.now()}.${finalExt}`;
+    
+    console.log('[AI Download] Final Content-Type:', finalContentType, 'Filename:', filename);
     
     // Return the image with proper headers for download
-    return new NextResponse(imageBuffer, {
+    return new NextResponse(finalBuffer, {
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': finalContentType,
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-cache',
       },
