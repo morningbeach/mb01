@@ -1749,8 +1749,8 @@ export default function PackagingExplorerV2() {
           )}
         </AnimatePresence>
 
-        {/* 主內容區 */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* 主內容區 - 全寬版面，左右只留少許留白 */}
+        <div className="w-full mx-auto px-3 sm:px-4 lg:px-6 py-4">
           <div className="flex gap-5">
             {/* 左側篩選面板 - 桌面版 */}
             <div className="w-56 shrink-0 hidden lg:block">
