@@ -89,7 +89,7 @@ export default async function Home() {
     const bagWhitelistIds = bagWhitelistTags.map(t => t.id);
 
     // 查詢各類別產品
-    const fetchCategoryProducts = async (cat: string, tagIds: string[], limit: number) => {
+    const fetchCategoryProducts = async (cat: string, tagIds: string[], limit: number, excludeBagProducts: boolean = false) => {
       // 取得符合條件的產品 IDs
       const productIds = await prisma.productTag.findMany({
         where: { tagId: { in: tagIds } },
@@ -102,15 +102,26 @@ export default async function Home() {
 
       // 隨機取 limit 個
       const shuffled = uniqueIds.sort(() => Math.random() - 0.5);
-      const selectedIds = shuffled.slice(0, limit);
+      const selectedIds = shuffled.slice(0, limit * 2); // 取多一點，因為可能有些會被排除
 
       // 查詢完整產品資料
+      const whereCondition: any = {
+        id: { in: selectedIds },
+        status: 'ACTIVE',
+        version: 2,
+      };
+
+      // 排除提袋產品（用於 print-packaging 和 gift）
+      if (excludeBagProducts && bagWhitelistIds.length > 0) {
+        whereCondition.NOT = {
+          ProductTag: {
+            some: { tagId: { in: bagWhitelistIds } }
+          }
+        };
+      }
+
       const products = await prisma.product.findMany({
-        where: {
-          id: { in: selectedIds },
-          status: 'ACTIVE',
-          version: 2,
-        },
+        where: whereCondition,
         select: {
           id: true,
           name_zh: true,
@@ -125,6 +136,7 @@ export default async function Home() {
             }
           }
         },
+        take: limit, // 限制最終結果數量
       });
 
       return products;
@@ -137,9 +149,9 @@ export default async function Home() {
     ]);
 
     const [printPackagingProducts, bagProducts, giftProducts] = await Promise.all([
-      fetchCategoryProducts('print-packaging', printPackagingTagIds, 21),
-      fetchCategoryProducts('bag', bagWhitelistIds, 21),
-      fetchCategoryProducts('gift', giftTagIds, 21),
+      fetchCategoryProducts('print-packaging', printPackagingTagIds, 21, true),  // 排除提袋
+      fetchCategoryProducts('bag', bagWhitelistIds, 21, false),
+      fetchCategoryProducts('gift', giftTagIds, 21, true),  // 排除提袋
     ]);
 
     categoryProducts = {
