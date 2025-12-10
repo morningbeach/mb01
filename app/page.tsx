@@ -53,41 +53,52 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch 28 random products with cover image
-  let randomProducts: any[] = [];
+  // Fetch 28 random products with cover image for each category
+  let categoryProducts: Record<string, any[]> = {
+    "print-packaging": [],
+    "bag": [],
+    "gift": []
+  };
+  
   try {
-    const allProducts = await prisma.product.findMany({
-      where: { 
-        status: "ACTIVE",
-        coverImage: { not: null }
-      },
-      select: { 
-        id: true, 
-        name_zh: true, 
-        name_en: true,
-        slug: true, 
-        coverImage: true,
-        ProductTag: {
-          select: {
-            Tag: {
-              select: { name_zh: true, name_en: true, slug: true }
-            }
-          },
-          take: 3 // 只取前3個標籤
-        }
-      },
-    });
+    const categories = ["print-packaging", "bag", "gift"];
     
-    // 隨機打亂並取28個，並轉換 ProductTag 為 tags
-    const shuffled = allProducts.sort(() => Math.random() - 0.5);
-    randomProducts = shuffled.slice(0, 28).map(p => ({
-      ...p,
-      tags: p.ProductTag.map((pt: any) => ({ tag: pt.Tag })) // 轉換欄位名稱以符合前端期望
-    }));
+    for (const cat of categories) {
+      const products = await prisma.product.findMany({
+        where: { 
+          status: "ACTIVE",
+          coverImage: { not: null },
+          Category: {
+            slug: cat
+          }
+        },
+        select: { 
+          id: true, 
+          name_zh: true, 
+          name_en: true,
+          slug: true, 
+          coverImage: true,
+          ProductTag: {
+            select: {
+              Tag: {
+                select: { name_zh: true, name_en: true, slug: true }
+              }
+            },
+            take: 3
+          }
+        },
+      });
+      
+      // 隨機打亂並取28個
+      const shuffled = products.sort(() => Math.random() - 0.5);
+      categoryProducts[cat] = shuffled.slice(0, 28).map(p => ({
+        ...p,
+        tags: p.ProductTag.map((pt: any) => ({ tag: pt.Tag }))
+      }));
+    }
   } catch (error) {
-    console.error('[Home] Failed to fetch random products:', error);
-    // 繼續執行，randomProducts 保持為空陣列
+    console.error('[Home] Failed to fetch category products:', error);
   }
 
-  return <LandingPageClient config={config} cases={cases} blogs={blogs} randomProducts={randomProducts} />;
+  return <LandingPageClient config={config} cases={cases} blogs={blogs} categoryProducts={categoryProducts} />;
 }

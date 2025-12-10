@@ -51,7 +51,7 @@ interface LandingPageClientProps {
   cases: any[];
   blogs: any[];
   featuredProducts?: any[]; // 新增：最新商品
-  randomProducts?: any[]; // 新增：隨機產品
+  categoryProducts?: Record<string, any[]>; // 分類產品：紙盒/提袋/禮品
 }
 
 // --- Data & Copy (Defaults/Fallbacks) ---
@@ -174,14 +174,20 @@ const defaultSolutions = [
 
 // --- Components ---
 
-export default function LandingPageClient({ config, cases, blogs, featuredProducts: initialProducts = [], randomProducts = [] }: LandingPageClientProps) {
+export default function LandingPageClient({ config, cases, blogs, featuredProducts: initialProducts = [], categoryProducts = {} }: LandingPageClientProps) {
   const { lang } = useLanguage();
   const t = (copy: Copy) => (lang === "zh" ? copy.zh : copy.en);
   
-  // Debug: 檢查 randomProducts
+  // 分類切換狀態，預設為紙盒
+  const [activeCategory, setActiveCategory] = useState<"print-packaging" | "bag" | "gift">("print-packaging");
+  
+  // 取得當前分類的產品
+  const currentProducts = categoryProducts[activeCategory] || [];
+  
+  // Debug: 檢查 categoryProducts
   useEffect(() => {
-    console.log('[Landing] randomProducts received:', randomProducts.length, randomProducts);
-  }, [randomProducts]);
+    console.log('[Landing] categoryProducts received:', categoryProducts);
+  }, [categoryProducts]);
   
   // 在 Client 端獲取產品資料（與 packaging-explorer 一致的方式）
   const [featuredProducts, setFeaturedProducts] = useState<any[]>(initialProducts);
@@ -455,7 +461,7 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
         </section>
 
         {/* Random Products Showcase */}
-        {randomProducts.length > 0 && (
+        {Object.values(categoryProducts).some(arr => arr.length > 0) && (
           <section className="bg-white px-6 py-20">
             <div className="mx-auto max-w-7xl">
               <SectionHeader 
@@ -463,9 +469,43 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
                 title={t({ en: "Explore Our Collection", zh: "瀏覽產品" })} 
               />
               
-              {/* Desktop: 7 columns x 4 rows grid */}
-              <div className="hidden md:grid mt-12 grid-cols-4 lg:grid-cols-7 gap-4">
-                {randomProducts.map((product) => (
+              {/* Category Toggle Buttons */}
+              <div className="mt-8 flex justify-center gap-2">
+                <button
+                  onClick={() => setActiveCategory("print-packaging")}
+                  className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+                    activeCategory === "print-packaging"
+                      ? "bg-gray-900 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {t({ en: "Boxes", zh: "紙盒" })}
+                </button>
+                <button
+                  onClick={() => setActiveCategory("bag")}
+                  className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+                    activeCategory === "bag"
+                      ? "bg-gray-900 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {t({ en: "Bags", zh: "提袋" })}
+                </button>
+                <button
+                  onClick={() => setActiveCategory("gift")}
+                  className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+                    activeCategory === "gift"
+                      ? "bg-gray-900 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {t({ en: "Gifts", zh: "禮品" })}
+                </button>
+              </div>
+              
+              {/* Desktop: 7 columns x 3 rows grid */}
+              <div className="hidden md:grid mt-8 grid-cols-4 lg:grid-cols-7 gap-4">
+                {currentProducts.slice(0, 21).map((product) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
@@ -505,9 +545,9 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
               </div>
 
               {/* Mobile: Horizontal scroll carousel */}
-              <div className="md:hidden mt-8 -mx-6 px-6 overflow-x-auto scrollbar-hide">
+              <div className="md:hidden mt-6 -mx-6 px-6 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
-                  {randomProducts.map((product) => (
+                  {currentProducts.map((product) => (
                     <Link
                       key={product.id}
                       href={`/products/${product.slug}`}
