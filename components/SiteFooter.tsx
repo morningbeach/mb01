@@ -223,18 +223,11 @@ export function SiteFooter() {
             <div className="space-y-2 text-sm text-zinc-600">
               <div>
                 <p className="font-medium text-zinc-900">
-                  {lang === 'zh' ? '電話' : 'Phone'}
+                  Phone / WhatsApp / LINE
                 </p>
-                {data.contact.phone.map((phone, index) => (
-                  <p key={index}>
-                    <a href={`tel:${phone}`} className="hover:text-zinc-900">
-                      {phone}
-                    </a>
-                  </p>
-                ))}
                 <p>
-                  <a href={`tel:${data.contact.mobile}`} className="hover:text-zinc-900">
-                    {data.contact.mobile}
+                  <a href="tel:+886963581855" className="hover:text-zinc-900">
+                    +886-963-581-855
                   </a>
                 </p>
               </div>

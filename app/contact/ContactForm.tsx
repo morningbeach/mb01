@@ -156,7 +156,7 @@ export default function ContactForm({ variant = "full", source = "website", onSu
           name="phone"
           value={formData.phone}
           onChange={handleChange}
-          placeholder={lang === "zh" ? "聯絡電話（選填）" : "Phone (optional)"}
+          placeholder={lang === "zh" ? "Phone / WhatsApp / LINE（選填）" : "Phone / WhatsApp / LINE (optional)"}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
 
@@ -236,7 +236,7 @@ export default function ContactForm({ variant = "full", source = "website", onSu
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            {lang === "zh" ? "聯絡電話" : "Phone"}
+            Phone / WhatsApp / LINE
           </label>
           <input
             type="tel"
