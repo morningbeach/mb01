@@ -81,7 +81,7 @@ export function SiteHeader() {
         {/* 品牌 Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-base font-semibold tracking-tight">
-            MorningBeach / Gifts
+            {lang === 'zh' ? '清晨沙灘 / mbpack.co' : 'mbpack.co'}
           </span>
         </Link>
 

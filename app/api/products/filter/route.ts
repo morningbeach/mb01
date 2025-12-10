@@ -109,6 +109,8 @@ export async function GET(request: Request) {
     const category = searchParams.get('category') || '';
     // 隨機產品模式
     const random = searchParams.get('random') === 'true';
+    // 是否包含更多其他產品（沒有選中 tag 的產品）
+    const includeMore = searchParams.get('includeMore') === 'true';
 
     // 如果有類別篩選，取得該類別下的所有 tag IDs（使用快取）
     let categoryTagIds: string[] = [];
@@ -255,6 +257,8 @@ export async function GET(request: Request) {
       })),
       // 標記是否為紙袋產品（用於排序）
       _hasPaperBag: p.ProductTag.some((pt: any) => pt.Tag.slug === 'paper-bag'),
+      // 標記是否符合選中的 tag（用於分隔線）
+      _hasSelectedTag: true,
     }));
 
     // 提袋類別：紙袋產品排在後面
@@ -264,12 +268,84 @@ export async function GET(request: Request) {
       result = [...nonPaperBag, ...paperBag];
     }
 
-    // 移除內部標記
+    // 如果有選中 tag 且要求包含更多產品
+    let moreProducts: any[] = [];
+    let moreTotal = 0;
+    if (includeMore && tagSlugs.length > 0 && category) {
+      // 取得該類別中「不含」選中 tag 的其他產品
+      const moreWhere: any = {
+        status: 'ACTIVE',
+        version: 2,
+      };
+      
+      // 必須屬於該類別
+      if (category === 'bag') {
+        moreWhere.ProductTag = {
+          some: { tagId: { in: bagWhitelistIds } },
+        };
+      } else if (categoryTagIds.length > 0) {
+        moreWhere.ProductTag = {
+          some: { tagId: { in: categoryTagIds } },
+        };
+      }
+      
+      // 排除已經顯示的產品
+      const matchedIds = result.map((p: any) => p.id);
+      if (matchedIds.length > 0) {
+        moreWhere.id = { notIn: matchedIds };
+      }
+      
+      // 取得更多產品
+      const [moreProductsRaw, moreCount] = await Promise.all([
+        prisma.product.findMany({
+          where: moreWhere,
+          include: {
+            ProductTag: {
+              include: { Tag: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        }),
+        prisma.product.count({ where: moreWhere }),
+      ]);
+      
+      moreProducts = moreProductsRaw.map((p: any) => ({
+        id: p.id,
+        slug: p.slug,
+        name_zh: p.name_zh || p.name,
+        name_en: p.name_en || p.name,
+        shortDesc_zh: p.shortDesc_zh || p.shortDesc,
+        shortDesc_en: p.shortDesc_en || p.shortDesc,
+        coverImage: p.coverImage,
+        images: p.images || p.gallery || [],
+        material: p.material,
+        specs: p.specs,
+        moq: p.moq,
+        enableAiGen: p.enableAiGen || false,
+        ProductTag: p.ProductTag,
+        tags: p.ProductTag.map((pt: any) => ({
+          id: pt.Tag.id,
+          slug: pt.Tag.slug,
+          name_zh: pt.Tag.name_zh || pt.Tag.name,
+          name_en: pt.Tag.name_en || pt.Tag.name,
+          color: pt.Tag.color,
+        })),
+        _hasSelectedTag: false,
+      }));
+      moreTotal = moreCount;
+    }
+
+    // 移除內部標記（保留 _hasSelectedTag 用於前端分隔）
     result = result.map(({ _hasPaperBag, ...rest }: any) => rest);
+    moreProducts = moreProducts.map(({ _hasPaperBag, ...rest }: any) => rest);
 
     return NextResponse.json({
       success: true,
       products: result,
+      moreProducts: moreProducts,
+      matchedCount: result.length,
+      moreCount: moreTotal,
       pagination: {
         page,
         limit,

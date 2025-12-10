@@ -53,7 +53,7 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch 28 random products with cover image for each category
+  // Fetch random products for each category via API
   let categoryProducts: Record<string, any[]> = {
     "print-packaging": [],
     "bag": [],
@@ -61,41 +61,26 @@ export default async function Home() {
   };
   
   try {
+    // 使用與 packaging-explorer 相同的 API 端點
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const categories = ["print-packaging", "bag", "gift"];
     
-    for (const cat of categories) {
-      const products = await prisma.product.findMany({
-        where: { 
-          status: "ACTIVE",
-          coverImage: { not: null },
-          Category: {
-            slug: cat
-          }
-        },
-        select: { 
-          id: true, 
-          name_zh: true, 
-          name_en: true,
-          slug: true, 
-          coverImage: true,
-          ProductTag: {
-            select: {
-              Tag: {
-                select: { name_zh: true, name_en: true, slug: true }
-              }
-            },
-            take: 3
-          }
-        },
-      });
-      
-      // 隨機打亂並取28個
-      const shuffled = products.sort(() => Math.random() - 0.5);
-      categoryProducts[cat] = shuffled.slice(0, 28).map(p => ({
-        ...p,
-        tags: p.ProductTag.map((pt: any) => ({ tag: pt.Tag }))
-      }));
-    }
+    const results = await Promise.all(
+      categories.map(async (cat) => {
+        const res = await fetch(`${baseUrl}/api/products/filter?category=${cat}&random=true&limit=21`, {
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return { cat, products: data.products || [] };
+        }
+        return { cat, products: [] };
+      })
+    );
+    
+    results.forEach(({ cat, products }) => {
+      categoryProducts[cat] = products;
+    });
   } catch (error) {
     console.error('[Home] Failed to fetch category products:', error);
   }

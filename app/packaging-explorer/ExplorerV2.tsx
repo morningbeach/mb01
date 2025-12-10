@@ -128,6 +128,7 @@ export default function PackagingExplorerV2() {
   const [reachedBottom, setReachedBottom] = useState(false); // 是否滾動到底部
   const [urlCopied, setUrlCopied] = useState(false); // 複製網址成功提示
   const [selectedGiftItem, setSelectedGiftItem] = useState<string | null>(null); // 選中的禮品品項（如 drinkware）
+  const [moreProductsStartIndex, setMoreProductsStartIndex] = useState<number>(0); // 「更多產品」的起始索引
   const [giftSubDimension, setGiftSubDimension] = useState<Dimension | null>(null); // 禮品品項的子維度
   // 禮品初始隨機產品狀態
   const [giftRandomProducts, setGiftRandomProducts] = useState<Product[]>([]);
@@ -277,6 +278,7 @@ export default function PackagingExplorerV2() {
       if (tagSlugs.length > 0) {
         params.append('tags', tagSlugs.join(','));
         params.append('mode', filterMode);
+        params.append('includeMore', 'true'); // 包含更多其他產品
       }
       if (activeCategory !== 'all') {
         params.append('category', activeCategory);
@@ -297,9 +299,16 @@ export default function PackagingExplorerV2() {
       if (res.ok) {
         const data = await res.json();
         const newProducts = data.products || [];
+        const moreProducts = data.moreProducts || [];
+        
+        // 設置分隔線位置（符合 tag 的產品數量）
+        const matchedCount = data.matchedCount || newProducts.length;
+        setMoreProductsStartIndex(matchedCount);
 
         if (reset) {
-          const dedupedProducts = dedupeProducts(newProducts);
+          // 合併符合的產品和其他產品
+          const allProducts = [...newProducts, ...moreProducts];
+          const dedupedProducts = dedupeProducts(allProducts);
           setProducts(dedupedProducts);
           // 預載新產品的圖片
           preloadImagesRef.current(dedupedProducts, 'high');
@@ -2157,50 +2166,73 @@ export default function PackagingExplorerV2() {
                           uniqueProducts.push(p);
                         }
                       }
-                      return uniqueProducts;
-                    })().map((product, index) => (
-                      <div
-                        key={`${product.id}-${index}`}
-                        onClick={() => setSelectedProduct(product)}
-                        className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-200"
-                      >
-                        <div className="relative aspect-square bg-gray-50">
-                          {product.coverImage ? (
-                            <Image
-                              src={product.coverImage}
-                              alt={lang === 'zh' ? product.name_zh : product.name_en}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                              loading={index < 12 ? 'eager' : 'lazy'}
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <Package className="w-10 h-10 text-gray-300" />
+                      
+                      // 檢查是否需要顯示分隔線
+                      const showDivider = selectedTags.size > 0 && moreProductsStartIndex > 0 && moreProductsStartIndex < uniqueProducts.length;
+                      
+                      const elements: React.ReactNode[] = [];
+                      
+                      uniqueProducts.forEach((product, index) => {
+                        // 在分隔線位置插入
+                        if (showDivider && index === moreProductsStartIndex) {
+                          elements.push(
+                            <div key="more-divider" className="col-span-full flex items-center gap-4 py-6 my-2">
+                              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-gray-300"></div>
+                              <span className="px-4 py-1.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-full whitespace-nowrap">
+                                {lang === 'zh' ? '更多其他商品' : 'More Products'}
+                              </span>
+                              <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-300 to-gray-300"></div>
                             </div>
-                          )}
-                        </div>
-                        <div className="p-3 flex items-start justify-between gap-2">
-                          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
-                            {lang === 'zh' ? product.name_zh : product.name_en}
-                          </h3>
-                          {/* AI 設計按鈕 - 點擊直接開啟 AI Modal */}
-                          {product.enableAiGen && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setAiDesignProduct(product);
-                              }}
-                              className="shrink-0 px-2 py-1 rounded bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium flex items-center gap-1 hover:from-purple-600 hover:to-blue-600 transition-all"
-                              title={lang === 'zh' ? '一鍵設計' : 'AI Design'}
-                            >
-                              <span>✨</span>
-                              <span>{lang === 'zh' ? '一鍵設計' : 'AI Design'}</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                          );
+                        }
+                        
+                        elements.push(
+                          <div
+                            key={`${product.id}-${index}`}
+                            onClick={() => setSelectedProduct(product)}
+                            className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg hover:border-gray-200 transition-all duration-200"
+                          >
+                            <div className="relative aspect-square bg-gray-50">
+                              {product.coverImage ? (
+                                <Image
+                                  src={product.coverImage}
+                                  alt={lang === 'zh' ? product.name_zh : product.name_en}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                  loading={index < 12 ? 'eager' : 'lazy'}
+                                />
+                              ) : (
+                                <div className="flex items-center justify-center h-full">
+                                  <Package className="w-10 h-10 text-gray-300" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-3 flex items-start justify-between gap-2">
+                              <h3 className="font-medium text-gray-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
+                                {lang === 'zh' ? product.name_zh : product.name_en}
+                              </h3>
+                              {/* AI 設計按鈕 - 點擊直接開啟 AI Modal */}
+                              {product.enableAiGen && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAiDesignProduct(product);
+                                  }}
+                                  className="shrink-0 px-2 py-1 rounded bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-medium flex items-center gap-1 hover:from-purple-600 hover:to-blue-600 transition-all"
+                                  title={lang === 'zh' ? '一鍵設計' : 'AI Design'}
+                                >
+                                  <span>✨</span>
+                                  <span>{lang === 'zh' ? '一鍵設計' : 'AI Design'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      });
+                      
+                      return elements;
+                    })()}
                   </div>
                   
                   {/* 載入更多 */}

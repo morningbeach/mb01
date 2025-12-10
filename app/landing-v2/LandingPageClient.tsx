@@ -529,12 +529,12 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
                       </h4>
                       {product.tags && product.tags.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {product.tags.slice(0, 2).map((t: any, idx: number) => (
+                          {product.tags.slice(0, 2).map((tag: any, idx: number) => (
                             <span 
                               key={idx} 
                               className="inline-block px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-600 rounded"
                             >
-                              {lang === 'zh' ? t.tag.name_zh : t.tag.name_en}
+                              {lang === 'zh' ? tag.name_zh : tag.name_en}
                             </span>
                           ))}
                         </div>
@@ -570,12 +570,12 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
                         </h4>
                         {product.tags && product.tags.length > 0 && (
                           <div className="mt-1 flex flex-wrap gap-1">
-                            {product.tags.slice(0, 2).map((t: any, idx: number) => (
+                            {product.tags.slice(0, 2).map((tag: any, idx: number) => (
                               <span 
                                 key={idx} 
                                 className="inline-block px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-600 rounded"
                               >
-                                {lang === 'zh' ? t.tag.name_zh : t.tag.name_en}
+                                {lang === 'zh' ? tag.name_zh : tag.name_en}
                               </span>
                             ))}
                           </div>
@@ -769,7 +769,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         </div>
         <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
           <div className="space-y-8">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
+            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">{t({ en: "MBPACK.CO", zh: "清晨沙灘 / mbpack.co" })}</p>
             <h1 className="text-5xl font-bold tracking-tight text-white md:text-7xl lg:text-8xl">{t(heroData.headline)}</h1>
             <p className="mx-auto max-w-3xl text-xl font-medium leading-relaxed text-white/90 md:text-2xl">{t(heroData.subheadline)}</p>
             <p className="mx-auto max-w-2xl text-base text-white/70 md:text-lg">{t(heroData.support)}</p>
@@ -787,7 +787,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-0" />
         <div className="relative z-10 mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center min-h-[80vh]">
           <div className="space-y-8">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
+            <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">{t({ en: "MBPACK.CO", zh: "清晨沙灘 / mbpack.co" })}</p>
             <h1 className="text-5xl font-bold tracking-tight text-white md:text-6xl lg:text-7xl">{t(heroData.headline)}</h1>
             <p className="max-w-xl text-xl font-medium leading-relaxed text-white/90">{t(heroData.subheadline)}</p>
             <p className="max-w-lg text-base text-white/70">{t(heroData.support)}</p>
@@ -814,7 +814,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
           <div className="h-full w-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/40 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
-          <p className="mb-8 text-sm font-bold uppercase tracking-[0.5em] text-emerald-300">MBPACK.CO</p>
+          <p className="mb-8 text-sm font-bold uppercase tracking-[0.5em] text-emerald-300">{t({ en: "MBPACK.CO", zh: "清晨沙灘 / mbpack.co" })}</p>
           <h1 className="text-6xl font-black tracking-tighter text-white md:text-8xl lg:text-[10rem] leading-none">{t(heroData.headline)}</h1>
           <p className="mx-auto mt-12 max-w-2xl text-lg text-white/60">{t(heroData.subheadline)}</p>
           <div className="mt-12">
@@ -850,7 +850,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
         <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-32">
           <div className="mx-auto max-w-4xl">
             <div className="rounded-[3rem] border border-white/10 bg-black/60 p-12 backdrop-blur-xl md:p-16">
-              <p className="text-center text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
+              <p className="text-center text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">{t({ en: "MBPACK.CO", zh: "清晨沙灘 / mbpack.co" })}</p>
               <h1 className="mt-8 text-center text-4xl font-bold tracking-tight text-white md:text-6xl">{t(heroData.headline)}</h1>
               <p className="mx-auto mt-8 max-w-2xl text-center text-lg text-white/80">{t(heroData.subheadline)}</p>
               <p className="mx-auto mt-4 max-w-xl text-center text-sm text-white/60">{t(heroData.support)}</p>
@@ -884,7 +884,7 @@ function HeroSection({ config, t }: { config: LandingPageConfig; t: (copy: Copy)
           </div>
           <div className="relative flex items-center px-8 py-20 lg:px-16">
             <div className="space-y-8">
-              <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">MBPACK.CO</p>
+              <p className="text-sm font-bold uppercase tracking-[0.3em] text-emerald-300">{t({ en: "MBPACK.CO", zh: "清晨沙灘 / mbpack.co" })}</p>
               <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">{t(heroData.headline)}</h1>
               <p className="max-w-lg text-lg text-white/80">{t(heroData.subheadline)}</p>
               <p className="max-w-md text-sm text-white/60">{t(heroData.support)}</p>
