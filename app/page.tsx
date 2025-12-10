@@ -53,7 +53,7 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Fetch random products for each category via API
+  // Fetch random products for each category directly using Prisma
   let categoryProducts: Record<string, any[]> = {
     "print-packaging": [],
     "bag": [],
@@ -61,25 +61,98 @@ export default async function Home() {
   };
   
   try {
-    // 使用與 packaging-explorer 相同的 API 端點
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const categories = ["print-packaging", "bag", "gift"];
+    // 取得各類別的標籤 IDs
+    const getCategoryTagIds = async (cat: string) => {
+      const dimensionTags = await prisma.dimensionTagMapping.findMany({
+        where: {
+          dimension: { category: cat },
+        },
+        select: { tagId: true },
+      });
+      return dimensionTags.map(dt => dt.tagId);
+    };
+
+    // 提袋白名單 slugs
+    const BAG_WHITELIST_SLUGS = [
+      'paperbag-1764277797638', 'ropebag-1764277847890', 'ricepaperropebag-1764278030858',
+      'diecutbag-1764278039631', 'giftpaperbag-1764278017611', 'kraftpaperbag-1764278049159',
+      'artpaperbag-1764280329379', 'totebag-1764280350155', 'canvasbag-1764280362046',
+      'cottonbag-1764280371584', 'coolerbag-1764280414779', 'insulationbag-1764280384176',
+      'vest-typebag-1764281280937', 'vest-typebag-1764281282158', 'gunnybag-1764278867794',
+    ];
+
+    // 取得提袋白名單 tag IDs
+    const bagWhitelistTags = await prisma.tag.findMany({
+      where: { slug: { in: BAG_WHITELIST_SLUGS } },
+      select: { id: true },
+    });
+    const bagWhitelistIds = bagWhitelistTags.map(t => t.id);
+
+    // 查詢各類別產品
+    const fetchCategoryProducts = async (cat: string, tagIds: string[], limit: number) => {
+      // 取得符合條件的產品 IDs
+      const productIds = await prisma.productTag.findMany({
+        where: { tagId: { in: tagIds } },
+        select: { productId: true },
+        distinct: ['productId'],
+      });
+      
+      const uniqueIds = productIds.map(p => p.productId);
+      if (uniqueIds.length === 0) return [];
+
+      // 隨機取 limit 個
+      const shuffled = uniqueIds.sort(() => Math.random() - 0.5);
+      const selectedIds = shuffled.slice(0, limit);
+
+      // 查詢完整產品資料
+      const products = await prisma.product.findMany({
+        where: {
+          id: { in: selectedIds },
+          status: 'ACTIVE',
+          version: 2,
+        },
+        select: {
+          id: true,
+          name_zh: true,
+          name_en: true,
+          coverImage: true,
+          slug: true,
+          material: true,
+          ProductTag: {
+            select: {
+              Tag: {
+                select: { id: true, slug: true, name_zh: true, name_en: true }
+              }
+            }
+          }
+        },
+      });
+
+      return products;
+    };
+
+    // 並行查詢三個類別
+    const [printPackagingTagIds, giftTagIds] = await Promise.all([
+      getCategoryTagIds('print-packaging'),
+      getCategoryTagIds('gift'),
+    ]);
+
+    const [printPackagingProducts, bagProducts, giftProducts] = await Promise.all([
+      fetchCategoryProducts('print-packaging', printPackagingTagIds, 21),
+      fetchCategoryProducts('bag', bagWhitelistIds, 21),
+      fetchCategoryProducts('gift', giftTagIds, 21),
+    ]);
+
+    categoryProducts = {
+      "print-packaging": printPackagingProducts,
+      "bag": bagProducts,
+      "gift": giftProducts,
+    };
     
-    const results = await Promise.all(
-      categories.map(async (cat) => {
-        const res = await fetch(`${baseUrl}/api/products/filter?category=${cat}&random=true&limit=21`, {
-          cache: 'no-store'
-        });
-        if (res.ok) {
-          const data = await res.json();
-          return { cat, products: data.products || [] };
-        }
-        return { cat, products: [] };
-      })
-    );
-    
-    results.forEach(({ cat, products }) => {
-      categoryProducts[cat] = products;
+    console.log('[Home] Category products loaded:', {
+      'print-packaging': printPackagingProducts.length,
+      'bag': bagProducts.length,
+      'gift': giftProducts.length,
     });
   } catch (error) {
     console.error('[Home] Failed to fetch category products:', error);
