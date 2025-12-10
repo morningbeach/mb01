@@ -178,6 +178,11 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
   const { lang } = useLanguage();
   const t = (copy: Copy) => (lang === "zh" ? copy.zh : copy.en);
   
+  // Debug: 檢查 randomProducts
+  useEffect(() => {
+    console.log('[Landing] randomProducts received:', randomProducts.length, randomProducts);
+  }, [randomProducts]);
+  
   // 在 Client 端獲取產品資料（與 packaging-explorer 一致的方式）
   const [featuredProducts, setFeaturedProducts] = useState<any[]>(initialProducts);
   const [productsLoading, setProductsLoading] = useState(false);
