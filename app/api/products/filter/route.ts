@@ -130,22 +130,29 @@ export async function GET(request: Request) {
       version: 2,
     };
 
+    // 建立 AND 條件陣列
+    const andConditions: any[] = [];
+
     // 類別篩選：產品必須有該類別的標籤
     if (category && categoryTagIds.length > 0) {
       if (category === 'bag') {
         // 提袋類別：必須有白名單中的「袋」tag
-        where.ProductTag = {
-          some: {
-            tagId: { in: bagWhitelistIds },
+        andConditions.push({
+          ProductTag: {
+            some: {
+              tagId: { in: bagWhitelistIds },
+            },
           },
-        };
+        });
       } else {
         // 其他類別（包含禮品）：使用維度下的所有標籤
-        where.ProductTag = {
-          some: {
-            tagId: { in: categoryTagIds },
+        andConditions.push({
+          ProductTag: {
+            some: {
+              tagId: { in: categoryTagIds },
+            },
           },
-        };
+        });
       }
     }
 
@@ -153,25 +160,34 @@ export async function GET(request: Request) {
     if (tagSlugs.length > 0) {
       if (filterMode === 'all') {
         // AND 模式：產品必須擁有所有選中的標籤
-        where.AND = tagSlugs.map(slug => ({
+        tagSlugs.forEach(slug => {
+          andConditions.push({
+            ProductTag: {
+              some: {
+                Tag: {
+                  slug: slug,
+                },
+              },
+            },
+          });
+        });
+      } else {
+        // OR 模式：產品只需擁有任一選中的標籤
+        andConditions.push({
           ProductTag: {
             some: {
               Tag: {
-                slug: slug,
+                slug: { in: tagSlugs },
               },
             },
           },
-        }));
-      } else {
-        // OR 模式：產品只需擁有任一選中的標籤
-        where.ProductTag = {
-          some: {
-            Tag: {
-              slug: { in: tagSlugs },
-            },
-          },
-        };
+        });
       }
+    }
+
+    // 合併 AND 條件
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     // 關鍵字搜尋

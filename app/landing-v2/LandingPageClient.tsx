@@ -23,7 +23,7 @@ interface LandingPageConfig {
   };
   selectedCaseIds: string[];
   trustedBy: {
-    text: string;
+    text: Copy;
     images: string[];
   };
   selectedBlogIds: string[];
@@ -238,8 +238,11 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
   // Use config solutions or defaults
   const displaySolutions = config.solutions.length > 0 ? config.solutions : defaultSolutions;
   
-  // Parse trusted by brands
-  const trustedBrands = config.trustedBy.text.split(",").map(s => s.trim()).filter(s => s);
+  // Parse trusted by brands based on language
+  const trustedByText = typeof config.trustedBy.text === 'string' 
+    ? config.trustedBy.text 
+    : (lang === 'zh' ? config.trustedBy.text.zh : config.trustedBy.text.en) || '';
+  const trustedBrands = trustedByText.split(",").map(s => s.trim()).filter(s => s);
 
   // 商品輪播類別標題
   const categoryLabels: Record<string, Copy> = {

@@ -226,8 +226,21 @@ export function SiteFooter() {
                   Phone / WhatsApp / LINE
                 </p>
                 <p>
+                  <span className="text-zinc-500 text-xs">Taiwan: </span>
+                  <a href="tel:+88673450928" className="hover:text-zinc-900">
+                    +886-7-345-0928
+                  </a>
+                </p>
+                <p>
+                  <span className="text-zinc-500 text-xs">Mobile: </span>
                   <a href="tel:+886963581855" className="hover:text-zinc-900">
                     +886-963-581-855
+                  </a>
+                </p>
+                <p>
+                  <span className="text-zinc-500 text-xs">China: </span>
+                  <a href="tel:+861992872496" className="hover:text-zinc-900">
+                    +86-199-2872-496
                   </a>
                 </p>
               </div>

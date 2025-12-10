@@ -22,7 +22,7 @@ interface LandingPageConfig {
   };
   selectedCaseIds: string[];
   trustedBy: {
-    text: string;
+    text: Copy;
     images: string[];
   };
   selectedBlogIds: string[];
@@ -144,7 +144,7 @@ const DEFAULT_CONFIG: LandingPageConfig = {
     ],
   },
   selectedCaseIds: [],
-  trustedBy: { text: "科技,金融,美妝,文創,零售,餐飲,旅遊,禮品通路", images: [] },
+  trustedBy: { text: { zh: "科技,金融,美妝,文創,零售,餐飲,旅遊,禮品通路", en: "Tech,Finance,Beauty,Creative,Retail,F&B,Travel,Gift Channels" }, images: [] },
   selectedBlogIds: [],
   featuredProductCategory: "none", // 新增預設值
   solutions: DEFAULT_SOLUTIONS,
@@ -368,10 +368,17 @@ export default function LandingEditorPage() {
         <Section title="3. Trusted By">
           <div className="space-y-6">
             <Input
-              label="Brand Names (comma separated)"
-              value={config.trustedBy.text}
+              label="客戶名稱 (中文，逗號分隔)"
+              value={config.trustedBy.text.zh}
               onChange={(v) =>
-                updateConfig("trustedBy", { ...config.trustedBy, text: v })
+                updateConfig("trustedBy", { ...config.trustedBy, text: { ...config.trustedBy.text, zh: v } })
+              }
+            />
+            <Input
+              label="Brand Names (English, comma separated)"
+              value={config.trustedBy.text.en}
+              onChange={(v) =>
+                updateConfig("trustedBy", { ...config.trustedBy, text: { ...config.trustedBy.text, en: v } })
               }
             />
             <div className="space-y-2">

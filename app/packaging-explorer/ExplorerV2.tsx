@@ -128,7 +128,7 @@ export default function PackagingExplorerV2() {
   const [reachedBottom, setReachedBottom] = useState(false); // 是否滾動到底部
   const [urlCopied, setUrlCopied] = useState(false); // 複製網址成功提示
   const [selectedGiftItem, setSelectedGiftItem] = useState<string | null>(null); // 選中的禮品品項（如 drinkware）
-  const [moreProductsStartIndex, setMoreProductsStartIndex] = useState<number>(0); // 「更多產品」的起始索引
+  const [moreProductsStartIndex, setMoreProductsStartIndex] = useState<number>(-1); // 「更多產品」的起始索引，-1 表示不顯示分隔線
   const [giftSubDimension, setGiftSubDimension] = useState<Dimension | null>(null); // 禮品品項的子維度
   // 禮品初始隨機產品狀態
   const [giftRandomProducts, setGiftRandomProducts] = useState<Product[]>([]);
@@ -172,6 +172,9 @@ export default function PackagingExplorerV2() {
   // 無限滾動觀察器 ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const footerTriggerRef = useRef<HTMLDivElement>(null);
+  
+  // 剩餘的「更多商品」（選擇 tag 時的 unmatched 產品）
+  const remainingMoreProductsRef = useRef<Product[]>([]);
   
   // 載入鎖 - 防止同一類別重複載入
   const loadingLockRef = useRef<string | null>(null);
@@ -339,6 +342,17 @@ export default function PackagingExplorerV2() {
   const loadMore = useCallback(() => {
     if (loadingMore) return;
     
+    // 如果有選擇 tag，且還有剩餘的「更多商品」可載入
+    if (selectedTags.size > 0 && remainingMoreProductsRef.current.length > 0) {
+      const nextBatch = remainingMoreProductsRef.current.slice(0, 12);
+      remainingMoreProductsRef.current = remainingMoreProductsRef.current.slice(12);
+      
+      setProducts(prev => [...prev, ...nextBatch]);
+      setDisplayCount(prev => prev + nextBatch.length);
+      setHasMore(remainingMoreProductsRef.current.length > 0);
+      return;
+    }
+    
     // 如果正在顯示隨機推薦，且滾到底部，載入完整產品列表
     if (showingRandomPicks && ['gift', 'print-packaging', 'bag'].includes(activeCategory)) {
       // 直接從 ref 讀取快取
@@ -375,7 +389,7 @@ export default function PackagingExplorerV2() {
     else if (hasMore) {
       loadProducts(false);
     }
-  }, [displayCount, products.length, hasMore, loadingMore, loadProducts, showingRandomPicks, activeCategory, products]);
+  }, [displayCount, products.length, hasMore, loadingMore, loadProducts, showingRandomPicks, activeCategory, products, selectedTags.size]);
 
   // 無限滾動 - IntersectionObserver
   useEffect(() => {
@@ -780,7 +794,7 @@ export default function PackagingExplorerV2() {
     if (activeCategory === 'gift') {
       const tagSlugs = Array.from(selectedTags);
       if (tagSlugs.length > 0) {
-        // 有選擇品項時，從 API 載入產品
+        // 有選擇品項時，從 API 載入產品（包含更多商品）
         const loadGiftProducts = async () => {
           setFilterLoading(true); // 開始載入
           try {
@@ -789,15 +803,24 @@ export default function PackagingExplorerV2() {
             params.append('tags', tagSlugs.join(','));
             params.append('page', '1');
             params.append('limit', '500');
+            params.append('includeMore', 'true'); // 要求包含更多商品
             
             const res = await fetch(`/api/products/filter?${params.toString()}`);
             if (res.ok) {
               const data = await res.json();
-              const dedupedProducts = dedupeProducts(data.products || []);
-              setProducts(dedupedProducts);
-              setTotalProducts(dedupedProducts.length);
+              const matchedProducts = dedupeProducts(data.products || []);
+              const moreProducts = dedupeProducts(data.moreProducts || []);
+              const matchedCount = matchedProducts.length;
+              
+              // 設定分隔線位置
+              setMoreProductsStartIndex(matchedCount);
+              
+              // 合併 matched + more products
+              const finalProducts = [...matchedProducts, ...moreProducts];
+              setProducts(finalProducts);
+              setTotalProducts(matchedCount); // 總數只計算 matched
               setHasMore(false);
-              setDisplayCount(20);
+              setDisplayCount(Math.max(20, matchedCount + 12));
             }
           } catch (error) {
             console.error('載入禮品產品失敗:', error);
@@ -806,6 +829,10 @@ export default function PackagingExplorerV2() {
           }
         };
         loadGiftProducts();
+      } else {
+        // 沒有選擇標籤時，重置分隔線和剩餘產品
+        setMoreProductsStartIndex(-1);
+        remainingMoreProductsRef.current = [];
       }
       return; // 禮品類別不使用本地過濾
     }
@@ -816,25 +843,42 @@ export default function PackagingExplorerV2() {
       const tagSlugs = Array.from(selectedTags);
       const query = searchQuery.toLowerCase().trim();
       
-      let filtered = cached.products;
-      
-      // 標籤過濾
-      if (tagSlugs.length > 0) {
-        filtered = filtered.filter(product => {
-          const productTagSlugs = product.ProductTag?.map(pt => pt.Tag?.slug).filter(Boolean) || [];
-          if (filterMode === 'all') {
-            // AND 模式：必須符合所有選中的標籤
-            return tagSlugs.every(slug => productTagSlugs.includes(slug));
-          } else {
-            // OR 模式：符合任一選中的標籤
-            return tagSlugs.some(slug => productTagSlugs.includes(slug));
-          }
-        });
+      // 如果沒有篩選條件，重置 moreProductsStartIndex 和剩餘產品
+      if (tagSlugs.length === 0 && !query) {
+        setMoreProductsStartIndex(-1);
+        remainingMoreProductsRef.current = [];
+        return;
       }
       
-      // 搜尋過濾（本地全文搜尋）
+      let matchedProducts: typeof cached.products = [];
+      let otherProducts: typeof cached.products = [];
+      
+      // 標籤過濾 - 同時分離 matched 和 unmatched
+      if (tagSlugs.length > 0) {
+        cached.products.forEach(product => {
+          const productTagSlugs = product.ProductTag?.map(pt => pt.Tag?.slug).filter(Boolean) || [];
+          let isMatched = false;
+          if (filterMode === 'all') {
+            // AND 模式：必須符合所有選中的標籤
+            isMatched = tagSlugs.every(slug => productTagSlugs.includes(slug));
+          } else {
+            // OR 模式：符合任一選中的標籤
+            isMatched = tagSlugs.some(slug => productTagSlugs.includes(slug));
+          }
+          if (isMatched) {
+            matchedProducts.push(product);
+          } else {
+            otherProducts.push(product);
+          }
+        });
+      } else {
+        // 沒有標籤過濾，所有產品都是 matched
+        matchedProducts = [...cached.products];
+      }
+      
+      // 搜尋過濾（本地全文搜尋）- 只在 matchedProducts 中搜尋
       if (query) {
-        filtered = filtered.filter(product => {
+        matchedProducts = matchedProducts.filter(product => {
           const searchFields = [
             product.name_zh,
             product.name_en,
@@ -851,13 +895,23 @@ export default function PackagingExplorerV2() {
         });
       }
       
-      // 如果有任何篩選條件，更新產品列表
-      if (tagSlugs.length > 0 || query) {
-        setProducts(filtered);
-        setTotalProducts(filtered.length);
-        setHasMore(false);
-        setDisplayCount(20);
-      }
+      // 設定 moreProductsStartIndex 為 matched 產品數量
+      setMoreProductsStartIndex(matchedProducts.length);
+      
+      // 從其他產品中隨機選取一些作為 "更多商品"
+      const shuffledOthers = [...otherProducts].sort(() => Math.random() - 0.5);
+      const moreProducts = shuffledOthers.slice(0, 12); // 初始最多 12 個
+      
+      // 保存剩餘的其他產品，以便之後載入更多
+      remainingMoreProductsRef.current = shuffledOthers.slice(12);
+      
+      // 合併 matched + more products
+      const finalProducts = [...matchedProducts, ...moreProducts];
+      
+      setProducts(finalProducts);
+      setTotalProducts(matchedProducts.length); // 總數只計算 matched
+      setHasMore(remainingMoreProductsRef.current.length > 0); // 如果還有剩餘就設為 true
+      setDisplayCount(Math.max(20, matchedProducts.length + 12));
       return;
     }
   }, [selectedTags, filterMode, searchQuery, usingCache, initialLoaded, activeCategory]);
@@ -915,6 +969,10 @@ export default function PackagingExplorerV2() {
         total: totalProducts,
       }, true); // 鎖定
     }
+    
+    // 切換類別時重置分隔線和剩餘產品
+    setMoreProductsStartIndex(-1);
+    remainingMoreProductsRef.current = [];
     
     // 禮品類別特殊處理
     if (categoryId === 'gift') {
@@ -2250,11 +2308,6 @@ export default function PackagingExplorerV2() {
                       )}
                     </div>
                   )}
-                  
-                  {/* Footer 觸發器 - 所有產品載入完成後出現 */}
-                  {!loading && !loadingMore && displayCount >= products.length && !hasMore && (
-                    <div ref={footerTriggerRef} className="h-1" />
-                  )}
                 </>
               )}
             </div>
@@ -2280,8 +2333,8 @@ export default function PackagingExplorerV2() {
         )}
       </div>
 
-      {/* Footer - 只有滾動到底部 + 載入完成才顯示 */}
-      {reachedBottom && !loading && !loadingMore && displayCount >= products.length && !hasMore && (
+      {/* Footer - 所有產品載入完成後顯示在頁面最底部 */}
+      {!loading && !loadingMore && displayCount >= products.length && !hasMore && (
         <SiteFooter />
       )}
     </>

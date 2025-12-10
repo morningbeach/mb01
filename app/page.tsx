@@ -20,7 +20,7 @@ const DEFAULT_CONFIG = {
     galleryImages: [],
   },
   selectedCaseIds: [],
-  trustedBy: { text: "", images: [] },
+  trustedBy: { text: { zh: "", en: "" }, images: [] },
   selectedBlogIds: [],
   solutions: [],
   aiSettings: { openaiKey: "", geminiKey: "" },
