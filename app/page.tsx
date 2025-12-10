@@ -117,7 +117,6 @@ export default async function Home() {
           name_en: true,
           coverImage: true,
           slug: true,
-          material: true,
           ProductTag: {
             select: {
               Tag: {

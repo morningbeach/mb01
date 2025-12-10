@@ -239,9 +239,32 @@ export default function LandingPageClient({ config, cases, blogs, featuredProduc
   const displaySolutions = config.solutions.length > 0 ? config.solutions : defaultSolutions;
   
   // Parse trusted by brands based on language
-  const trustedByText = typeof config.trustedBy.text === 'string' 
-    ? config.trustedBy.text 
-    : (lang === 'zh' ? config.trustedBy.text.zh : config.trustedBy.text.en) || '';
+  // 處理舊格式（字串）和新格式（{ zh, en } 物件）
+  const getTrustedByText = () => {
+    const text = config.trustedBy?.text;
+    if (!text) return '';
+    
+    // 舊格式：直接是字串
+    if (typeof text === 'string') {
+      return text;
+    }
+    
+    // 新格式：{ zh, en } 物件
+    if (typeof text === 'object') {
+      const zhText = (text as any).zh || '';
+      const enText = (text as any).en || '';
+      // 根據語言選擇，如果選擇的語言沒有內容則使用另一個
+      if (lang === 'zh') {
+        return zhText || enText;
+      } else {
+        return enText || zhText;
+      }
+    }
+    
+    return '';
+  };
+  
+  const trustedByText = getTrustedByText();
   const trustedBrands = trustedByText.split(",").map(s => s.trim()).filter(s => s);
 
   // 商品輪播類別標題
