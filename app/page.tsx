@@ -69,7 +69,7 @@ export default async function Home() {
         coverImage: true,
         ProductTag: {
           select: {
-            tag: {
+            Tag: {
               select: { name_zh: true, name_en: true, slug: true }
             }
           },
@@ -82,7 +82,7 @@ export default async function Home() {
     const shuffled = allProducts.sort(() => Math.random() - 0.5);
     randomProducts = shuffled.slice(0, 28).map(p => ({
       ...p,
-      tags: p.ProductTag // 轉換欄位名稱以符合前端期望
+      tags: p.ProductTag.map((pt: any) => ({ tag: pt.Tag })) // 轉換欄位名稱以符合前端期望
     }));
   } catch (error) {
     console.error('[Home] Failed to fetch random products:', error);
