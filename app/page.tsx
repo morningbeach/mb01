@@ -58,7 +58,7 @@ export default async function Home() {
   try {
     const allProducts = await prisma.product.findMany({
       where: { 
-        isPublished: true,
+        status: "ACTIVE",
         coverImage: { not: null }
       },
       select: { 
