@@ -72,13 +72,21 @@ export default async function Home() {
       return dimensionTags.map(dt => dt.tagId);
     };
 
-    // 提袋白名單 slugs
+    // 提袋白名單 slugs（與 API 完全一致）
     const BAG_WHITELIST_SLUGS = [
-      'paperbag-1764277797638', 'ropebag-1764277847890', 'ricepaperropebag-1764278030858',
-      'diecutbag-1764278039631', 'giftpaperbag-1764278017611', 'kraftpaperbag-1764278049159',
-      'artpaperbag-1764280329379', 'totebag-1764280350155', 'canvasbag-1764280362046',
-      'cottonbag-1764280371584', 'coolerbag-1764280414779', 'insulationbag-1764280384176',
-      'vest-typebag-1764281280937', 'vest-typebag-1764281282158', 'gunnybag-1764278867794',
+      // 袋形
+      'tote-bag', 'flat-bag', 'gusset-bag', 'drawstring-bag', 'drawstring-backpack',
+      'shoulder-bag', 'crossbody-bag', 'messenger-bag', 'backpack', 'cooler-bag',
+      'lunch-bag', 'wine-bag', 'bottle-bag', 'pouch', 'pencil-case', 'laptop-sleeve',
+      'document-bag', 'foldable-bag', 'eco-bag', 'ita-bag', 'paper-shopping-bag',
+      'gift-bag', 'other-bag-style', 'cosmetic-pouch',
+      // 材質袋
+      'canvas-bag', 'cotton-canvas', 'pvc-bag', 'tyvek-bag', 'nonwoven-bag',
+      'woven-bag',
+      // 其他袋相關
+      'coolerbag-1764280414779', 'insulationbag-1764280384176',
+      'vest-typebag-1764281280937', 'vest-typebag-1764281282158',
+      'gunnybag-1764278867794',
     ];
 
     // 取得提袋白名單 tag IDs
