@@ -61,15 +61,27 @@ export default async function Home() {
   };
   
   try {
-    // 取得各類別的標籤 IDs（使用特定維度）
-    const getDimensionTagIds = async (dimensionSlug: string) => {
+    // 跨類別的標籤（同時屬於多個類別，不應用於類別過濾）- 與 API 一致
+    const CROSS_CATEGORY_TAG_SLUGS = [
+      'corporate-gift', 'embossing', 'laser-engraving', 'polyester', 'nylon',
+      'leather', 'faux-leather', 'cork', 'screen-print', 'heat-transfer',
+      'sublimation', 'dtg-print', 'offset-print', 'embroidery', 'waterproof',
+      'insulated', 'foldable', 'grs-certified', 'recycled-material', 'biodegradable',
+      'organic-cotton', 'oeko-tex', 'fsc-paper', 'fashion-apparel', 'retail-shopping',
+      'travel-outdoor', 'sports-fitness', 'baby-kids', 'school-office',
+      'tag-1764169657523',
+    ];
+
+    // 取得類別下所有維度的標籤 IDs（與 API 的 getCategoryTagIds 一致）
+    const getCategoryTagIds = async (category: string) => {
       const dimensionTags = await prisma.dimensionTagMapping.findMany({
         where: {
-          dimension: { slug: dimensionSlug },
+          dimension: { category },
+          tag: { slug: { notIn: CROSS_CATEGORY_TAG_SLUGS } },
         },
         select: { tagId: true },
       });
-      return dimensionTags.map(dt => dt.tagId);
+      return [...new Set(dimensionTags.map(dt => dt.tagId))];
     };
 
     // 取得 print-packaging 類別標籤（使用 folding-carton + rigid-box + other-print 維度）
@@ -166,16 +178,16 @@ export default async function Home() {
     // 並行查詢三個類別的標籤 IDs
     // print-packaging: 使用品項維度 (folding-carton, rigid-box, other-print)
     // bag: 使用白名單
-    // gift: 使用 gift-type 維度下的品項標籤
+    // gift: 使用整個 gift 類別下的所有維度標籤（與 API 一致）
     const [printPackagingTagIds, giftTagIds] = await Promise.all([
       getPrintPackagingTagIds(),
-      getDimensionTagIds('gift-type'),
+      getCategoryTagIds('gift'),
     ]);
 
     const [printPackagingProducts, bagProducts, giftProducts] = await Promise.all([
       fetchCategoryProducts('print-packaging', printPackagingTagIds, 21, true),  // 排除提袋
       fetchCategoryProducts('bag', bagWhitelistIds, 21, false),
-      fetchCategoryProducts('gift', giftTagIds, 21, false),  // gift-type 維度不會有袋類，不需排除
+      fetchCategoryProducts('gift', giftTagIds, 21, true),  // 排除提袋
     ]);
 
     categoryProducts = {
