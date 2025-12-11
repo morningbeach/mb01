@@ -83,8 +83,8 @@ export function SiteFooter() {
         taxId: "89188386" 
       },
       china: { 
-        name: "天玎纸品包装有限公司",
-        nameEn: "Tianding Paper Packaging Co., Ltd."
+        name: "深圳天文印刷包装有限公司",
+        nameEn: "Sky Word Printing Packaging Co Ltd"
       }
     },
     addresses: {
