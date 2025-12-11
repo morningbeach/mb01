@@ -239,8 +239,8 @@ export function SiteFooter() {
                 </p>
                 <p>
                   <span className="text-zinc-500 text-xs">China: </span>
-                  <a href="tel:+861992872496" className="hover:text-zinc-900">
-                    +86-199-2872-496
+                  <a href="tel:+8619928724976" className="hover:text-zinc-900">
+                    +86-199-2872-4976
                   </a>
                 </p>
               </div>

@@ -27,7 +27,7 @@ const CONTACT_INFO = {
   phones: [
     { label: "Taiwan", number: "+886-7-345-0928", tel: "+88673450928" },
     { label: "Mobile", number: "+886-963-581-855", tel: "+886963581855" },
-    { label: "China", number: "+86-199-2872-496", tel: "+861992872496" }
+    { label: "China", number: "+86-199-2872-4976", tel: "+8619928724976" }
   ],
   email: "morningbeachtw@gmail.com"
 };
