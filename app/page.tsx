@@ -61,15 +61,28 @@ export default async function Home() {
   };
   
   try {
-    // 取得各類別的標籤 IDs
-    const getCategoryTagIds = async (cat: string) => {
+    // 取得各類別的標籤 IDs（使用特定維度）
+    const getDimensionTagIds = async (dimensionSlug: string) => {
       const dimensionTags = await prisma.dimensionTagMapping.findMany({
         where: {
-          dimension: { category: cat },
+          dimension: { slug: dimensionSlug },
         },
         select: { tagId: true },
       });
       return dimensionTags.map(dt => dt.tagId);
+    };
+
+    // 取得 print-packaging 類別標籤（使用 folding-carton + rigid-box + other-print 維度）
+    const getPrintPackagingTagIds = async () => {
+      const dimensionTags = await prisma.dimensionTagMapping.findMany({
+        where: {
+          dimension: { 
+            slug: { in: ['folding-carton', 'rigid-box', 'other-print'] }
+          },
+        },
+        select: { tagId: true },
+      });
+      return [...new Set(dimensionTags.map(dt => dt.tagId))];
     };
 
     // 提袋白名單 slugs（與 API 完全一致）
@@ -150,16 +163,19 @@ export default async function Home() {
       return products;
     };
 
-    // 並行查詢三個類別
+    // 並行查詢三個類別的標籤 IDs
+    // print-packaging: 使用品項維度 (folding-carton, rigid-box, other-print)
+    // bag: 使用白名單
+    // gift: 使用 gift-type 維度下的品項標籤
     const [printPackagingTagIds, giftTagIds] = await Promise.all([
-      getCategoryTagIds('print-packaging'),
-      getCategoryTagIds('gift'),
+      getPrintPackagingTagIds(),
+      getDimensionTagIds('gift-type'),
     ]);
 
     const [printPackagingProducts, bagProducts, giftProducts] = await Promise.all([
       fetchCategoryProducts('print-packaging', printPackagingTagIds, 21, true),  // 排除提袋
       fetchCategoryProducts('bag', bagWhitelistIds, 21, false),
-      fetchCategoryProducts('gift', giftTagIds, 21, true),  // 排除提袋
+      fetchCategoryProducts('gift', giftTagIds, 21, false),  // gift-type 維度不會有袋類，不需排除
     ]);
 
     categoryProducts = {
