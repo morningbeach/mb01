@@ -86,7 +86,8 @@ export default function ImagePicker({
   const loadImagesForFolder = async (folderPath: string, pageNum: number) => {
     setLoadingImages(true);
     try {
-      const prefix = folderPath ? `uploads/${folderPath}/` : "uploads/";
+      // folderPath 已經是完整路徑（如 "uploads", "AItrend" 等），直接加上 / 即可
+      const prefix = folderPath ? `${folderPath}/` : "";
       const res = await fetch(
         `/api/admin/images?prefix=${encodeURIComponent(prefix)}&page=${pageNum}&limit=${PAGE_SIZE}`
       );
