@@ -17,11 +17,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" translate="no" className="notranslate">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-        {/* Prevent Google Translate from breaking React */}
-        <meta name="google" content="notranslate" />
         {/* Google Tag Manager */}
         <Script id="gtm" strategy="afterInteractive">
           {`
@@ -62,7 +60,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="bg-white text-zinc-900">
+      <body className="bg-white text-zinc-900" suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
