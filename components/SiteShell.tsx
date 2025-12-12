@@ -81,7 +81,7 @@ export function SiteHeader() {
         {/* 品牌 Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-base font-semibold tracking-tight">
-            {lang === 'zh' ? '清晨沙灘 / mbpack.co' : 'mbpack.co'}
+            {lang === 'zh' ? '清晨沙灘 / mbpack.co' : 'Sky Word'}
           </span>
         </Link>
 
