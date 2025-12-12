@@ -87,9 +87,9 @@ export function R2ManagerClient() {
   const loadFiles = async () => {
     setLoading(true);
     try {
-      // 同時載入檔案和虛擬資料夾
+      // 同時載入檔案和虛擬資料夾（limit=10000 確保載入所有檔案）
       const [filesRes, foldersRes] = await Promise.all([
-        fetch("/api/admin/images"),
+        fetch("/api/admin/images?limit=10000"),
         fetch("/api/admin/virtual-folders"),
       ]);
       
