@@ -121,27 +121,17 @@ export default async function Home() {
     });
     const bagWhitelistIds = bagWhitelistTags.map(t => t.id);
 
-    // 查詢各類別產品
+    // 查詢各類別產品（與 API 邏輯一致）
     const fetchCategoryProducts = async (cat: string, tagIds: string[], limit: number, excludeBagProducts: boolean = false) => {
-      // 取得符合條件的產品 IDs
-      const productIds = await prisma.productTag.findMany({
-        where: { tagId: { in: tagIds } },
-        select: { productId: true },
-        distinct: ['productId'],
-      });
-      
-      const uniqueIds = productIds.map(p => p.productId);
-      if (uniqueIds.length === 0) return [];
+      if (tagIds.length === 0) return [];
 
-      // 隨機取 limit 個
-      const shuffled = uniqueIds.sort(() => Math.random() - 0.5);
-      const selectedIds = shuffled.slice(0, limit * 2); // 取多一點，因為可能有些會被排除
-
-      // 查詢完整產品資料
+      // 建立查詢條件
       const whereCondition: any = {
-        id: { in: selectedIds },
         status: 'ACTIVE',
         version: 2,
+        ProductTag: {
+          some: { tagId: { in: tagIds } }
+        }
       };
 
       // 排除提袋產品（用於 print-packaging 和 gift）
@@ -153,8 +143,21 @@ export default async function Home() {
         };
       }
 
-      const products = await prisma.product.findMany({
+      // 取得所有符合條件的產品 IDs
+      const allProductIds = await prisma.product.findMany({
         where: whereCondition,
+        select: { id: true },
+      });
+      
+      if (allProductIds.length === 0) return [];
+
+      // 隨機取 limit 個
+      const shuffled = allProductIds.sort(() => Math.random() - 0.5);
+      const selectedIds = shuffled.slice(0, limit).map(p => p.id);
+
+      // 查詢完整產品資料
+      const products = await prisma.product.findMany({
+        where: { id: { in: selectedIds } },
         select: {
           id: true,
           name_zh: true,
@@ -169,7 +172,6 @@ export default async function Home() {
             }
           }
         },
-        take: limit, // 限制最終結果數量
       });
 
       return products;

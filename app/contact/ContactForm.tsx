@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { fireMetaContactEvent, fireGTMEvent } from "@/lib/analytics";
+import { fireMetaContactEvent, fireGTMEvent, fireContactConversion } from "@/lib/analytics";
 
 type FormData = {
   name: string;
@@ -65,8 +65,11 @@ export default function ContactForm({ variant = "full", source = "website", onSu
       const data = await res.json();
 
       if (data.success) {
-        // GTM 會處理 Google Ads 轉換追蹤
+        // 直接觸發 Google Ads 轉換追蹤
+        fireContactConversion();
+        // Meta Pixel 追蹤
         fireMetaContactEvent("Lead");
+        // GTM 事件（可用於其他追蹤）
         fireGTMEvent("form_submit", { 
           form_id: source === "footer" ? "footer_form" : "contact_page_form",
           inquiry_type: formData.inquiryType 
