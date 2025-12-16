@@ -1,0 +1,255 @@
+[
+  {
+    "id": "contact-buttons",
+    "key": "contact-buttons",
+    "value": {
+      "line": {
+        "url": "https://lin.ee/JRPBhOm",
+        "enabled": true,
+        "label_en": "LINE Quote",
+        "label_zh": "LINE 詢價"
+      },
+      "email": {
+        "address": "morningbeachtw@gmail.com",
+        "enabled": true,
+        "label_en": "Email",
+        "label_zh": "Email"
+      },
+      "whatsapp": {
+        "number": "+886967189703",
+        "enabled": true,
+        "label_en": "WhatsApp",
+        "label_zh": "WhatsApp"
+      },
+      "updatedAt": "2025-12-02T04:30:14.170Z"
+    },
+    "createdAt": "2025-12-02T04:30:14.173Z",
+    "updatedAt": "2025-12-02T04:30:14.173Z"
+  },
+  {
+    "id": "main",
+    "key": "footer",
+    "value": {
+      "id": "main-footer",
+      "contact": {
+        "email": "morningbeachtw@gmail.com",
+        "phone": [
+          "+88673450928"
+        ],
+        "mobile": "+886963581855"
+      },
+      "qrCodes": {
+        "line": {
+          "url": "https://lin.ee/JRPBhOm",
+          "enabled": true,
+          "imageUrl": "https://img.mbpack.co/uploads/1764581109210-2d829e59.png",
+          "description": "掃碼加 LINE 好友",
+          "descriptionEn": "Scan to add LINE friend"
+        },
+        "whatsapp": {
+          "url": "https://wa.me/message/KPZLNR5BMWHIK1",
+          "enabled": true,
+          "imageUrl": "",
+          "description": "掃碼聯絡 WhatsApp",
+          "descriptionEn": "Scan to contact via WhatsApp"
+        }
+      },
+      "addresses": {
+        "china": "广东省深圳市龙岗区平湖镇峨公岭湖田路16号盈冠工业园1栋3楼",
+        "taiwan": "台灣高雄市左營區立大路377巷6弄3號 (來訪請先預約)",
+        "chinaEn": "3F, Building 1, Yingguan Industrial Park, No.16 Hutian Road, Egongling, Pinghu Town, Longgang District, Shenzhen, Guangdong, China",
+        "taiwanEn": "No. 3, Aly. 6, Ln. 377, Lida Rd., Zuoying Dist., Kaohsiung City, Taiwan (By appointment only)"
+      },
+      "updatedAt": "2025-12-01T11:15:21.296Z",
+      "clientLogos": [],
+      "companyInfo": {
+        "china": {
+          "name": "深圳天文印刷包装有限公司",
+          "nameEn": "Sky Word Printing Packaging Co Ltd"
+        },
+        "taiwan": {
+          "name": "明日島嶼有限公司",
+          "taxId": "89188386",
+          "nameEn": "TomorrowIslands Co., Ltd."
+        }
+      },
+      "socialLinks": {
+        "youtube": "",
+        "facebook": "",
+        "instagram": "",
+        "pinterest": ""
+      }
+    },
+    "createdAt": "2025-12-01T11:15:21.343Z",
+    "updatedAt": "2025-12-01T11:15:21.343Z"
+  },
+  {
+    "id": "landing-v2-config",
+    "key": "landing-v2-config",
+    "value": {
+      "heroData": {
+        "support": {
+          "en": "From material decisions to sampling, from mass production to cross-border delivery — MBPACK integrates Taiwan service teams with Shenzhen/Wenzhou/Guangzhou factories into a single AI-accelerated production chain.",
+          "zh": "從材料選擇、打樣，到量產與跨境出貨 —— MBPACK 以 AI 串聯台灣服務團隊與深圳、溫州、廣州生產工廠，打造一條完整、快速的跨國供應鏈。"
+        },
+        "headline": {
+          "en": "AI-First Packaging Production Center",
+          "zh": "AI 驅動的國際包裝生產中心"
+        },
+        "videoUrl": "https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4",
+        "subheadline": {
+          "en": "Global packaging manufacturing powered by AI-driven workflows, unified material intelligence, and cross-regional production networks.",
+          "zh": "由 AI 工作流、材料資料庫、跨區製造網絡所驅動的全球包裝生產體系。"
+        },
+        "galleryImages": [
+          "https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=600",
+          "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=600",
+          "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600"
+        ],
+        "overlayOpacity": 17,
+        "backgroundImage": "https://img.mbpack.co/uploads/1765530737134-57cefbe1.png",
+        "backgroundOpacity": 100
+      },
+      "services": [
+        {
+          "image": "https://img.mbpack.co/uploads/ai-generated/2025-12-03/gemini_1764789543839.png",
+          "title": {
+            "en": "Premium Packaging Engineering",
+            "zh": "高級包裝工程"
+          },
+          "aiPrompt": "Premium luxury gift box packaging, elegant structural design, high-end materials, professional product photography, dark background",
+          "description": {
+            "en": "Structural engineering for premium gift boxes and carrier bags.",
+            "zh": "高級禮盒、提袋、複合材料的結構工程與打樣。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 20
+        },
+        {
+          "image": "https://img.mbpack.co/uploads/ai-generated/2025-12-03/gemini_1764789482567.png",
+          "title": {
+            "en": "Gift Set Manufacturing",
+            "zh": "禮贈品製造"
+          },
+          "aiPrompt": "Holiday gift set packaging, corporate gifts, festive packaging design, multiple boxes arrangement, professional studio lighting",
+          "description": {
+            "en": "Holiday sets, corporate gifting, mixed-material packaging.",
+            "zh": "節慶禮盒、企業贈禮、複合材質套組製造。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 20
+        },
+        {
+          "image": "https://img.mbpack.co/uploads/ai-generated/2025-12-03/gemini_1764789525302.png",
+          "title": {
+            "en": "Cross-Regional Production Management",
+            "zh": "跨區製造管理"
+          },
+          "aiPrompt": "Modern factory production line, packaging manufacturing, industrial automation, clean factory environment, professional industrial photography",
+          "description": {
+            "en": "AI-assisted production + human supervision.",
+            "zh": "AI 協作與人工監督並行的跨國製造管理。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 20
+        }
+      ],
+      "heroStyle": "style4",
+      "solutions": [
+        {
+          "link": "/packaging-explorer?tags=foldable-box-1764281663937%2Cheaven-earth-box%2Cmagnetic-box%2Cflip-lid-box",
+          "image": "https://img.mbpack.co/uploads/20251128/1764292887639-8x5il2d0.jpg",
+          "title": {
+            "en": "Premium Gift Boxes",
+            "zh": "高級禮盒"
+          },
+          "description": {
+            "en": "International paper stock, structural precision.",
+            "zh": "國際紙材、結構工程、精緻加工。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 15
+        },
+        {
+          "link": "/packaging-explorer?cat=bag",
+          "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800",
+          "title": {
+            "en": "Custom Bags",
+            "zh": "客製提袋"
+          },
+          "description": {
+            "en": "Canvas, jute, premium paper bags.",
+            "zh": "帆布袋、麻布袋、高級紙袋。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 15
+        },
+        {
+          "link": "/packaging-explorer?tags=mooncake-gift-box%2Ccosmetic-box%2Cperfume-box",
+          "image": "https://img.mbpack.co/uploads/20251201/1764561160431-iqy5hxry.jpg",
+          "title": {
+            "en": "Holiday Gifts",
+            "zh": "節慶禮盒"
+          },
+          "description": {
+            "en": "Mid-autumn, New Year, multi-material sets.",
+            "zh": "中秋、年節、多材質禮品。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 15
+        },
+        {
+          "link": "/packaging-explorer?cat=gift",
+          "image": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?w=800",
+          "title": {
+            "en": "Corporate Gifts",
+            "zh": "企業贈禮"
+          },
+          "description": {
+            "en": "Large-volume stable production.",
+            "zh": "目錄尚未開放 點擊聯繫"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 15
+        },
+        {
+          "link": "/packaging-explorer",
+          "image": "https://img.mbpack.co/uploads/20251127/1764238096697-hzk5ukse.jpg",
+          "title": {
+            "en": "Eco Packaging",
+            "zh": "環保包裝"
+          },
+          "description": {
+            "en": "rPET, recycled papers, sustainable materials.",
+            "zh": "rPET、再生紙、永續材質。"
+          },
+          "imageOpacity": 100,
+          "overlayOpacity": 15
+        }
+      ],
+      "trustedBy": {
+        "text": {
+          "en": "Starbucks Corporation, Starbucks China,  Hyundai Motor , Honda Motor Co., Ltd., HTC, Nutritionist Light Meal, ezTravel, Taipei National University of the Arts, Taiwan Semiconductor Manufacturing Company, Asmall, United Microelectronics Corporation, National Taiwan University, First Commercial Bank,  Tan Zuo Ma Li, Wushian Ji, Thermos, Kaohsiung Metro, Bing-Kun Women & Children Hospital, Han Fang Foods, Aero-Electronics Systems Taiwan, Chunghwa Post, Hotai Insurance, Cathay Life Insurance Company, CTBC Bank",
+          "zh": "中國地區星巴克, 韓國現代, 台灣本田Honda, HTC, 營養師輕食, 易遊網, 台北藝術大學, 台灣積體電路, 艾斯摩爾, 聯華電子, 台灣大學, 第一銀行, 高雄捷運, 碳佐麻里, 五鮮級, 膳魔師, 高雄捷運, 秉坤婦幼醫院, 漢坊食品, 台灣國際航電, 中華郵政, 和泰產物保險, 國泰人壽, 中國信託"
+        },
+        "images": []
+      },
+      "aiSettings": {
+        "geminiKey": "",
+        "openaiKey": ""
+      },
+      "selectedBlogIds": [],
+      "selectedCaseIds": [
+        "cmii9uzg50003wymgw0272qaa",
+        "cmii9pi0k0002wymghb7d63fp",
+        "cmii9lcfd0001wymgtsswabvv",
+        "cmii6hros0001wyw8kunwzx6f",
+        "cmii6fv1c0000wyw8qysn32h1",
+        "cmii6pv520002wyw8q16bk30q"
+      ],
+      "featuredProductCategory": "print-packaging"
+    },
+    "createdAt": "2025-12-03T19:01:29.091Z",
+    "updatedAt": "2025-12-12T09:58:33.362Z"
+  }
+]

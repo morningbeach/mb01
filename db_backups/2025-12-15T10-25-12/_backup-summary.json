@@ -1,0 +1,139 @@
+{
+  "timestamp": "2025-12-15T10:25:32.570Z",
+  "backupDir": "C:\\Users\\tomor\\MB\\mb01\\db_backups\\2025-12-15T10-25-12",
+  "tables": [
+    {
+      "name": "ResearchSession",
+      "count": 2
+    },
+    {
+      "name": "ResearchLog",
+      "count": 0
+    },
+    {
+      "name": "ResearchSource",
+      "count": 36
+    },
+    {
+      "name": "ResearchModule",
+      "count": 6
+    },
+    {
+      "name": "ArticleDraft",
+      "count": 2
+    },
+    {
+      "name": "AuthoritySource",
+      "count": 0
+    },
+    {
+      "name": "AIModelConfig",
+      "count": 0
+    },
+    {
+      "name": "ResearchSchedule",
+      "count": 0
+    },
+    {
+      "name": "Product",
+      "count": 445
+    },
+    {
+      "name": "ProductImage",
+      "count": 0
+    },
+    {
+      "name": "ProductTag",
+      "count": 2011
+    },
+    {
+      "name": "GiftSet",
+      "count": 2
+    },
+    {
+      "name": "CategoryNode",
+      "count": 53
+    },
+    {
+      "name": "FrontCategory",
+      "count": 6
+    },
+    {
+      "name": "Tag",
+      "count": 415
+    },
+    {
+      "name": "FilterDimension",
+      "count": 30
+    },
+    {
+      "name": "Image",
+      "count": 125
+    },
+    {
+      "name": "ImageAsset",
+      "count": 24
+    },
+    {
+      "name": "Album",
+      "count": 6
+    },
+    {
+      "name": "VirtualFolder",
+      "count": 2
+    },
+    {
+      "name": "BlogPost",
+      "count": 2
+    },
+    {
+      "name": "CaseProject",
+      "count": 8
+    },
+    {
+      "name": "AdminUser",
+      "count": 2
+    },
+    {
+      "name": "AdminSession",
+      "count": 56
+    },
+    {
+      "name": "SiteSetting",
+      "count": 3
+    },
+    {
+      "name": "SitePage",
+      "count": 7
+    },
+    {
+      "name": "Page",
+      "count": 2
+    },
+    {
+      "name": "HomeSection",
+      "count": 6
+    },
+    {
+      "name": "ContactInquiry",
+      "count": 10
+    },
+    {
+      "name": "AiUsageLog",
+      "count": 77
+    },
+    {
+      "name": "AiPromptTemplate",
+      "count": 7
+    },
+    {
+      "name": "AiInquiry",
+      "count": 0
+    },
+    {
+      "name": "TrendReport",
+      "count": 3
+    }
+  ],
+  "totalRecords": 3348
+}

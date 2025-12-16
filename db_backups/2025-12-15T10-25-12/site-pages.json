@@ -1,0 +1,350 @@
+[
+  {
+    "id": "cmi9a87490004wyxkx07zwmqb",
+    "slug": "process",
+    "type": "ABOUT",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": true,
+    "order": 40,
+    "navLabel_zh": "流程",
+    "navLabel_en": "Process",
+    "label_zh": "工作流程",
+    "label_en": "Our Process",
+    "title_zh": "從概念到交付的完整流程",
+    "title_en": "From concept to delivery",
+    "desc_zh": "我們的流程確保每個專案都能準時、高品質地完成。",
+    "desc_en": "Our process ensures every project is completed on time and with the highest quality.",
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:46.378Z",
+    "updatedAt": "2025-11-24T07:48:15.488Z",
+    "pageData": null
+  },
+  {
+    "id": "cmi9a87ny0005wyxkjo65zfbo",
+    "slug": "case",
+    "type": "CASE",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": true,
+    "order": 50,
+    "navLabel_zh": "案例",
+    "navLabel_en": "Case",
+    "label_zh": "專案案例",
+    "label_en": "Case Studies",
+    "title_zh": "我們完成的精選專案",
+    "title_en": "Featured projects we've completed",
+    "desc_zh": "探索我們為全球品牌打造的包裝解決方案。",
+    "desc_en": "Explore packaging solutions we've created for global brands.",
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:47.087Z",
+    "updatedAt": "2025-11-24T07:48:23.279Z",
+    "pageData": null
+  },
+  {
+    "id": "cmi9a84di0000wyxkyho8763s",
+    "slug": "homepage",
+    "type": "HOMEPAGE",
+    "isDefault": true,
+    "isEnabled": false,
+    "showInNav": false,
+    "order": 0,
+    "navLabel_zh": "首頁",
+    "navLabel_en": "Home",
+    "label_zh": null,
+    "label_en": null,
+    "title_zh": null,
+    "title_en": null,
+    "desc_zh": null,
+    "desc_en": null,
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:42.823Z",
+    "updatedAt": "2025-11-25T17:29:40.349Z",
+    "pageData": null
+  },
+  {
+    "id": "cmi9a887w0006wyxkd5c2dujh",
+    "slug": "contact",
+    "type": "CONTACT",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": true,
+    "order": 60,
+    "navLabel_zh": "聯絡我們",
+    "navLabel_en": "Contact",
+    "label_zh": "聯絡方式",
+    "label_en": "Contact",
+    "title_zh": "開始一個專案或提出問題",
+    "title_en": "Start a project or ask a question.",
+    "desc_zh": "分享您的數量、時間表和您需要的大致想法。我們會回覆建議和快速報價。",
+    "desc_en": "Share your quantity, timeline and a rough idea of what you need. We'll respond with suggestions and a quick quotation.",
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:47.805Z",
+    "updatedAt": "2025-11-28T01:12:19.786Z",
+    "pageData": {
+      "formLabels": {
+        "name_en": "Name",
+        "name_zh": "姓名",
+        "email_en": "Email",
+        "email_zh": "電子郵件",
+        "submit_en": "Send message",
+        "submit_zh": "發送訊息",
+        "company_en": "Company",
+        "company_zh": "公司",
+        "details_en": "Project details",
+        "details_zh": "專案詳情",
+        "quantity_en": "Estimated quantity",
+        "quantity_zh": "預估數量",
+        "timeline_en": "Timeline",
+        "timeline_zh": "時間表",
+        "emailNote_en": "Or email us directly at",
+        "emailNote_zh": "或直接發送郵件至"
+      },
+      "officeInfo": {
+        "note_en": "We can arrange factory visits or online calls",
+        "note_zh": "可安排工廠參觀或線上會議",
+        "title_en": "Office & factory",
+        "title_zh": "辦公室與工廠",
+        "address_en": "Address line 1\nCity, Province, Country",
+        "address_zh": "高雄市左營區立大路377巷六弄號"
+      },
+      "businessHours": {
+        "note_en": "We aim to respond within one working day",
+        "note_zh": "我們會在一個工作日內回覆",
+        "hours_en": "Monday–Friday, 9:00–18:00 (GMT+8)",
+        "hours_zh": "週一至週五，9:00-18:00 (GMT+8)",
+        "title_en": "Business hours",
+        "title_zh": "營業時間"
+      },
+      "contactDetails": {
+        "email": "morningbeachtw@gmail.com",
+        "title_en": "Contact details",
+        "title_zh": "聯絡方式",
+        "whatsapp": "+886 73450928"
+      }
+    }
+  },
+  {
+    "id": "cmi9a86ki0003wyxk2gkcfg3z",
+    "slug": "factory",
+    "type": "FACTORY",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": true,
+    "order": 30,
+    "navLabel_zh": "工廠實力",
+    "navLabel_en": "Factory",
+    "label_zh": "工廠實力",
+    "label_en": "Factory Strength",
+    "title_zh": "清潔、結構化的禮品盒和包裝生產基地",
+    "title_en": "A clean, structured production base for gift boxes and packaging.",
+    "desc_zh": "我們的工廠圍繞一致的品質和可靠的交付而設計，擁有經驗豐富的工程、生產和品質控制團隊。",
+    "desc_en": "Our facility is designed around consistent quality and reliable delivery, with experienced teams handling engineering, production and QC.",
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:45.667Z",
+    "updatedAt": "2025-11-28T04:24:27.545Z",
+    "pageData": {
+      "qc_en": "・ In-house structural engineers\n・ Pre-production sampling\n・ In-process checks\n・ Final inspection before shipping",
+      "qc_zh": "・ 內部結構工程師進行設計和測試\n・ 量產前打樣和審批\n・ 生產過程中的檢查\n・ 出貨前最終檢驗",
+      "stats": [
+        {
+          "value": "10,000 m²",
+          "label_en": "Factory area",
+          "label_zh": "廠房面積"
+        },
+        {
+          "value": "120+",
+          "label_en": "People",
+          "label_zh": "員工人數"
+        },
+        {
+          "value": "300,000+ boxes",
+          "label_en": "Monthly capacity",
+          "label_zh": "月產能"
+        },
+        {
+          "value": "ISO / audited",
+          "label_en": "Certifications",
+          "label_zh": "認證"
+        }
+      ],
+      "images": [
+        {
+          "url": "https://img.mbpack.co/uploads/factory/1764303773690-1fe44843.jpg",
+          "caption_en": "Clean production floor",
+          "caption_zh": "整潔的生產車間"
+        },
+        {
+          "url": "https://tomorrowtw.com/wp-content/uploads/2025/07/DSC09139.jpg",
+          "caption_en": "Printing equipment",
+          "caption_zh": "千坪方以上專業倉庫"
+        },
+        {
+          "url": "https://img.mbpack.co/uploads/factory/1764303785088-9081c397.jpg",
+          "caption_en": "QC area",
+          "caption_zh": "品控檢查區域"
+        }
+      ],
+      "workflow": [
+        {
+          "step": "01",
+          "body_en": "Confirm structure and materials",
+          "body_zh": "確認結構、材料和關鍵公差",
+          "title_en": "Engineering",
+          "title_zh": "工程"
+        },
+        {
+          "step": "02",
+          "body_en": "White and printed samples",
+          "body_zh": "白樣和印刷樣品審批",
+          "title_en": "Sampling",
+          "title_zh": "打樣"
+        },
+        {
+          "step": "03",
+          "body_en": "Production with in-line QC",
+          "body_zh": "關鍵階段的品控檢查",
+          "title_en": "Mass production",
+          "title_zh": "量產"
+        },
+        {
+          "step": "04",
+          "body_en": "Final QC and shipping",
+          "body_zh": "最終檢驗和出貨安排",
+          "title_en": "Packing & shipping",
+          "title_zh": "包裝出貨"
+        }
+      ],
+      "ctaDesc_en": "We can share more information on equipment and processes",
+      "ctaDesc_zh": "我們可以分享更多設備、流程和審計報告的資訊",
+      "ctaTitle_en": "Want to audit our factory?",
+      "ctaTitle_zh": "想要查看更多工廠資訊？",
+      "equipment_en": "・ 4-color and 5-color offset printing\n・ Automatic rigid box lines\n・ Die-cutting machines\n・ Hot stamping equipment\n・ Lamination lines",
+      "equipment_zh": "・ 4色和5色膠印機\n・ 自動和半自動精裝盒生產線\n・ 模切和壓痕機\n・ 燙金和壓凸設備\n・ 覆膜和表面處理線",
+      "workflowTitle_en": "From brief to shipment",
+      "workflowTitle_zh": "從需求到出貨"
+    }
+  },
+  {
+    "id": "cmi9a85qy0002wyxkxcigli4m",
+    "slug": "about",
+    "type": "ABOUT",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": false,
+    "order": 20,
+    "navLabel_zh": "關於我們",
+    "navLabel_en": "About",
+    "label_zh": "品牌故事",
+    "label_en": "Brand Story",
+    "title_zh": "以專案為核心的包裝夥伴!而非僅僅提供產品目錄",
+    "title_en": "A packaging partner built around projects, not just SKU",
+    "desc_zh": "MB Packaging 的創立理念很簡單：禮品盒和包裝不應該是事後才想到的。它們是品牌、行銷活動和開箱體驗的一部分。我們在品牌與工廠之間架起橋樑，將時間表、預算和想法轉化為實際、一致的包裝。",
+    "desc_en": "MB Packaging was founded with a simple idea: gift boxes and packaging shouldn't be an afterthought. They are part of the brand, the campaign and the unboxing moment. We work between brands and factories to turn timelines, budgets and ideas into tangible, consistent packaging.",
+    "content_zh": "",
+    "content_en": "",
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:44.602Z",
+    "updatedAt": "2025-12-02T03:40:40.982Z",
+    "pageData": {
+      "stats": [
+        {
+          "value": "10+",
+          "label_en": "Years in packaging",
+          "label_zh": "包裝年限"
+        },
+        {
+          "value": "100+",
+          "label_en": "Projects per year",
+          "label_zh": "年度專案"
+        },
+        {
+          "value": "Asia / EU / US",
+          "label_en": "Regions served",
+          "label_zh": "服務區域"
+        }
+      ],
+      "values": [
+        {
+          "body_en": "",
+          "body_zh": "",
+          "title_en": "Clarity",
+          "title_zh": "清晰"
+        },
+        {
+          "body_en": "",
+          "body_zh": "",
+          "title_en": "Consistency",
+          "title_zh": "一致性"
+        },
+        {
+          "body_en": "",
+          "body_zh": "",
+          "title_en": "Reliability",
+          "title_zh": "可靠"
+        }
+      ],
+      "story_en": "",
+      "story_zh": "",
+      "storyImage": "https://img.mbpack.co/uploads/homepage/2025-11-24/1763985256320-1cdb8ec7.jpg ",
+      "experience_en": " Seasonal gift sets\n VIP gifting programs",
+      "experience_zh": " 節慶禮品盒專案\n 會員及VIP贈禮計畫",
+      "experienceTitle_en": "Experience in gifting",
+      "experienceTitle_zh": "經驗列表"
+    }
+  },
+  {
+    "id": "cmi9a85790001wyxk83if1naw",
+    "slug": "packaging-explorer",
+    "type": "PRODUCTS",
+    "isDefault": true,
+    "isEnabled": true,
+    "showInNav": true,
+    "order": 10,
+    "navLabel_zh": "產品",
+    "navLabel_en": "Products",
+    "label_zh": null,
+    "label_en": null,
+    "title_zh": null,
+    "title_en": null,
+    "desc_zh": null,
+    "desc_en": null,
+    "content_zh": null,
+    "content_en": null,
+    "seoTitle_zh": null,
+    "seoTitle_en": null,
+    "seoDesc_zh": null,
+    "seoDesc_en": null,
+    "createdAt": "2025-11-21T19:57:43.893Z",
+    "updatedAt": "2025-12-01T05:20:17.653Z",
+    "pageData": null
+  }
+]

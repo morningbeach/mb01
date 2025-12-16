@@ -1,0 +1,72 @@
+[
+  {
+    "id": "cmiv669om0001wym8r8cqy3j0",
+    "name_zh": "更換顏色",
+    "name_en": "Change Color",
+    "prompt": "將包裝的主色調改為 {input} 色系",
+    "order": 2,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:13.798Z",
+    "updatedAt": "2025-12-07T03:35:13.798Z"
+  },
+  {
+    "id": "cmiv66a1h0002wym8gtbn29x4",
+    "name_zh": "節慶風格",
+    "name_en": "Holiday Style",
+    "prompt": "將包裝設計成 {input} 節慶風格",
+    "order": 3,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:14.262Z",
+    "updatedAt": "2025-12-07T03:35:14.262Z"
+  },
+  {
+    "id": "cmiv66afw0003wym8lbb8g68z",
+    "name_zh": "添加圖案",
+    "name_en": "Add Pattern",
+    "prompt": "在包裝上添加 {input} 圖案裝飾",
+    "order": 4,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:14.781Z",
+    "updatedAt": "2025-12-07T03:35:14.781Z"
+  },
+  {
+    "id": "cmiv66b930004wym8mvw9u2ma",
+    "name_zh": "材質變化",
+    "name_en": "Material Change",
+    "prompt": "將包裝材質視覺效果改為 {input}",
+    "order": 5,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:15.832Z",
+    "updatedAt": "2025-12-07T03:35:15.832Z"
+  },
+  {
+    "id": "cmiv66bj20005wym8lgm35hrd",
+    "name_zh": "品牌客製",
+    "name_en": "Brand Customization",
+    "prompt": "為這個包裝加入 {input} 品牌元素",
+    "order": 6,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:16.191Z",
+    "updatedAt": "2025-12-07T03:35:16.191Z"
+  },
+  {
+    "id": "cmiv74los0000wyzc39o1ukld",
+    "name_zh": "改變設計風格",
+    "name_en": "Change Design Style",
+    "prompt": "只保留袋形，其他依據 {input} 風格重新設計。注意：不要修改袋形，只做平面設計的風格調整",
+    "order": 7,
+    "isActive": true,
+    "createdAt": "2025-12-07T04:01:55.660Z",
+    "updatedAt": "2025-12-07T04:01:55.660Z"
+  },
+  {
+    "id": "cmiv6697g0000wym8izio4lfl",
+    "name_zh": "更換 Logo",
+    "name_en": "Change Logo",
+    "prompt": "請確保所有LOGO都有被替換掉，將包裝的LOGO替換為 {input}",
+    "order": 1,
+    "isActive": true,
+    "createdAt": "2025-12-07T03:35:13.180Z",
+    "updatedAt": "2025-12-07T04:04:31.564Z"
+  }
+]

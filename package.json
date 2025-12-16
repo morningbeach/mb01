@@ -16,6 +16,7 @@
     "@aws-sdk/client-s3": "^3.934.0",
     "@fontsource/noto-sans-tc": "^5.2.8",
     "@google/generative-ai": "^0.24.1",
+    "@heroicons/react": "^2.2.0",
     "@napi-rs/canvas": "^0.1.84",
     "@prisma/client": "^6.19.0",
     "@vercel/kv": "^3.0.0",

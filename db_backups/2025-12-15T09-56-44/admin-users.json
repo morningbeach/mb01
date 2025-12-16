@@ -1,0 +1,16 @@
+[
+  {
+    "id": "cmi23rera001679rttmtdwpt2",
+    "email": "admin@example.com",
+    "name": "Demo Admin",
+    "password": "[REDACTED]",
+    "role": "admin"
+  },
+  {
+    "id": "id_miii27hy8f0f93cd",
+    "email": "morningbeachtw@gmail.com",
+    "name": "Admin",
+    "password": "[REDACTED]",
+    "role": "admin"
+  }
+]

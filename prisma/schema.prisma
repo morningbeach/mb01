@@ -577,3 +577,387 @@ enum TrendReportStatus {
   COMPLETED
   FAILED
 }
+
+// ============================================
+// 包裝趨勢研究系統 - Research Engine
+// ============================================
+
+// 研究任務 - 每次研究的主記錄
+model ResearchSession {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  topic           String?
+  status          ResearchStatus @default(COLLECTING)
+  
+  focusAreas      String[]
+  languages       String[]
+  regions         String[]
+  
+  // 市場類型篩選
+  marketType      String?   // consumer, b2b, design, all
+  targetAudience  String[]  // 目標受眾：brand_owner, designer, manufacturer, marketer
+  industryTags    String[]  // 產業標籤：food, cosmetics, electronics, luxury, etc.
+  
+  // 深度研究提示
+  researchPromptId String?  // 選用的提示模板 ID
+  customQuestions  String[] // 自定義研究問題
+  
+  triggerType     String
+  modelUsed       String?
+  
+  sources         ResearchSource[]
+  modules         ResearchModule[]
+  articles        ArticleDraft[]
+  conversations   ResearchConversation[]
+  logs            ResearchLog[]
+  
+  humanReviewedAt DateTime?
+  humanReviewerId String?
+  humanNotes      String?
+}
+
+enum ResearchStatus {
+  COLLECTING
+  ANALYZING
+  PENDING_REVIEW
+  REVIEWED
+  WRITING
+  COMPLETED
+  ARCHIVED
+}
+
+// 操作流程日誌
+model ResearchLog {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  action          String   // 操作類型：search, scrape, analyze, generate_module, write_article, etc.
+  status          String   // pending, running, success, error
+  
+  // 操作詳情
+  input           Json?    // 輸入參數
+  output          Json?    // 輸出結果
+  error           String?  // 錯誤訊息
+  
+  // 時間追蹤
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  durationMs      Int?     // 執行時間（毫秒）
+  
+  // 資源追蹤
+  tokensUsed      Int?     // AI token 使用量
+  apiCalls        Int?     // API 調用次數
+  
+  // 關聯的資源
+  sourceId        String?  // 關聯來源
+  moduleId        String?  // 關聯模組
+  articleId       String?  // 關聯文章
+  
+  @@index([sessionId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// 研究來源
+model ResearchSource {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  url             String
+  title           String
+  domain          String
+  language        String
+  region          String
+  
+  authorityScore  Float    @default(0)
+  originalityScore Float   @default(0)
+  relevanceScore  Float    @default(0)
+  
+  sourceType      SourceType
+  isVerified      Boolean  @default(false)
+  isExcluded      Boolean  @default(false)
+  excludeReason   String?
+  
+  summary         String?
+  keyPoints       String[]
+  
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  modules         ResearchModuleSource[]
+  
+  @@index([sessionId])
+  @@index([domain])
+}
+
+enum SourceType {
+  INDUSTRY_REPORT
+  ACADEMIC_PAPER
+  TRADE_NEWS
+  MANUFACTURER_BLOG
+  CONFERENCE
+  PATENT
+  CASE_STUDY
+  MARKET_ANALYSIS
+  TUTORIAL
+  OTHER
+}
+
+// 研究模組 - 結構化知識單位
+model ResearchModule {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  moduleType      ModuleType
+  
+  title_zh        String
+  title_en        String
+  
+  conclusion_zh   String
+  conclusion_en   String
+  
+  insight_zh      String?
+  insight_en      String?
+  
+  supportingData  Json?
+  
+  tags            String[]
+  subCategory     String?
+  
+  humanEdited     Boolean  @default(false)
+  humanApproved   Boolean  @default(false)
+  humanNotes      String?
+  
+  isReusable      Boolean  @default(true)
+  usageCount      Int      @default(0)
+  
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sources         ResearchModuleSource[]
+  articleUsages   ArticleModuleUsage[]
+  
+  @@index([sessionId])
+  @@index([moduleType])
+  @@index([humanApproved])
+}
+
+enum ModuleType {
+  TREND
+  MATERIAL
+  STRUCTURE
+  PROCESS
+  CASE
+  MARKET_INSIGHT
+  SUSTAINABILITY
+  INNOVATION
+  REGULATION
+}
+
+// 模組來源關聯
+model ResearchModuleSource {
+  moduleId        String
+  sourceId        String
+  
+  module          ResearchModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  source          ResearchSource  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  
+  relevance       String?           // 相關性描述
+  citationScore   Int       @default(0)  // 引用推薦分數 0-100
+  citationReason  String?           // 推薦引用原因
+  isCited         Boolean   @default(false)  // 是否已被引用
+  
+  @@id([moduleId, sourceId])
+}
+
+// 研究對話
+model ResearchConversation {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  messages        ResearchMessage[]
+  
+  topic           String?
+  
+  @@index([sessionId])
+}
+
+model ResearchMessage {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  conversationId  String
+  conversation    ResearchConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  role            MessageRole
+  content         String
+  
+  isDraft         Boolean  @default(false)
+  
+  referencedModuleIds String[]
+  
+  modelUsed       String?
+  
+  @@index([conversationId])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// 文章草稿
+model ArticleDraft {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  title_zh        String
+  title_en        String?
+  
+  content_zh      String
+  content_en      String?
+  
+  excerpt_zh      String?
+  excerpt_en      String?
+  
+  metaDescription_zh String?
+  metaDescription_en String?
+  
+  wordCount       Int      @default(0)
+  readingTime     Int      @default(0)
+  
+  outline         Json?
+  
+  status          DraftStatus @default(DRAFT)
+  
+  humanEdited     Boolean  @default(false)
+  humanApproved   Boolean  @default(false)
+  
+  moduleUsages    ArticleModuleUsage[]
+  
+  version         Int      @default(1)
+  previousVersionId String?
+  
+  @@index([sessionId])
+  @@index([status])
+}
+
+enum DraftStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+// 文章模組使用關聯
+model ArticleModuleUsage {
+  id              String   @id @default(cuid())
+  
+  articleId       String
+  article         ArticleDraft @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  
+  moduleId        String
+  module          ResearchModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  usageType       String
+  position        Int      @default(0)
+  
+  @@index([articleId])
+  @@index([moduleId])
+}
+
+// 權威來源池
+model AuthoritySource {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  domain          String   @unique
+  name            String
+  description     String?
+  
+  language        String
+  region          String
+  category        SourceType
+  
+  authorityScore  Float    @default(50)
+  reliabilityScore Float   @default(50)
+  updateFrequency String?
+  
+  isActive        Boolean  @default(true)
+  lastCrawledAt   DateTime?
+  crawlFrequency  String   @default("daily")
+  
+  humanVerified   Boolean  @default(false)
+  humanNotes      String?
+  
+  @@index([isActive])
+  @@index([category])
+}
+
+// AI 模型配置
+model AIModelConfig {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  provider        String
+  modelId         String
+  
+  taskType        AITaskType
+  priority        Int      @default(1)
+  
+  inputCostPer1k  Float    @default(0)
+  outputCostPer1k Float    @default(0)
+  
+  qualityScore    Float    @default(80)
+  
+  isActive        Boolean  @default(true)
+  
+  @@unique([provider, modelId, taskType])
+}
+
+enum AITaskType {
+  RESEARCH_COLLECTION
+  SOURCE_ANALYSIS
+  MODULE_GENERATION
+  INSIGHT_EXTRACTION
+  WRITING_ASSISTANCE
+  CONVERSATION
+  TRANSLATION
+  SUMMARIZATION
+}
+
+// 研究排程
+model ResearchSchedule {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  cronExpression  String
+  name            String
+  description     String?
+  
+  focusAreas      String[]
+  languages       String[]
+  regions         String[]
+  
+  isActive        Boolean  @default(true)
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  
+  totalRuns       Int      @default(0)
+  successfulRuns  Int      @default(0)
+}

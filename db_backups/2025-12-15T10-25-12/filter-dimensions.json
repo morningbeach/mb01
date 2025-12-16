@@ -1,0 +1,2660 @@
+[
+  {
+    "id": "cmipr15bc0000wy50yail38y1",
+    "slug": "bag-material",
+    "category": "bag",
+    "name_zh": "材質",
+    "name_en": "Material",
+    "icon": "Layers",
+    "order": 1,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:32:29.737Z",
+    "updatedAt": "2025-12-03T08:32:29.737Z",
+    "tagMappings": [
+      {
+        "id": "cmipr16q80002wy50undu5akw",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750750915-1yaug17r8",
+        "order": 0
+      },
+      {
+        "id": "cmipr17q00004wy50ppyg2qqw",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750752525-ygrojw7bu",
+        "order": 1
+      },
+      {
+        "id": "cmipr18f00006wy503fvkg79m",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750753485-h6f29fjh3",
+        "order": 2
+      },
+      {
+        "id": "cmipr19630008wy507qwgvxlp",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750754280-t60rp2fb7",
+        "order": 3
+      },
+      {
+        "id": "cmipr1a4e000awy50o3afnckj",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750755636-7guy3lo43",
+        "order": 4
+      },
+      {
+        "id": "cmipr1b1e000cwy500wxgp88w",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750756685-yfgo644ga",
+        "order": 5
+      },
+      {
+        "id": "cmipr1c1d000ewy506jy7lows",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750757965-ac7kdk4yp",
+        "order": 6
+      },
+      {
+        "id": "cmipr1db8000gwy50sqmvfadg",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750759635-kvu97w34o",
+        "order": 7
+      },
+      {
+        "id": "cmipr1dzl000iwy507fhjpzfi",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750760635-wd3u45rk5",
+        "order": 8
+      },
+      {
+        "id": "cmipr1f03000kwy50fn970kid",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750761965-wjmkimj9y",
+        "order": 9
+      },
+      {
+        "id": "cmipr1fyl000mwy50tk84op5n",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750763170-axu2jfu8y",
+        "order": 10
+      },
+      {
+        "id": "cmipr1gut000owy50hmmgpo34",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750764365-viloje7ci",
+        "order": 11
+      },
+      {
+        "id": "cmipr1i5a000qwy50knenqf1a",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750766085-t1bw2emhx",
+        "order": 12
+      },
+      {
+        "id": "cmipr1j4u000swy50mqnsr0q1",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750767314-5dnfo6982",
+        "order": 13
+      },
+      {
+        "id": "cmipr1jxd000uwy50oud81r9l",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750768289-cgp0t3k4p",
+        "order": 14
+      },
+      {
+        "id": "cmipr1ksk000wwy50wil79r8b",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750769499-x6msquoe7",
+        "order": 15
+      },
+      {
+        "id": "cmipr1lg2000ywy50nbb9blks",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750770385-0dp35rj7s",
+        "order": 16
+      },
+      {
+        "id": "cmipr1m390010wy50m3p8qjy5",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750771165-flb2l2ehd",
+        "order": 17
+      },
+      {
+        "id": "cmipr1n2s0012wy50vcc7xguk",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750772195-2nv78a689",
+        "order": 18
+      },
+      {
+        "id": "cmipr1o5e0014wy50rrdxqu2i",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "tag-1764750773885-e2nlt87a8",
+        "order": 19
+      },
+      {
+        "id": "cmipue73w0001wy3krlvcui5l",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexje1p0007wyus6luq4zbt",
+        "order": 21
+      },
+      {
+        "id": "cmipue7j50003wy3ko9tk061b",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexjhwo000jwyusq3fllado",
+        "order": 21
+      },
+      {
+        "id": "cmipue7rx0005wy3kzs1ck8h0",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexjfsg000cwyusvyge0hlo",
+        "order": 21
+      },
+      {
+        "id": "cmipue7z90007wy3k0nwn9psr",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexjgod000fwyusp9yuctny",
+        "order": 21
+      },
+      {
+        "id": "cmipue8770009wy3kwq4mp6os",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexjgdp000ewyus10vgbtbf",
+        "order": 21
+      },
+      {
+        "id": "cmipue8g0000bwy3kat7eebld",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmihy43h40001wyosnug4mhv2",
+        "order": 21
+      },
+      {
+        "id": "cmipue8tw000dwy3koavvgaoi",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmihy33lg0000wyoswx3zqh9u",
+        "order": 21
+      },
+      {
+        "id": "cmipue97u000fwy3kes8ejd67",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmiexjg33000dwyusgi5bv0xr",
+        "order": 21
+      },
+      {
+        "id": "cmir9ncs40001wyo4fw24ea9g",
+        "dimensionId": "cmipr15bc0000wy50yail38y1",
+        "tagId": "cmihzvzbs001rwyosldw7cw9y",
+        "order": 22
+      }
+    ]
+  },
+  {
+    "id": "cmipr3jf90000wyx4n5wfrh5d",
+    "slug": "gift-material",
+    "category": "gift",
+    "name_zh": "材質",
+    "name_en": "Material",
+    "icon": "Layers",
+    "order": 2,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:34:21.333Z",
+    "updatedAt": "2025-12-03T08:34:21.333Z",
+    "tagMappings": [
+      {
+        "id": "cmipr3l600002wyx45jgwbxtc",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750750915-1yaug17r8",
+        "order": 0
+      },
+      {
+        "id": "cmipr3m5m0004wyx42jye98jp",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750752525-ygrojw7bu",
+        "order": 1
+      },
+      {
+        "id": "cmipr3msl0006wyx44wyivb9q",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750772195-2nv78a689",
+        "order": 2
+      },
+      {
+        "id": "cmipr3nfs0008wyx4buy0a0mo",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750771165-flb2l2ehd",
+        "order": 3
+      },
+      {
+        "id": "cmipr3o3g000awyx4qg9mazbx",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750767314-5dnfo6982",
+        "order": 4
+      },
+      {
+        "id": "cmipr3oqb000cwyx48ajup0t0",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750768289-cgp0t3k4p",
+        "order": 5
+      },
+      {
+        "id": "cmipr3pl5000ewyx4t5d3hfc8",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750868751-d12ksj4ko",
+        "order": 6
+      },
+      {
+        "id": "cmipr3q78000gwyx4kw1kd35g",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750869839-3cfz8u0rg",
+        "order": 7
+      },
+      {
+        "id": "cmipr3qtl000iwyx45deodk7t",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750870659-k3ky8g2fu",
+        "order": 8
+      },
+      {
+        "id": "cmipr3rfx000kwyx4l8dwu2e4",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750871465-w1z0ov5le",
+        "order": 9
+      },
+      {
+        "id": "cmipr3sar000mwyx4x3smkpn2",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750872473-9l9xj53ng",
+        "order": 10
+      },
+      {
+        "id": "cmipr3sz1000owyx4jho6a3ii",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750873410-5xj0mq20t",
+        "order": 11
+      },
+      {
+        "id": "cmipr3tod000qwyx4ytiicfbs",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750874354-ydkipmjm8",
+        "order": 12
+      },
+      {
+        "id": "cmipr3ucr000swyx4f754o9w8",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750875245-0jmwvju4y",
+        "order": 13
+      },
+      {
+        "id": "cmipr3uyk000uwyx4xra8uu2m",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750876025-izfh2sbu6",
+        "order": 14
+      },
+      {
+        "id": "cmipr3vwn000wwyx4sa1zsndf",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750769499-x6msquoe7",
+        "order": 15
+      },
+      {
+        "id": "cmipr3wto000ywyx4e5t7acq3",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "cmiexjiv9000mwyuspmk7vd7b",
+        "order": 16
+      },
+      {
+        "id": "cmipr3xmf0010wyx41wxt57d4",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750879414-tdcata42p",
+        "order": 17
+      },
+      {
+        "id": "cmipr3ylv0012wyx49vg7rlns",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750880694-pwv9sbr4h",
+        "order": 18
+      },
+      {
+        "id": "cmipr405k0014wyx4m0vp2dfi",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750881899-jf39gh239",
+        "order": 19
+      },
+      {
+        "id": "cmipr40vo0016wyx46v4cq9s5",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750883670-gtcap6j35",
+        "order": 20
+      },
+      {
+        "id": "cmipr41im0018wyx4ur42i68r",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750884509-0nwnc8s94",
+        "order": 21
+      },
+      {
+        "id": "cmipr426g001awyx4yrz13kam",
+        "dimensionId": "cmipr3jf90000wyx4n5wfrh5d",
+        "tagId": "tag-1764750885364-zouwfbjuc",
+        "order": 22
+      }
+    ]
+  },
+  {
+    "id": "cmipr42fx001bwyx4xxokz6h7",
+    "slug": "gift-print",
+    "category": "gift",
+    "name_zh": "印刷工藝",
+    "name_en": "Print & Finishing",
+    "icon": "Paintbrush",
+    "order": 3,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:34:45.982Z",
+    "updatedAt": "2025-12-03T08:34:45.982Z",
+    "tagMappings": [
+      {
+        "id": "cmipr43af001dwyx4sx0ud96e",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750802385-6iqh5gaoz",
+        "order": 0
+      },
+      {
+        "id": "cmipr44cf001fwyx48eb5wpxe",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750803201-tled052q5",
+        "order": 1
+      },
+      {
+        "id": "cmipr45ji001hwyx429rtpdjr",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750804517-ijumikydt",
+        "order": 2
+      },
+      {
+        "id": "cmipr46id001jwyx4iay3dsgo",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750805409-ksjcb5peo",
+        "order": 3
+      },
+      {
+        "id": "cmipr47qg001lwyx49xrt1zvw",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750806313-lsedabtm5",
+        "order": 4
+      },
+      {
+        "id": "cmipr48hm001nwyx4mf9tt7g2",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750807954-jqxlvd0xo",
+        "order": 5
+      },
+      {
+        "id": "cmipr49nk001pwyx46anvjyv9",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750894755-6ai51y8y7",
+        "order": 6
+      },
+      {
+        "id": "cmipr4ax6001rwyx4gg8dh5w2",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "cmiexjktr000swyusxosvzwds",
+        "order": 7
+      },
+      {
+        "id": "cmipr4cbu001twyx4mb13hxit",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "cmiexjl4h000twyus2kvc8o9t",
+        "order": 8
+      },
+      {
+        "id": "cmipr4d0d001vwyx4zy1glwon",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750899410-avrszisjf",
+        "order": 9
+      },
+      {
+        "id": "cmipr4dyu001xwyx4jh8byorb",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750900548-ev7vju6fc",
+        "order": 10
+      },
+      {
+        "id": "cmipr4eq6001zwyx4xg0hrhw8",
+        "dimensionId": "cmipr42fx001bwyx4xxokz6h7",
+        "tagId": "tag-1764750901635-iqfv6bm30",
+        "order": 11
+      }
+    ]
+  },
+  {
+    "id": "cmipr4eyt0020wyx4vil1tyvu",
+    "slug": "gift-feature",
+    "category": "gift",
+    "name_zh": "特色功能",
+    "name_en": "Features",
+    "icon": "Star",
+    "order": 4,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:35:02.214Z",
+    "updatedAt": "2025-12-03T08:35:02.214Z",
+    "tagMappings": [
+      {
+        "id": "cmipr4frp0022wyx4idv2s6b9",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750813489-c1kkrx7bx",
+        "order": 0
+      },
+      {
+        "id": "cmipr4gic0024wyx4q50m5ph1",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750814311-pac04707u",
+        "order": 1
+      },
+      {
+        "id": "cmipr4h8g0026wyx4jkagj9gm",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750815088-it8hm22iz",
+        "order": 2
+      },
+      {
+        "id": "cmipr4hz90028wyx4abnxdckb",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750905730-r58ca6mx3",
+        "order": 3
+      },
+      {
+        "id": "cmipr4imr002awyx491swf09g",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750906670-jmtmjmvok",
+        "order": 4
+      },
+      {
+        "id": "cmipr4jio002cwyx4dqfhkq2l",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750907574-kisb9yiqx",
+        "order": 5
+      },
+      {
+        "id": "cmipr4kal002ewyx4hsdquhbn",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750908835-zmlr76vs4",
+        "order": 6
+      },
+      {
+        "id": "cmipr4l6w002gwyx4vmbpto8u",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750909795-kv3babzkz",
+        "order": 7
+      },
+      {
+        "id": "cmipr4m1x002iwyx4omaz9vsh",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750910916-uwsq5buzn",
+        "order": 8
+      },
+      {
+        "id": "cmipr4msz002kwyx44pwdsko9",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750912054-8zf6fxe6c",
+        "order": 9
+      },
+      {
+        "id": "cmipr4nm0002mwyx41duretkt",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750913116-lfbxrvtbg",
+        "order": 10
+      },
+      {
+        "id": "cmipr4of5002owyx477q9tbkv",
+        "dimensionId": "cmipr4eyt0020wyx4vil1tyvu",
+        "tagId": "tag-1764750914056-xbzuxd186",
+        "order": 11
+      }
+    ]
+  },
+  {
+    "id": "cmipr4os7002pwyx42nfdpb5a",
+    "slug": "gift-eco",
+    "category": "gift",
+    "name_zh": "環保認證",
+    "name_en": "Eco Certification",
+    "icon": "Leaf",
+    "order": 5,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:35:14.935Z",
+    "updatedAt": "2025-12-03T08:35:14.935Z",
+    "tagMappings": [
+      {
+        "id": "cmipr4pj7002rwyx4ghagc2kx",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750826299-k7s2kvflm",
+        "order": 0
+      },
+      {
+        "id": "cmipr4q7o002twyx4m1w3qj8z",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750827964-5l1oqb97h",
+        "order": 1
+      },
+      {
+        "id": "cmipr4r11002vwyx4o7z225rs",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750829165-qtnphlnv7",
+        "order": 2
+      },
+      {
+        "id": "cmipr4rsb002xwyx4ospyz7bu",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750830040-q0qkvr3ve",
+        "order": 3
+      },
+      {
+        "id": "cmipr4sgw002zwyx4ip68vqjw",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750831000-q1q1g1mge",
+        "order": 4
+      },
+      {
+        "id": "cmipr4tb00031wyx4j8itdkw6",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750831837-o1eeww7he",
+        "order": 5
+      },
+      {
+        "id": "cmipr4u2f0033wyx4fmugdle7",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750921410-1vus2v0ey",
+        "order": 6
+      },
+      {
+        "id": "cmipr4vft0035wyx4702yyqje",
+        "dimensionId": "cmipr4os7002pwyx42nfdpb5a",
+        "tagId": "tag-1764750922540-u641n6vas",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "id": "cmipr4vt20036wyx44xlse5qq",
+    "slug": "gift-application",
+    "category": "gift",
+    "name_zh": "應用場景",
+    "name_en": "Application",
+    "icon": "Target",
+    "order": 6,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:35:24.039Z",
+    "updatedAt": "2025-12-03T08:35:24.039Z",
+    "tagMappings": [
+      {
+        "id": "cmipr4wmt0038wyx47jw9ootf",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750924610-hx89vnp28",
+        "order": 0
+      },
+      {
+        "id": "cmipr4xlb003awyx4ztjm9cvc",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750925732-2or4rulyu",
+        "order": 1
+      },
+      {
+        "id": "cmipr4yiu003cwyx4zq504yk3",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750927090-vhl7qmxvj",
+        "order": 2
+      },
+      {
+        "id": "cmipr4zgy003ewyx41wyvrqii",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750928460-dka12curs",
+        "order": 3
+      },
+      {
+        "id": "cmipr509x003gwyx4kkd3guim",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750929420-ol10a856r",
+        "order": 4
+      },
+      {
+        "id": "cmipr514q003iwyx4usgoxtoz",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750837157-x2dhiyksp",
+        "order": 5
+      },
+      {
+        "id": "cmipr51t0003kwyx4palyy6o9",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750931491-lveatscyj",
+        "order": 6
+      },
+      {
+        "id": "cmipr52li003mwyx40u2nka84",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750932484-lot0v39yg",
+        "order": 7
+      },
+      {
+        "id": "cmipr53hk003owyx4mhzble94",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "cmiexjmg2000xwyushkq6qzc7",
+        "order": 8
+      },
+      {
+        "id": "cmipr54bq003qwyx477h7y5u0",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750934748-msicw24bb",
+        "order": 9
+      },
+      {
+        "id": "cmipr553h003swyx4da5ajtlt",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750935640-hdsesbl3d",
+        "order": 10
+      },
+      {
+        "id": "cmipr55xk003uwyx48lnb7ete",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750833039-674vevg8n",
+        "order": 11
+      },
+      {
+        "id": "cmipr56lx003wwyx4i83onm6v",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750937760-k7xmwqz0a",
+        "order": 12
+      },
+      {
+        "id": "cmipr585x003ywyx4tvvfhujf",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750839965-fsbcocgdq",
+        "order": 13
+      },
+      {
+        "id": "cmipr597d0040wyx4wimpk8ki",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750842077-0uwpmsi1m",
+        "order": 14
+      },
+      {
+        "id": "cmipr59yr0042wyx44nuuex1m",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750843246-luz09sf3e",
+        "order": 15
+      },
+      {
+        "id": "cmipr5ay60044wyx4lvypdn27",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750840935-7izz5bpmb",
+        "order": 16
+      },
+      {
+        "id": "cmipr5bvc0046wyx4j46fa8dk",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750944512-suq9sa9sx",
+        "order": 17
+      },
+      {
+        "id": "cmipr5cqc0048wyx4lr11yh92",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750945594-qd9zkwizz",
+        "order": 18
+      },
+      {
+        "id": "cmipr5dii004awyx42qt1fo8b",
+        "dimensionId": "cmipr4vt20036wyx44xlse5qq",
+        "tagId": "tag-1764750946640-h8lsysl5g",
+        "order": 19
+      }
+    ]
+  },
+  {
+    "id": "cmipr68oh001cwya03275b2xh",
+    "slug": "other-print",
+    "category": "print-packaging",
+    "name_zh": "其他印刷品",
+    "name_en": "Other Print Items",
+    "icon": "FileText",
+    "order": 3,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:36:27.378Z",
+    "updatedAt": "2025-12-03T08:36:27.378Z",
+    "tagMappings": [
+      {
+        "id": "cmipr69gx001ewya07sr5mkqv",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750987898-188kxcntt",
+        "order": 0
+      },
+      {
+        "id": "cmipr6akz001gwya0ugmsh9pu",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750989424-v2gexil7p",
+        "order": 1
+      },
+      {
+        "id": "cmipr6bad001iwya0lki6ho6k",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750990397-juz4dbhxv",
+        "order": 2
+      },
+      {
+        "id": "cmipr6c87001kwya02brt5n7e",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750991356-68ozjfrge",
+        "order": 3
+      },
+      {
+        "id": "cmipr6d0y001mwya0ml6l7x4b",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750992706-pyi70h6lt",
+        "order": 4
+      },
+      {
+        "id": "cmipr6dp8001owya0z4gvagyv",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750993580-kcu6tbaqm",
+        "order": 5
+      },
+      {
+        "id": "cmipr6eix001qwya09cbhn01q",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750994526-fzzbsqir0",
+        "order": 6
+      },
+      {
+        "id": "cmipr6fmj001swya07hbh4rp1",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750995966-y549gar9i",
+        "order": 7
+      },
+      {
+        "id": "cmipr6ghc001uwya0prs2fgxz",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750997161-oaifxpzhz",
+        "order": 8
+      },
+      {
+        "id": "cmipr6hev001wwya0p7cqvzqc",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750998340-c0w8s9nrm",
+        "order": 9
+      },
+      {
+        "id": "cmipr6i8x001ywya0zy7wxvjm",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764750999324-x0wph639k",
+        "order": 10
+      },
+      {
+        "id": "cmipr6j2m0020wya0g8kxn4ay",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751000526-lb762gyev",
+        "order": 11
+      },
+      {
+        "id": "cmipr6jon0022wya0c0qhdfc6",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751001360-ocd1d6knp",
+        "order": 12
+      },
+      {
+        "id": "cmipr6kff0024wya0rcc53s2j",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751002281-u5d5p0bxf",
+        "order": 13
+      },
+      {
+        "id": "cmipr6l5g0026wya0nzt9gwre",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751003265-mcfv94acn",
+        "order": 14
+      },
+      {
+        "id": "cmipr6lum0028wya014eogyij",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751004130-d6kiwqdw9",
+        "order": 15
+      },
+      {
+        "id": "cmipr6m9p002awya01qsxz65g",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "cmihzvzbs001rwyosldw7cw9y",
+        "order": 16
+      },
+      {
+        "id": "cmipr6mw6002cwya021a1hit6",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751005520-towe1xy2t",
+        "order": 17
+      },
+      {
+        "id": "cmipr6o47002ewya0rjzetf51",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751006822-1f0wose8c",
+        "order": 18
+      },
+      {
+        "id": "cmipr6oqk002gwya0so6zk7nu",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "tag-1764751007920-q1lmzr3fo",
+        "order": 19
+      },
+      {
+        "id": "cmipr6p7d002iwya0wjsaenu4",
+        "dimensionId": "cmipr68oh001cwya03275b2xh",
+        "tagId": "cmiexjiib000lwyus2khm8mmk",
+        "order": 20
+      }
+    ]
+  },
+  {
+    "id": "cmipr6pif002jwya0tisqerhg",
+    "slug": "application",
+    "category": "print-packaging",
+    "name_zh": "應用場景",
+    "name_en": "Application",
+    "icon": "Target",
+    "order": 4,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:36:49.192Z",
+    "updatedAt": "2025-12-03T08:36:49.192Z",
+    "tagMappings": [
+      {
+        "id": "cmipr6q3m002lwya0hvwhtl3c",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmii03qy1001vwyos987k61t4",
+        "order": 0
+      },
+      {
+        "id": "cmipr6qq2002nwya0n51doyk5",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751010480-n83kd7jgy",
+        "order": 1
+      },
+      {
+        "id": "cmipr6rvy002pwya0d6wgdv87",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751011714-2h472oxoj",
+        "order": 2
+      },
+      {
+        "id": "cmipr6skn002rwya0niflk29c",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjcpj0003wyusdfv32999",
+        "order": 3
+      },
+      {
+        "id": "cmipr6tvk002twya0ydqcc5l6",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751013895-gccfjuqvs",
+        "order": 4
+      },
+      {
+        "id": "cmipr6ut4002vwya01ebqsrj4",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751015756-cv9lf29pv",
+        "order": 5
+      },
+      {
+        "id": "cmipr6voa002xwya0of3cq2xd",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751016874-txb0q447l",
+        "order": 6
+      },
+      {
+        "id": "cmipr6xkt002zwya0pyymliww",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751019335-aecfqvppj",
+        "order": 7
+      },
+      {
+        "id": "cmipr6yex0031wya02xbkbsrh",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751020446-vreyns7ph",
+        "order": 8
+      },
+      {
+        "id": "cmipr6yto0033wya0of9eso7d",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjn2u000ywyusn24ijhy6",
+        "order": 9
+      },
+      {
+        "id": "cmipr6zlv0035wya09v0svany",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751021915-iomufzotm",
+        "order": 10
+      },
+      {
+        "id": "cmipr70fl0037wya0p8ntvbl9",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjdfj0005wyusm73asn85",
+        "order": 11
+      },
+      {
+        "id": "cmipr724p0039wya0wsieaias",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751023970-dc5jwgsua",
+        "order": 12
+      },
+      {
+        "id": "cmipr72sa003bwya01ql63jhq",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjdq60006wyus0n00i2rz",
+        "order": 13
+      },
+      {
+        "id": "cmipr73i1003dwya0fm13dqmq",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjd3l0004wyusbhoaqw60",
+        "order": 14
+      },
+      {
+        "id": "cmipr74ao003fwya0n213656m",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmig668u6002hwydwyf5zqjqt",
+        "order": 15
+      },
+      {
+        "id": "cmipr7528003hwya0gyxy83ot",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751028997-v5cuq3zqi",
+        "order": 16
+      },
+      {
+        "id": "cmipr75sk003jwya0imerv55e",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "tag-1764751029983-dmn9yx105",
+        "order": 17
+      },
+      {
+        "id": "cmipr7783003lwya0znbzi82e",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmiexjmg2000xwyushkq6qzc7",
+        "order": 18
+      },
+      {
+        "id": "cmipr77nt003nwya0zpklqje6",
+        "dimensionId": "cmipr6pif002jwya0tisqerhg",
+        "tagId": "cmii0ma9k0023wyoswsbsh0vh",
+        "order": 19
+      }
+    ]
+  },
+  {
+    "id": "cmipr7802003owya0tndtl1y9",
+    "slug": "material",
+    "category": "print-packaging",
+    "name_zh": "材質",
+    "name_en": "Material",
+    "icon": "Layers",
+    "order": 5,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:37:13.154Z",
+    "updatedAt": "2025-12-03T08:37:13.154Z",
+    "tagMappings": [
+      {
+        "id": "cmipr78pq003qwya0qz2ksz1z",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "cmii07odu001ywyosjq9gecoc",
+        "order": 0
+      },
+      {
+        "id": "cmipr79m2003swya0die329ip",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "tag-1764751034794-be8xgetoa",
+        "order": 1
+      },
+      {
+        "id": "cmipr7a8k003uwya0ux6s5sgv",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "cmiexjhly000iwyuslhv5ppmg",
+        "order": 2
+      },
+      {
+        "id": "cmipr7apz003wwya0iktutai4",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "cmihzv08x001qwyosiel8lfnx",
+        "order": 3
+      },
+      {
+        "id": "cmipr7dzb003ywya0jrjnovoi",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "cmiexjgz0000gwyus98eu2dna",
+        "order": 4
+      },
+      {
+        "id": "cmipr7efk0040wya0qn3723d1",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "cmiexjhbb000hwyushc7ebefs",
+        "order": 5
+      },
+      {
+        "id": "cmipr7f8l0042wya0w4csdi06",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "tag-1764751042020-cjeiwsuki",
+        "order": 6
+      },
+      {
+        "id": "cmipr7gyf0044wya09wdvy4vy",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "tag-1764751043115-gef5xkvjy",
+        "order": 7
+      },
+      {
+        "id": "cmipr7ho60046wya0jqiufogr",
+        "dimensionId": "cmipr7802003owya0tndtl1y9",
+        "tagId": "tag-1764751045415-fn2wbmfac",
+        "order": 8
+      }
+    ]
+  },
+  {
+    "id": "cmipr7hw20047wya0pxtz537a",
+    "slug": "finishing",
+    "category": "print-packaging",
+    "name_zh": "加工工藝",
+    "name_en": "Finishing",
+    "icon": "Sparkles",
+    "order": 6,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:37:25.970Z",
+    "updatedAt": "2025-12-03T08:37:25.970Z",
+    "tagMappings": [
+      {
+        "id": "cmipr7ifi0049wya05045yei1",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjjmr000owyusbfulho8j",
+        "order": 0
+      },
+      {
+        "id": "cmipr7jit004bwya0biwd17cj",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "tag-1764751047824-o3vqcfdkl",
+        "order": 1
+      },
+      {
+        "id": "cmipr7k3j004dwya032zz72yy",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjjxf000pwyusencncmme",
+        "order": 2
+      },
+      {
+        "id": "cmipr7lxj004fwya0mj6wh23t",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "tag-1764751049630-r3pw8nnv8",
+        "order": 3
+      },
+      {
+        "id": "cmipr7mgc004hwya0w1swhi87",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjktr000swyusxosvzwds",
+        "order": 4
+      },
+      {
+        "id": "cmipr7nkh004jwya0zwogqcfr",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "tag-1764751052811-t57x040w1",
+        "order": 5
+      },
+      {
+        "id": "cmipr7o6p004lwya0kipwx78p",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjk8f000qwyusgr9enayy",
+        "order": 6
+      },
+      {
+        "id": "cmipr7oky004nwya0vqpqjo27",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjkj2000rwyusi634d2yl",
+        "order": 7
+      },
+      {
+        "id": "cmipr7pjd004pwya0ginqqa58",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "tag-1764751055189-hv5w7vsb0",
+        "order": 8
+      },
+      {
+        "id": "cmipr7qpi004rwya0kggdcw7f",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "tag-1764751057080-vzlmlbxc1",
+        "order": 9
+      },
+      {
+        "id": "cmipr7r6z004twya05g2gdnm7",
+        "dimensionId": "cmipr7hw20047wya0pxtz537a",
+        "tagId": "cmiexjl4h000twyus2kvc8o9t",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "id": "cmipr60y0000rwya0ec7gijhw",
+    "slug": "rigid-box",
+    "category": "print-packaging",
+    "name_zh": "精裝紙盒",
+    "name_en": "Rigid Box / Gift Box",
+    "icon": "Gift",
+    "order": 2,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:36:17.353Z",
+    "updatedAt": "2025-12-03T09:01:19.417Z",
+    "tagMappings": [
+      {
+        "id": "cmipr61hf000twya0bgdmz0p3",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "cmiexjbgw0000wyus54ctm2bc",
+        "order": 0
+      },
+      {
+        "id": "cmipr62ja000vwya06wyq31xy",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750978875-hgdl7k3rt",
+        "order": 1
+      },
+      {
+        "id": "cmipr635b000xwya0goe4yxmp",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750979944-79fq1d75q",
+        "order": 2
+      },
+      {
+        "id": "cmipr63jb000zwya0jd9yxeo3",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "cmiexjccw0002wyuswiakokbr",
+        "order": 3
+      },
+      {
+        "id": "cmipr64bt0011wya0ltxcjmgo",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750981473-l19kvyn38",
+        "order": 4
+      },
+      {
+        "id": "cmipr658v0013wya0sshu85x7",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750982635-s90cofjuj",
+        "order": 5
+      },
+      {
+        "id": "cmipr65r40015wya05m6vlprw",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "cmiexjc260001wyustdg0e5po",
+        "order": 6
+      },
+      {
+        "id": "cmipr66pv0017wya0h4j3hbkc",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750984408-donkdgz6a",
+        "order": 7
+      },
+      {
+        "id": "cmipr67hx0019wya0pp1zl2sg",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750985335-tg351xzk0",
+        "order": 8
+      },
+      {
+        "id": "cmipr68h2001bwya0ppgzyoeo",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "tag-1764750986531-l6cq6mg5u",
+        "order": 9
+      },
+      {
+        "id": "cmipszlhb0001wynwz3eosf6k",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "cmihzr33j001owyosclk1fyaq",
+        "order": 0
+      },
+      {
+        "id": "cmiripaun0001wye8ttr34ols",
+        "dimensionId": "cmipr60y0000rwya0ec7gijhw",
+        "tagId": "cmimogrre0000l704sw56gqhn",
+        "order": 10
+      }
+    ]
+  },
+  {
+    "id": "cmipr5oiz0000wya0s30gwi1i",
+    "slug": "folding-carton",
+    "category": "print-packaging",
+    "name_zh": "一般紙盒",
+    "name_en": "Folding Carton",
+    "icon": "Package",
+    "order": 1,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:36:01.259Z",
+    "updatedAt": "2025-12-03T09:01:21.206Z",
+    "tagMappings": [
+      {
+        "id": "cmipr5q9y0002wya0iqua5gps",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750962729-tnnzghswt",
+        "order": 0
+      },
+      {
+        "id": "cmipr5rfc0004wya0ghw77r36",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750964683-im4nhhr4i",
+        "order": 1
+      },
+      {
+        "id": "cmipr5s8r0006wya0upqtcpdt",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750965723-t5pyq6x37",
+        "order": 2
+      },
+      {
+        "id": "cmipr5tn20008wya0oorw7kjn",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750967572-viv473jnm",
+        "order": 3
+      },
+      {
+        "id": "cmipr5ugm000awya005okp1u7",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750968520-ysje8ng47",
+        "order": 4
+      },
+      {
+        "id": "cmipr5vjy000cwya0cs4m7nbh",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750969854-ns7tpexos",
+        "order": 5
+      },
+      {
+        "id": "cmipr5vzq000ewya001ei87nq",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "cmihzum3v001pwyos9oxmk8a2",
+        "order": 6
+      },
+      {
+        "id": "cmipr5wnx000gwya0q7nl4h9l",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750971506-4pw3u2vqv",
+        "order": 7
+      },
+      {
+        "id": "cmipr5x3d000iwya05lkenvdo",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "cmih9oat40004wyxwqufg3pon",
+        "order": 8
+      },
+      {
+        "id": "cmipr5y0n000kwya0gyfezscs",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750973036-bzcj34jdp",
+        "order": 9
+      },
+      {
+        "id": "cmipr5yya000mwya0p2pueovq",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750974454-1wto3hip5",
+        "order": 10
+      },
+      {
+        "id": "cmipr5zov000owya077o48rlv",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750975386-7c6083j05",
+        "order": 11
+      },
+      {
+        "id": "cmipr60mi000qwya0ajryctxu",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "tag-1764750976364-8smqmv5hv",
+        "order": 12
+      },
+      {
+        "id": "cmiv7n8yl0001wyr01p88sq07",
+        "dimensionId": "cmipr5oiz0000wya0s30gwi1i",
+        "tagId": "cmii039yd001twyos89j2gqtt",
+        "order": 13
+      }
+    ]
+  },
+  {
+    "id": "cmiqgtzeh0000wy1kgk7c5pf3",
+    "slug": "gift-type",
+    "category": "gift",
+    "name_zh": "產品類型",
+    "name_en": "Product Type",
+    "icon": "Gift",
+    "order": 1,
+    "is_active": true,
+    "allow_multiple": false,
+    "createdAt": "2025-12-03T20:34:45.497Z",
+    "updatedAt": "2025-12-03T20:34:45.497Z",
+    "tagMappings": [
+      {
+        "id": "cmiqgu1qy0002wy1kw56n8wse",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794087891-fpkb1rwxp",
+        "order": 0
+      },
+      {
+        "id": "cmiqgv3ir0004wy1k6orcgh3y",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794137174-plk1zbqda",
+        "order": 1
+      },
+      {
+        "id": "cmiqgwalq0006wy1kuezc6mxl",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "cmiexjrvd001cwyussyaeeyrf",
+        "order": 2
+      },
+      {
+        "id": "cmiqgx6ol0008wy1k8o1e99lp",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794234398-x4ae36t2i",
+        "order": 3
+      },
+      {
+        "id": "cmiqgya5p000awy1kbfuqwr93",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794285715-8smp50llv",
+        "order": 4
+      },
+      {
+        "id": "cmiqgz17w000cwy1kxu67ne8j",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794320695-2mbq6423k",
+        "order": 5
+      },
+      {
+        "id": "cmiqh0snr000ewy1ktxzr6r13",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794402428-ur40hq4wp",
+        "order": 6
+      },
+      {
+        "id": "cmiqh1zog000gwy1k0tg0lay2",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794458774-z1a4787bl",
+        "order": 7
+      },
+      {
+        "id": "cmiqh2sbr000iwy1kjqyapyo5",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794495653-gal4xbs2w",
+        "order": 8
+      },
+      {
+        "id": "cmiqh3ngs000kwy1k2sc246sy",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794536135-g7l4r9f4f",
+        "order": 9
+      },
+      {
+        "id": "cmiqh4th0000mwy1kxy5osk5d",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794590716-ze9m7zzns",
+        "order": 10
+      },
+      {
+        "id": "cmiqh5kk5000owy1kdwgnqok3",
+        "dimensionId": "cmiqgtzeh0000wy1kgk7c5pf3",
+        "tagId": "tag-gift-1764794625770-73skj1tfo",
+        "order": 11
+      }
+    ]
+  },
+  {
+    "id": "cmiqkfdoq0000wy4w7rr94h9g",
+    "slug": "gift-drinkware",
+    "category": "gift",
+    "name_zh": "杯具類型",
+    "name_en": "Drinkware Type",
+    "icon": "Package",
+    "order": 100,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:15:22.633Z",
+    "updatedAt": "2025-12-03T22:15:22.633Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkfgt10002wy4wpez2z91z",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800124485-hrgcc9yno",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfio90004wy4wkd4h7xi7",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800127507-q2djhtb80",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfjus0006wy4we54ssic6",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800129893-rn5514fmc",
+        "order": 0
+      },
+      {
+        "id": "cmiqkflfp0008wy4wgvpc60t8",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800131755-y0tpvdu5u",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfnhm000awy4wxkdj7vy6",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800133997-3wi30gf5j",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfpnr000cwy4wpmennkkn",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800136353-0mh2fqkhm",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfqn8000ewy4wtdcnd1s6",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800138765-gvuckysar",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfs03000gwy4wtdvr4ttf",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800140252-b6r8d008w",
+        "order": 0
+      },
+      {
+        "id": "cmiqkftlv000iwy4wpwuotn3i",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800142418-8qdpqw61n",
+        "order": 0
+      },
+      {
+        "id": "cmiqkfxrh000kwy4wioyteem2",
+        "dimensionId": "cmiqkfdoq0000wy4w7rr94h9g",
+        "tagId": "tag-gift-1764800144658-b30g3hzsw",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkfyvr000lwy4w168ffdtb",
+    "slug": "gift-bag-type",
+    "category": "gift",
+    "name_zh": "袋類類型",
+    "name_en": "Gift Bag Type",
+    "icon": "Package",
+    "order": 101,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:15:50.104Z",
+    "updatedAt": "2025-12-03T22:15:50.104Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkgclw000nwy4w2xhvtwbz",
+        "dimensionId": "cmiqkfyvr000lwy4w168ffdtb",
+        "tagId": "tag-gift-1764800153154-dn8zac4xy",
+        "order": 0
+      },
+      {
+        "id": "cmiqkghr4000pwy4waf26sl8s",
+        "dimensionId": "cmiqkfyvr000lwy4w168ffdtb",
+        "tagId": "tag-gift-1764800172570-xjiallocx",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgj6x000rwy4wuhxw2r6j",
+        "dimensionId": "cmiqkfyvr000lwy4w168ffdtb",
+        "tagId": "tag-gift-1764800175570-9dql1iqak",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgkie000twy4whewwu39v",
+        "dimensionId": "cmiqkfyvr000lwy4w168ffdtb",
+        "tagId": "tag-gift-1764800177314-zavpy8qma",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgmbr000vwy4w08jer91p",
+        "dimensionId": "cmiqkfyvr000lwy4w168ffdtb",
+        "tagId": "tag-gift-1764800179581-xqdfju9te",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkgmsq000wwy4wzo067a8f",
+    "slug": "gift-stationery",
+    "category": "gift",
+    "name_zh": "文具類型",
+    "name_en": "Stationery Type",
+    "icon": "Package",
+    "order": 102,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:16:21.098Z",
+    "updatedAt": "2025-12-03T22:16:21.098Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkgojh000ywy4wzk5j48vw",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800182330-n8smb0ab1",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgptp0010wy4wxrvhw18n",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800184177-73juuafdp",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgqvd0012wy4wfy5gmg8l",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800185791-mwu5j3oxj",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgs950014wy4wz27fuh74",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800186942-0bsey3uw2",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgtro0016wy4wqmg348nr",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800189485-2ydon2i3h",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgurb0018wy4w6wx2riic",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800190774-i8v6vltcc",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgwas001awy4w5xvfntpb",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800192166-ju7u7nhbe",
+        "order": 0
+      },
+      {
+        "id": "cmiqkgxjx001cwy4wpyrqrt8b",
+        "dimensionId": "cmiqkgmsq000wwy4wzo067a8f",
+        "tagId": "tag-gift-1764800194209-raj85qooo",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkgy6a001dwy4wk6qbo2bu",
+    "slug": "gift-tech",
+    "category": "gift",
+    "name_zh": "3C配件類型",
+    "name_en": "Tech Accessories Type",
+    "icon": "Package",
+    "order": 103,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:16:35.842Z",
+    "updatedAt": "2025-12-03T22:16:35.842Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkgzaj001fwy4wcsu9k45m",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800196573-40zp7c3nh",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh0k7001hwy4waoix3g20",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800198045-teqpt02rz",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh1kw001jwy4wu3xmeiga",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800199575-y9vg1bc9y",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh31j001lwy4w05f59wnd",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800200974-qj56onglt",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh4kz001nwy4wq1djsvak",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800203118-undu5zcpx",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh623001pwy4wqp5mcivl",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800205340-zv0p1g3br",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh7fl001rwy4w5tb0ndtz",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800206714-5od751dcr",
+        "order": 0
+      },
+      {
+        "id": "cmiqkh8t2001twy4w430upjvz",
+        "dimensionId": "cmiqkgy6a001dwy4wk6qbo2bu",
+        "tagId": "tag-gift-1764800209016-g6lmqdggj",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkh9e6001uwy4whrcrifqd",
+    "slug": "gift-card-holder",
+    "category": "gift",
+    "name_zh": "證件卡套類型",
+    "name_en": "Card Holder Type",
+    "icon": "Package",
+    "order": 104,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:16:50.382Z",
+    "updatedAt": "2025-12-03T22:16:50.382Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkhal8001wwy4w1fhgfbq0",
+        "dimensionId": "cmiqkh9e6001uwy4whrcrifqd",
+        "tagId": "tag-gift-1764800211015-kfebb504s",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhc3t001ywy4wmgloe1w2",
+        "dimensionId": "cmiqkh9e6001uwy4whrcrifqd",
+        "tagId": "tag-gift-1764800212649-0zxiwfjfh",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhdrn0020wy4we6f8je07",
+        "dimensionId": "cmiqkh9e6001uwy4whrcrifqd",
+        "tagId": "tag-gift-1764800214799-q4veqjc2p",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhetf0022wy4waz3mpqub",
+        "dimensionId": "cmiqkh9e6001uwy4whrcrifqd",
+        "tagId": "tag-gift-1764800216695-0nudsrmhf",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhgwv0024wy4ww1kmcaw5",
+        "dimensionId": "cmiqkh9e6001uwy4whrcrifqd",
+        "tagId": "tag-gift-1764800219330-hh3pj15l6",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkhhdw0025wy4wvtt0kjkb",
+    "slug": "gift-apparel",
+    "category": "gift",
+    "name_zh": "服飾配件類型",
+    "name_en": "Apparel Accessories Type",
+    "icon": "Package",
+    "order": 105,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:17:00.740Z",
+    "updatedAt": "2025-12-03T22:17:00.740Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkhiry0027wy4wvhn2lvm3",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800221375-hc9fi5njh",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhk8a0029wy4w2ee6flon",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800223292-fah8c1f90",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhlc6002bwy4w7m2ggxt5",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800225143-874mu0l0q",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhmjj002dwy4w7btx5jrw",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800226776-iokpvxh4c",
+        "order": 0
+      },
+      {
+        "id": "cmiqkho0m002fwy4w7b9uxgx0",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800228113-gz8g0htsg",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhpka002hwy4w7dwqrr49",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800230052-dqwncc1ly",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhqzn002jwy4wjn4vnxhc",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800231994-gurgeplwv",
+        "order": 0
+      },
+      {
+        "id": "cmiqx8i230005wyhwbzm5ocbc",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-miqx8hbk-0kh081xk",
+        "order": 999
+      },
+      {
+        "id": "cmiqxvru80001wypc5i3e2i0s",
+        "dimensionId": "cmiqkhhdw0025wy4wvtt0kjkb",
+        "tagId": "tag-gift-1764800246364-wxpjk28m9",
+        "order": 1000
+      }
+    ]
+  },
+  {
+    "id": "cmiqkhs7k002kwy4w62pmcri1",
+    "slug": "gift-keychain",
+    "category": "gift",
+    "name_zh": "鑰匙圈飾品類型",
+    "name_en": "Keychain Type",
+    "icon": "Package",
+    "order": 106,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:17:14.768Z",
+    "updatedAt": "2025-12-03T22:17:14.768Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkhtkg002mwy4w7z9926vu",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800235900-1jcbx27n7",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhuv6002owy4wnbd4v1v3",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800237086-4veqvj5to",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhwf7002qwy4whrs1ir85",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800239369-pbd6owxdc",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhy5j002swy4wo90csd1u",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800241822-8ifogi5jz",
+        "order": 0
+      },
+      {
+        "id": "cmiqkhzxh002uwy4wg3y0i4iv",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800243367-1hjvkw3ip",
+        "order": 0
+      },
+      {
+        "id": "cmiqki1o3002wwy4wswiftga5",
+        "dimensionId": "cmiqkhs7k002kwy4w62pmcri1",
+        "tagId": "tag-gift-1764800246364-wxpjk28m9",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqki25m002xwy4wyaudjp1l",
+    "slug": "gift-home",
+    "category": "gift",
+    "name_zh": "居家用品類型",
+    "name_en": "Home Living Type",
+    "icon": "Package",
+    "order": 107,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:17:27.659Z",
+    "updatedAt": "2025-12-03T22:17:27.659Z",
+    "tagMappings": [
+      {
+        "id": "cmiqki42a002zwy4w3y8t9sc3",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "cmiexjr3c001awyusexiuuv2l",
+        "order": 0
+      },
+      {
+        "id": "cmiqki5my0031wy4wwp9w8y1e",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800251177-w9t89ag8q",
+        "order": 0
+      },
+      {
+        "id": "cmiqki6l10033wy4w2iwp8do8",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800252766-lni6qqfju",
+        "order": 0
+      },
+      {
+        "id": "cmiqki80h0035wy4wvuh02728",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800254422-b003hkh72",
+        "order": 0
+      },
+      {
+        "id": "cmiqki97h0037wy4woihmpstn",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800255995-iqul40b4f",
+        "order": 0
+      },
+      {
+        "id": "cmiqkia7i0039wy4wjrkd4iy9",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800257425-8fl3cj2w6",
+        "order": 0
+      },
+      {
+        "id": "cmiqkibab003bwy4wjpqdawju",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-gift-1764800258728-4jixjysuw",
+        "order": 0
+      },
+      {
+        "id": "cmiqwd1jo0001wy4wi631n8wo",
+        "dimensionId": "cmiqki25m002xwy4wyaudjp1l",
+        "tagId": "tag-miqvjlzf-rglq5vpv",
+        "order": 999
+      }
+    ]
+  },
+  {
+    "id": "cmiqkibst003cwy4wa7ogf19l",
+    "slug": "gift-fragrance",
+    "category": "gift",
+    "name_zh": "香氛類型",
+    "name_en": "Fragrance Type",
+    "icon": "Package",
+    "order": 108,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:17:40.158Z",
+    "updatedAt": "2025-12-03T22:17:40.158Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkide0003ewy4wyx3a6fxk",
+        "dimensionId": "cmiqkibst003cwy4wa7ogf19l",
+        "tagId": "tag-gift-1764800261023-y48wqvb95",
+        "order": 0
+      },
+      {
+        "id": "cmiqkiedl003gwy4wealhzvsx",
+        "dimensionId": "cmiqkibst003cwy4wa7ogf19l",
+        "tagId": "tag-gift-1764800262863-r030c4mi3",
+        "order": 0
+      },
+      {
+        "id": "cmiqkig8h003iwy4w1skk07bv",
+        "dimensionId": "cmiqkibst003cwy4wa7ogf19l",
+        "tagId": "tag-gift-1764800264355-3aphcjb0m",
+        "order": 0
+      },
+      {
+        "id": "cmiqkihb6003kwy4wl21k5ybt",
+        "dimensionId": "cmiqkibst003cwy4wa7ogf19l",
+        "tagId": "tag-gift-1764800266713-esaim5c0n",
+        "order": 0
+      },
+      {
+        "id": "cmiqkiivx003mwy4wmn8929ql",
+        "dimensionId": "cmiqkibst003cwy4wa7ogf19l",
+        "tagId": "tag-gift-1764800268053-usfhcolln",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkijmh003nwy4w82am30lh",
+    "slug": "gift-outdoor",
+    "category": "gift",
+    "name_zh": "戶外運動類型",
+    "name_en": "Outdoor Sports Type",
+    "icon": "Package",
+    "order": 109,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:17:50.297Z",
+    "updatedAt": "2025-12-03T22:17:50.297Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkil1i003pwy4w32766hv4",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800271530-1s83ffuy5",
+        "order": 0
+      },
+      {
+        "id": "cmiqkima8003rwy4w8co64ukl",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800273092-i02vdtqwb",
+        "order": 0
+      },
+      {
+        "id": "cmiqkio24003twy4wnhp21xf9",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800274910-p1zopqsbj",
+        "order": 0
+      },
+      {
+        "id": "cmiqkiq9k003vwy4wqlkli35u",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800278190-ar1y9lui7",
+        "order": 0
+      },
+      {
+        "id": "cmiqkismt003xwy4ws9j6fjdw",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800279726-vnj7wcg3l",
+        "order": 0
+      },
+      {
+        "id": "cmiqkiu8m003zwy4w8ah9guiu",
+        "dimensionId": "cmiqkijmh003nwy4w82am30lh",
+        "tagId": "tag-gift-1764800283501-nyae3cgp0",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkivkw0040wy4whwpwu6z2",
+    "slug": "gift-toys",
+    "category": "gift",
+    "name_zh": "玩具遊戲類型",
+    "name_en": "Toys Games Type",
+    "icon": "Package",
+    "order": 110,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:18:05.792Z",
+    "updatedAt": "2025-12-03T22:18:05.792Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkiwzf0042wy4w8emm6y0i",
+        "dimensionId": "cmiqkivkw0040wy4whwpwu6z2",
+        "tagId": "tag-gift-1764800286578-vexi896ms",
+        "order": 0
+      },
+      {
+        "id": "cmiqkiyoq0044wy4w8ofx6owo",
+        "dimensionId": "cmiqkivkw0040wy4whwpwu6z2",
+        "tagId": "tag-gift-1764800289091-co4bk6c8t",
+        "order": 0
+      },
+      {
+        "id": "cmiqkizni0046wy4wi3ozif16",
+        "dimensionId": "cmiqkivkw0040wy4whwpwu6z2",
+        "tagId": "tag-gift-1764800290450-l23gqs41l",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj0w50048wy4wm2nwfkig",
+        "dimensionId": "cmiqkivkw0040wy4whwpwu6z2",
+        "tagId": "tag-gift-1764800291900-03mmv6d9q",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj1xe004awy4wfvugz6vr",
+        "dimensionId": "cmiqkivkw0040wy4whwpwu6z2",
+        "tagId": "tag-gift-1764800293327-g3hg8aaiz",
+        "order": 0
+      }
+    ]
+  },
+  {
+    "id": "cmiqkj2ho004bwy4wzawl3d60",
+    "slug": "gift-office",
+    "category": "gift",
+    "name_zh": "辦公商務類型",
+    "name_en": "Office Business Type",
+    "icon": "Package",
+    "order": 111,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T22:18:14.749Z",
+    "updatedAt": "2025-12-03T22:18:14.749Z",
+    "tagMappings": [
+      {
+        "id": "cmiqkj3un004dwy4wbkznvimx",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-gift-1764800295857-4ilpy2wd5",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj5r0004fwy4wy1rqn0pe",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-gift-1764800297787-3r35pv41a",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj72u004hwy4wsahclzjx",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-gift-1764800300117-sgcn40d18",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj8o0004jwy4wu47uumyz",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-gift-1764800301539-6ii76kchw",
+        "order": 0
+      },
+      {
+        "id": "cmiqkj9hc004lwy4wk1vbk9n7",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-1764750997161-oaifxpzhz",
+        "order": 0
+      },
+      {
+        "id": "cmiqkjan7004nwy4wbdzy3z5x",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-gift-1764800304456-910i7kvrz",
+        "order": 0
+      },
+      {
+        "id": "cmiqx6bp90001wyhw0tmapcjy",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-miqx6ak0-7h833a3m",
+        "order": 999
+      },
+      {
+        "id": "cmiqx720c0003wyhwuvwbtlkl",
+        "dimensionId": "cmiqkj2ho004bwy4wzawl3d60",
+        "tagId": "tag-miqx70ll-b4gtnuwu",
+        "order": 999
+      }
+    ]
+  },
+  {
+    "id": "cmipr1okr0015wy5001bm9b2l",
+    "slug": "bag-style",
+    "category": "bag",
+    "name_zh": "袋形",
+    "name_en": "Bag Style",
+    "icon": "ShoppingBag",
+    "order": 3,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:32:54.699Z",
+    "updatedAt": "2025-12-04T09:58:19.248Z",
+    "tagMappings": [
+      {
+        "id": "cmipr1q0j0017wy50cgoo82ds",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmiexjeud0009wyusstesaqh8",
+        "order": 0
+      },
+      {
+        "id": "cmipr1que0019wy50p8mzg0iv",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmiexjege0008wyusdiyq7cz4",
+        "order": 1
+      },
+      {
+        "id": "cmipr1rlf001bwy504n5852qh",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmiexjf50000awyusn0wqzckk",
+        "order": 2
+      },
+      {
+        "id": "cmipr1sd4001dwy50cvn1fk5w",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750779190-fk0qm7lqp",
+        "order": 3
+      },
+      {
+        "id": "cmipr1tlh001fwy50p9nyzn12",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750780635-chnk4xiwd",
+        "order": 4
+      },
+      {
+        "id": "cmipr1umw001hwy5062eiyive",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmii8ptcn0003wy740my7lxw9",
+        "order": 5
+      },
+      {
+        "id": "cmipr1vhg001jwy503ll52v78",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750783330-14gn6m5x7",
+        "order": 6
+      },
+      {
+        "id": "cmipr1w83001lwy50tygqyjna",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750784295-epolanwnn",
+        "order": 7
+      },
+      {
+        "id": "cmipr1x0l001nwy50glia9t32",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750785253-jzcxhewht",
+        "order": 8
+      },
+      {
+        "id": "cmipr1xry001pwy50kr7ah9ap",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750786332-uzn4m1hqn",
+        "order": 9
+      },
+      {
+        "id": "cmipr1yi7001rwy50pobm3nln",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750787259-8rg56mx0h",
+        "order": 10
+      },
+      {
+        "id": "cmipr1z9g001twy50l7r1rukc",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750788154-3e6064i5n",
+        "order": 11
+      },
+      {
+        "id": "cmipr1zvr001vwy50q9o5508w",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750789085-wtmiks218",
+        "order": 12
+      },
+      {
+        "id": "cmipr20x4001xwy50uu0obgst",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750790364-vy2pwujpu",
+        "order": 13
+      },
+      {
+        "id": "cmipr21o3001zwy50z18u7bub",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750791405-hf8x5kht7",
+        "order": 14
+      },
+      {
+        "id": "cmipr22ak0021wy501yynht15",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750792210-o8ds87ejz",
+        "order": 15
+      },
+      {
+        "id": "cmipr23190023wy50zx4ovwhw",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750793005-ff6798dr6",
+        "order": 16
+      },
+      {
+        "id": "cmipr24as0025wy502rygddi1",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750794355-hbluouanw",
+        "order": 17
+      },
+      {
+        "id": "cmipr25vm0027wy50e8qedet5",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750795772-m4ndzt68c",
+        "order": 18
+      },
+      {
+        "id": "cmipr26u70029wy5079fm5num",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750798040-sr10rh2iw",
+        "order": 19
+      },
+      {
+        "id": "cmipr27hx002bwy504sytu446",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750798935-m29vz33ra",
+        "order": 20
+      },
+      {
+        "id": "cmipr28dr002dwy501mgh5yjj",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmi23qyuj000j79rtvvxfxgvx",
+        "order": 21
+      },
+      {
+        "id": "cmipr2971002fwy50v22lefa9",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "tag-1764750800950-lpb1m7ax3",
+        "order": 22
+      },
+      {
+        "id": "cmipue9gb000hwy3kn4e797uk",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmiexjffo000bwyusgg0eolt4",
+        "order": 24
+      },
+      {
+        "id": "cmipue9oa000jwy3kg1h2uw2b",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmihz08wo000rwyos47u0q73z",
+        "order": 24
+      },
+      {
+        "id": "cmipuea1s000lwy3kv9we2lfe",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmihyzleg000qwyosksuxrbyo",
+        "order": 24
+      },
+      {
+        "id": "cmipueahm000nwy3kqwruehsg",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmihzitff001kwyos3rctap0i",
+        "order": 24
+      },
+      {
+        "id": "cmipueaqf000pwy3kgmspqinx",
+        "dimensionId": "cmipr1okr0015wy5001bm9b2l",
+        "tagId": "cmihzix20001lwyosz2dm1oor",
+        "order": 24
+      }
+    ]
+  },
+  {
+    "id": "cmipr29hv002gwy50ug8zrgc5",
+    "slug": "bag-print",
+    "category": "bag",
+    "name_zh": "印刷工藝",
+    "name_en": "Print & Finishing",
+    "icon": "Paintbrush",
+    "order": 4,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:33:21.811Z",
+    "updatedAt": "2025-12-04T09:58:19.248Z",
+    "tagMappings": [
+      {
+        "id": "cmipr2a4t002iwy508xrustm1",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750802385-6iqh5gaoz",
+        "order": 0
+      },
+      {
+        "id": "cmipr2auj002kwy50jsz55ao4",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750803201-tled052q5",
+        "order": 1
+      },
+      {
+        "id": "cmipr2bsb002mwy50dpr46lbk",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750804517-ijumikydt",
+        "order": 2
+      },
+      {
+        "id": "cmipr2cin002owy50by1ekelw",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750805409-ksjcb5peo",
+        "order": 3
+      },
+      {
+        "id": "cmipr2d6h002qwy50n9z05d5s",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750806313-lsedabtm5",
+        "order": 4
+      },
+      {
+        "id": "cmipr2dt4002swy50pogu29yn",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750807142-g7bpk3syk",
+        "order": 5
+      },
+      {
+        "id": "cmipr2efr002uwy50z6gybo9m",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750807954-jqxlvd0xo",
+        "order": 6
+      },
+      {
+        "id": "cmipr2f1o002wwy50u8gses5p",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750808747-zobnxnys0",
+        "order": 7
+      },
+      {
+        "id": "cmipr2fny002ywy50ji5hxmi7",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750809535-on3rvp3lu",
+        "order": 8
+      },
+      {
+        "id": "cmipr2gcd0030wy5012iuk987",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750810369-lfesjv3hp",
+        "order": 9
+      },
+      {
+        "id": "cmipr2h0t0032wy50hu7qe1kf",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750811240-yf1xwvg4s",
+        "order": 10
+      },
+      {
+        "id": "cmipr2hvj0034wy50zzth2b84",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "tag-1764750812140-oiuyuqtef",
+        "order": 11
+      },
+      {
+        "id": "cmipueb1d000rwy3kr2410snh",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "cmihyfh8q0002wyos2m7togz2",
+        "order": 13
+      },
+      {
+        "id": "cmipuebah000twy3kq4f9fugb",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "cmiexjlf4000uwyusuw1yq389",
+        "order": 13
+      },
+      {
+        "id": "cmipuebhu000vwy3k7y5vohr9",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "cmihyjnfy0006wyos1zvy08w8",
+        "order": 13
+      },
+      {
+        "id": "cmipuebr8000xwy3k6jxhuqvg",
+        "dimensionId": "cmipr29hv002gwy50ug8zrgc5",
+        "tagId": "cmihyggwl0003wyosmycq3lz8",
+        "order": 13
+      }
+    ]
+  },
+  {
+    "id": "cmipr2i3a0035wy50hnkq7nar",
+    "slug": "bag-feature",
+    "category": "bag",
+    "name_zh": "特色功能",
+    "name_en": "Features",
+    "icon": "Star",
+    "order": 5,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:33:32.950Z",
+    "updatedAt": "2025-12-04T09:58:19.248Z",
+    "tagMappings": [
+      {
+        "id": "cmipr2ips0037wy50557fsruk",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750813489-c1kkrx7bx",
+        "order": 0
+      },
+      {
+        "id": "cmipr2jcp0039wy50xxw5puoq",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750814311-pac04707u",
+        "order": 1
+      },
+      {
+        "id": "cmipr2jxv003bwy50qjetkwlh",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750815088-it8hm22iz",
+        "order": 2
+      },
+      {
+        "id": "cmipr2klq003dwy50gs2se4da",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750815875-onu3p11yu",
+        "order": 3
+      },
+      {
+        "id": "cmipr2l8x003fwy50t4ifleum",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750816774-h6qow7siw",
+        "order": 4
+      },
+      {
+        "id": "cmipr2lwi003hwy500yrg54mc",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750817564-2ub3wce00",
+        "order": 5
+      },
+      {
+        "id": "cmipr2mn1003jwy50mywd6ikk",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750818509-93v3a8a54",
+        "order": 6
+      },
+      {
+        "id": "cmipr2nc6003lwy50tyziwgj8",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750819485-ed4vcmys8",
+        "order": 7
+      },
+      {
+        "id": "cmipr2o4y003nwy50l1wlkphs",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750820294-3lka8i1qk",
+        "order": 8
+      },
+      {
+        "id": "cmipr2oxb003pwy50u7c1aqt4",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750821491-cff7uapic",
+        "order": 9
+      },
+      {
+        "id": "cmipr2q3m003rwy50qc0o7qub",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750823014-dcfrhs6a1",
+        "order": 10
+      },
+      {
+        "id": "cmipr2qwm003twy50x2o9ddkn",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750824050-d27162eas",
+        "order": 11
+      },
+      {
+        "id": "cmipr2rmr003vwy502qxvdjli",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "tag-1764750824905-0ant6mopp",
+        "order": 12
+      },
+      {
+        "id": "cmipuec710011wy3kf7ko17tc",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "cmihz6asi0010wyos5wt5xbtr",
+        "order": 14
+      },
+      {
+        "id": "cmipuecjo0013wy3k8ypbfi7x",
+        "dimensionId": "cmipr2i3a0035wy50hnkq7nar",
+        "tagId": "cmihz6bwp0011wyosz5nfpa5o",
+        "order": 14
+      }
+    ]
+  },
+  {
+    "id": "cmipr2rtv003wwy50bu2a9r0k",
+    "slug": "bag-eco",
+    "category": "bag",
+    "name_zh": "環保認證",
+    "name_en": "Eco Certification",
+    "icon": "Leaf",
+    "order": 6,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:33:45.571Z",
+    "updatedAt": "2025-12-04T09:58:19.248Z",
+    "tagMappings": [
+      {
+        "id": "cmipr2ssg003ywy502ie7a47l",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750826299-k7s2kvflm",
+        "order": 0
+      },
+      {
+        "id": "cmipr2u2f0040wy508zhrtn2i",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750827964-5l1oqb97h",
+        "order": 1
+      },
+      {
+        "id": "cmipr2usx0042wy50iwcrzgbn",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750829165-qtnphlnv7",
+        "order": 2
+      },
+      {
+        "id": "cmipr2vlh0044wy50pn3wgk35",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750830040-q0qkvr3ve",
+        "order": 3
+      },
+      {
+        "id": "cmipr2w9q0046wy5018fud7xv",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750831000-q1q1g1mge",
+        "order": 4
+      },
+      {
+        "id": "cmipr2wvx0048wy5018t5rv67",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "tag-1764750831837-o1eeww7he",
+        "order": 5
+      },
+      {
+        "id": "cmipuebyy000zwy3kgdnr0fg4",
+        "dimensionId": "cmipr2rtv003wwy50bu2a9r0k",
+        "tagId": "cmiexjosq0013wyustlyd6gvc",
+        "order": 7
+      }
+    ]
+  },
+  {
+    "id": "cmipr2x3a0049wy50z41sp91q",
+    "slug": "bag-application",
+    "category": "bag",
+    "name_zh": "應用場景",
+    "name_en": "Application",
+    "icon": "Target",
+    "order": 7,
+    "is_active": true,
+    "allow_multiple": true,
+    "createdAt": "2025-12-03T08:33:52.390Z",
+    "updatedAt": "2025-12-04T09:58:19.248Z",
+    "tagMappings": [
+      {
+        "id": "cmipr2xsq004bwy502rhpm53h",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750833039-674vevg8n",
+        "order": 0
+      },
+      {
+        "id": "cmipr2yez004dwy503rlgwqk9",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750833838-j97kang2x",
+        "order": 1
+      },
+      {
+        "id": "cmipr2z2n004fwy50uwmsze0g",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750834693-bn7ld4v46",
+        "order": 2
+      },
+      {
+        "id": "cmipr305q004hwy505qixptsj",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750836033-59ih0kz42",
+        "order": 3
+      },
+      {
+        "id": "cmipr310u004jwy50e6fmlwlv",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750837157-x2dhiyksp",
+        "order": 4
+      },
+      {
+        "id": "cmipr3274004lwy50oc4f0hm3",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750838695-dhzzb9ppa",
+        "order": 5
+      },
+      {
+        "id": "cmipr3373004nwy50m6z5vaje",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750839965-fsbcocgdq",
+        "order": 6
+      },
+      {
+        "id": "cmipr33xf004pwy50j0sir704",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750840935-7izz5bpmb",
+        "order": 7
+      },
+      {
+        "id": "cmipr34zc004rwy50o0jr5chv",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750842077-0uwpmsi1m",
+        "order": 8
+      },
+      {
+        "id": "cmipr35vp004twy502r5n22pc",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750843246-luz09sf3e",
+        "order": 9
+      },
+      {
+        "id": "cmipr36i3004vwy5029vi1a81",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750844309-y24kjuvnr",
+        "order": 10
+      },
+      {
+        "id": "cmipr37en004xwy50y3tup337",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "tag-1764750845311-zcij6nzgi",
+        "order": 11
+      },
+      {
+        "id": "cmipued0t0015wy3kpwf0mu16",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "cmihyy7bk000pwyos2cim5095",
+        "order": 13
+      },
+      {
+        "id": "cmipuedp50017wy3k2l7v037o",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "cmiexjpew0015wyusz5d3m5sa",
+        "order": 13
+      },
+      {
+        "id": "cmipuedws0019wy3kr6lpx7yf",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "cmiexjp470014wyusottwzde0",
+        "order": 13
+      },
+      {
+        "id": "cmipuee4k001bwy3kvu4gtri9",
+        "dimensionId": "cmipr2x3a0049wy50z41sp91q",
+        "tagId": "cmihyj22d0005wyosyqtha2jc",
+        "order": 13
+      }
+    ]
+  }
+]

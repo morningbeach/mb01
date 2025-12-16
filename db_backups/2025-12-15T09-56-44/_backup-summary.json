@@ -1,0 +1,47 @@
+{
+  "timestamp": "2025-12-15T09:56:53.468Z",
+  "backupDir": "C:\\Users\\tomor\\MB\\mb01\\db_backups\\2025-12-15T09-56-44",
+  "tables": [
+    {
+      "name": "ResearchSession",
+      "count": 2
+    },
+    {
+      "name": "Product",
+      "count": 445
+    },
+    {
+      "name": "CategoryNode",
+      "count": 53
+    },
+    {
+      "name": "Tag",
+      "count": 415
+    },
+    {
+      "name": "Image",
+      "count": 125
+    },
+    {
+      "name": "Album",
+      "count": 6
+    },
+    {
+      "name": "BlogPost",
+      "count": 2
+    },
+    {
+      "name": "CaseProject",
+      "count": 8
+    },
+    {
+      "name": "AdminUser",
+      "count": 2
+    },
+    {
+      "name": "SiteSetting",
+      "count": 3
+    }
+  ],
+  "totalRecords": 1061
+}

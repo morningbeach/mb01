@@ -30,10 +30,17 @@ export async function createSession(userId: string, sessionId: string): Promise<
   }
 }
 
-export async function getSession(sessionId: string): Promise<{ userId: string; createdAt: Date } | null> {
+export async function getSession(sessionId: string): Promise<{ userId: string; createdAt: Date; role?: string } | null> {
   try {
     const session = await prisma.adminSession.findUnique({
       where: { sessionId },
+      include: {
+        AdminUser: {
+          select: {
+            role: true
+          }
+        }
+      }
     });
 
     if (!session) {
@@ -52,6 +59,7 @@ export async function getSession(sessionId: string): Promise<{ userId: string; c
     return {
       userId: session.userId,
       createdAt: session.createdAt,
+      role: session.AdminUser?.role,
     };
   } catch (error) {
     console.error('getSession error:', error);

@@ -1,0 +1,380 @@
+// prisma/schema-research.prisma
+// 包裝趨勢研究系統 - 資料庫模型擴展
+// 需要合併到主 schema.prisma
+
+// ============================================
+// 研究系統核心模型
+// ============================================
+
+// 研究任務 - 每次研究的主記錄
+model ResearchSession {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 研究狀態
+  status          ResearchStatus @default(COLLECTING)
+  
+  // 研究配置
+  focusAreas      String[]  // 聚焦領域：紙類包裝、印刷加工、材料創新等
+  languages       String[]  // 語言：zh, en
+  regions         String[]  // 區域：asia, europe, americas
+  
+  // 研究元數據
+  triggerType     String    // cron / manual
+  modelUsed       String?   // 使用的 AI 模型
+  
+  // 關聯
+  sources         ResearchSource[]
+  modules         ResearchModule[]
+  articles        ArticleDraft[]
+  conversations   ResearchConversation[]
+  
+  // 人類審核
+  humanReviewedAt DateTime?
+  humanReviewerId String?
+  humanNotes      String?
+}
+
+enum ResearchStatus {
+  COLLECTING      // AI 正在收集資料
+  ANALYZING       // AI 正在分析
+  PENDING_REVIEW  // 等待人類審核
+  REVIEWED        // 人類已審核
+  WRITING         // 協作寫作中
+  COMPLETED       // 完成
+  ARCHIVED        // 已歸檔
+}
+
+// 研究來源 - 記錄每個資料來源
+model ResearchSource {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  // 來源資訊
+  url             String
+  title           String
+  domain          String
+  language        String   // zh / en
+  region          String   // asia / europe / americas
+  
+  // 來源評分（AI 評估）
+  authorityScore  Float    @default(0)  // 權威性 0-100
+  originalityScore Float   @default(0)  // 原創性 0-100
+  relevanceScore  Float    @default(0)  // 相關性 0-100
+  
+  // 來源分類
+  sourceType      SourceType
+  isVerified      Boolean  @default(false)  // 人類已驗證
+  isExcluded      Boolean  @default(false)  // 人類排除
+  excludeReason   String?
+  
+  // 內容摘要
+  summary         String?
+  keyPoints       String[] // 關鍵要點
+  
+  // 關聯
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id])
+  modules         ResearchModuleSource[]
+  
+  @@index([sessionId])
+  @@index([domain])
+}
+
+enum SourceType {
+  INDUSTRY_REPORT   // 產業報告
+  ACADEMIC_PAPER    // 學術論文
+  TRADE_NEWS        // 行業新聞
+  MANUFACTURER_BLOG // 製造商部落格
+  CONFERENCE        // 會議/展覽
+  PATENT            // 專利
+  CASE_STUDY        // 案例研究
+  MARKET_ANALYSIS   // 市場分析
+  OTHER
+}
+
+// 研究模組 - 結構化的知識單位
+model ResearchModule {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 模組類型
+  moduleType      ModuleType
+  
+  // 內容（雙語）
+  title_zh        String
+  title_en        String
+  
+  // 核心結論
+  conclusion_zh   String
+  conclusion_en   String
+  
+  // 觀點摘要（可用於文章）
+  insight_zh      String?
+  insight_en      String?
+  
+  // 支撐數據
+  supportingData  Json?    // 數據、統計、引用
+  
+  // 標籤與分類
+  tags            String[]
+  subCategory     String?  // 細分類別
+  
+  // 人類編輯狀態
+  humanEdited     Boolean  @default(false)
+  humanApproved   Boolean  @default(false)
+  humanNotes      String?
+  
+  // 可重用性標記
+  isReusable      Boolean  @default(true)
+  usageCount      Int      @default(0)
+  
+  // 關聯
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id])
+  sources         ResearchModuleSource[]
+  articleUsages   ArticleModuleUsage[]
+  
+  @@index([sessionId])
+  @@index([moduleType])
+  @@index([humanApproved])
+}
+
+enum ModuleType {
+  TREND           // 趨勢模組
+  MATERIAL        // 材料模組
+  STRUCTURE       // 結構模組
+  PROCESS         // 技術/加工模組
+  CASE            // 案例模組
+  MARKET_INSIGHT  // 市場觀察模組
+  SUSTAINABILITY  // 永續/環保模組
+  INNOVATION      // 創新模組
+  REGULATION      // 法規模組
+}
+
+// 研究模組與來源的關聯
+model ResearchModuleSource {
+  moduleId        String
+  sourceId        String
+  
+  module          ResearchModule  @relation(fields: [moduleId], references: [id])
+  source          ResearchSource  @relation(fields: [sourceId], references: [id])
+  
+  // 關聯說明
+  relevance       String?  // 此來源如何支撐此模組
+  
+  @@id([moduleId, sourceId])
+}
+
+// 研究對話 - AI 對話研究視窗
+model ResearchConversation {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  // 關聯到研究任務
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id])
+  
+  // 對話記錄
+  messages        ResearchMessage[]
+  
+  // 對話主題
+  topic           String?
+  
+  @@index([sessionId])
+}
+
+model ResearchMessage {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  conversationId  String
+  conversation    ResearchConversation @relation(fields: [conversationId], references: [id])
+  
+  role            MessageRole
+  content         String
+  
+  // 如果是 AI 回應，標記為草稿
+  isDraft         Boolean  @default(false)
+  
+  // 引用的模組
+  referencedModuleIds String[]
+  
+  // 模型使用
+  modelUsed       String?
+  
+  @@index([conversationId])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// 文章草稿
+model ArticleDraft {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 關聯研究任務
+  sessionId       String
+  session         ResearchSession @relation(fields: [sessionId], references: [id])
+  
+  // 文章內容
+  title_zh        String
+  title_en        String?
+  
+  content_zh      String   // 繁體中文內容
+  content_en      String?  // 英文內容（可選）
+  
+  // 文章元數據
+  wordCount       Int      @default(0)
+  readingTime     Int      @default(0)  // 分鐘
+  
+  // 文章結構
+  outline         Json?    // 大綱結構
+  
+  // 狀態
+  status          DraftStatus @default(DRAFT)
+  
+  // 人類編輯
+  humanEdited     Boolean  @default(false)
+  humanApproved   Boolean  @default(false)
+  
+  // 使用的模組
+  moduleUsages    ArticleModuleUsage[]
+  
+  // 版本控制
+  version         Int      @default(1)
+  previousVersionId String?
+  
+  @@index([sessionId])
+  @@index([status])
+}
+
+enum DraftStatus {
+  DRAFT           // 草稿
+  REVIEW          // 審核中
+  APPROVED        // 已核准
+  PUBLISHED       // 已發布
+  ARCHIVED        // 已歸檔
+}
+
+// 文章與模組的使用關聯
+model ArticleModuleUsage {
+  id              String   @id @default(cuid())
+  
+  articleId       String
+  article         ArticleDraft @relation(fields: [articleId], references: [id])
+  
+  moduleId        String
+  module          ResearchModule @relation(fields: [moduleId], references: [id])
+  
+  // 使用方式
+  usageType       String   // quote / reference / basis
+  position        Int      @default(0)  // 在文章中的位置順序
+  
+  @@index([articleId])
+  @@index([moduleId])
+}
+
+// 權威來源池 - AI 建立並維護
+model AuthoritySource {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 來源資訊
+  domain          String   @unique
+  name            String
+  description     String?
+  
+  // 分類
+  language        String   // zh / en
+  region          String   // asia / europe / americas
+  category        SourceType
+  
+  // 評分（0-100）
+  authorityScore  Float    @default(50)
+  reliabilityScore Float   @default(50)
+  updateFrequency String?  // daily / weekly / monthly
+  
+  // 抓取配置
+  isActive        Boolean  @default(true)
+  lastCrawledAt   DateTime?
+  crawlFrequency  String   @default("daily")
+  
+  // 人類管理
+  humanVerified   Boolean  @default(false)
+  humanNotes      String?
+  
+  @@index([isActive])
+  @@index([category])
+}
+
+// AI 模型配置
+model AIModelConfig {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // 模型識別
+  provider        String   // openai / anthropic / google
+  modelId         String   // gpt-4 / claude-3 / gemini-pro
+  
+  // 任務配置
+  taskType        AITaskType
+  priority        Int      @default(1)  // 優先級
+  
+  // 成本配置
+  inputCostPer1k  Float    @default(0)
+  outputCostPer1k Float    @default(0)
+  
+  // 品質配置
+  qualityScore    Float    @default(80)  // 預估品質 0-100
+  
+  // 狀態
+  isActive        Boolean  @default(true)
+  
+  @@unique([provider, modelId, taskType])
+}
+
+enum AITaskType {
+  RESEARCH_COLLECTION   // 研究收集
+  SOURCE_ANALYSIS       // 來源分析
+  MODULE_GENERATION     // 模組生成
+  INSIGHT_EXTRACTION    // 洞察提取
+  WRITING_ASSISTANCE    // 寫作協助
+  CONVERSATION          // 對話研究
+  TRANSLATION           // 翻譯
+  SUMMARIZATION         // 摘要
+}
+
+// 研究任務排程
+model ResearchSchedule {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  
+  // 排程配置
+  cronExpression  String   // cron 表達式
+  name            String
+  description     String?
+  
+  // 研究配置
+  focusAreas      String[]
+  languages       String[]
+  regions         String[]
+  
+  // 狀態
+  isActive        Boolean  @default(true)
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  
+  // 統計
+  totalRuns       Int      @default(0)
+  successfulRuns  Int      @default(0)
+}

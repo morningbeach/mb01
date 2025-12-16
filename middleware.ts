@@ -54,16 +54,11 @@ export async function middleware(req: NextRequest) {
     return response;
   }
 
-  // 3. 只在 production 或設定 ADMIN_PROTECT=1 時強制驗證
-  const enforce =
-    process.env.NODE_ENV === "production" ||
-    process.env.ADMIN_PROTECT === "1";
-  if (!enforce) {
-    return response;
-  }
-
-  // 4. 驗證 session cookie
+  // 3. 驗證 session cookie（用於角色權限檢查）
   const cookie = req.headers.get("cookie") || "";
+  let userRole: string | null = null;
+  let isValidSession = false;
+  
   try {
     const validateUrl = new URL("/api/admin/session/validate", req.url);
     const controller = new AbortController();
@@ -80,20 +75,47 @@ export async function middleware(req: NextRequest) {
     if (res.ok) {
       const data = await res.json();
       if (data?.valid) {
-        return response;
+        isValidSession = true;
+        userRole = data?.session?.role || null;
       }
     }
   } catch (e: any) {
-    // 如果驗證失敗（網路錯誤、超時等），對於非 admin 頁面，允許繼續
     console.error("Session validate fetch error:", e?.message || e);
-    // 如果是超時或網路錯誤，暫時允許訪問（避免整站崩潰）
-    if (e?.name === 'AbortError' || e?.message?.includes('fetch')) {
-      console.warn("Session validation timeout/error - allowing access temporarily");
-      return response;
+  }
+
+  // 4. 角色權限檢查（無論開發還是正式環境都檢查）
+  if (isValidSession && userRole === 'research_admin') {
+    const isResearchPath = path.startsWith('/admin/research') || 
+                           path.startsWith('/api/admin/research');
+    const isLogoutPath = path === '/api/admin/logout' || path === '/admin/login';
+    
+    if (!isResearchPath && !isLogoutPath) {
+      // 非授權路徑，重導向到研究室
+      if (isAdminApi) {
+        return NextResponse.json(
+          { success: false, message: "權限不足 - 您只能訪問研究室" },
+          { status: 403 }
+        );
+      }
+      return NextResponse.redirect(new URL("/admin/research/studio", req.url));
     }
   }
 
-  // 5. 驗證失敗
+  // 5. 只在 production 或設定 ADMIN_PROTECT=1 時強制登入驗證
+  const enforce =
+    process.env.NODE_ENV === "production" ||
+    process.env.ADMIN_PROTECT === "1";
+  
+  if (!enforce) {
+    return response;
+  }
+
+  // 6. 已驗證的 session 允許通過
+  if (isValidSession) {
+    return response;
+  }
+
+  // 7. 驗證失敗
   // - API 路由：返回 401 JSON
   // - 頁面：重導向到登入頁
   if (isAdminApi) {

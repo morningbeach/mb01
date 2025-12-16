@@ -1,0 +1,193 @@
+[
+  {
+    "id": "cmi23qxuk000379rtxs1hd36n",
+    "slug": "services",
+    "name": "Services & Solutions",
+    "heroTitle": "Structural design, sampling and project execution.",
+    "heroSubtitle": "For teams who need support from structure and sampling, all the way to a full gift set solution.",
+    "cardTitle": "Packaging services & solutions.",
+    "cardDescription": "Structure development, sampling and end-to-end gift set solutions built around your internal process.",
+    "cardImage": "/cdn/categories/services.jpg",
+    "baseCategory": null,
+    "order": 4,
+    "isActive": true,
+    "createdAt": "2025-11-16T19:22:00.284Z",
+    "updatedAt": "2025-11-16T19:22:00.284Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": []
+  },
+  {
+    "id": "cmi66d9qp000279orosgujunh",
+    "slug": "14234",
+    "name": "1234e13513153",
+    "heroTitle": null,
+    "heroSubtitle": null,
+    "cardTitle": null,
+    "cardDescription": null,
+    "cardImage": null,
+    "baseCategory": null,
+    "order": 6,
+    "isActive": true,
+    "createdAt": "2025-11-19T15:46:25.904Z",
+    "updatedAt": "2025-11-19T15:46:25.904Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": []
+  },
+  {
+    "id": "cmi63ypl3000079rr4n614nmv",
+    "slug": "12312314//2123",
+    "name": "1352",
+    "heroTitle": null,
+    "heroSubtitle": null,
+    "cardTitle": null,
+    "cardDescription": null,
+    "cardImage": "https://img.mbpack.co/uploads/1763567214415-692d089d1a87bb80.jpg",
+    "baseCategory": "GIFT",
+    "order": 5,
+    "isActive": true,
+    "createdAt": "2025-11-19T14:39:07.527Z",
+    "updatedAt": "2025-11-19T15:47:10.942Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": [
+      {
+        "id": "cmi66gwh3000579orme4rer3t",
+        "frontCategoryId": "cmi63ypl3000079rr4n614nmv",
+        "label": "123125235",
+        "description": null,
+        "order": 0,
+        "createdAt": "2025-11-19T15:49:15.496Z",
+        "updatedAt": "2025-11-19T15:49:15.496Z",
+        "tagId": "cmi23qyuj000i79rt58udt8o7"
+      },
+      {
+        "id": "cmi66gxb7000779orz9cb7321",
+        "frontCategoryId": "cmi63ypl3000079rr4n614nmv",
+        "label": "123125235",
+        "description": null,
+        "order": 0,
+        "createdAt": "2025-11-19T15:49:16.580Z",
+        "updatedAt": "2025-11-19T15:49:16.580Z",
+        "tagId": "cmi23qyuj000i79rt58udt8o7"
+      }
+    ]
+  },
+  {
+    "id": "cmi23qxlh000179rt6wsacczu",
+    "slug": "gift-boxes",
+    "name": "Gift Boxes",
+    "heroTitle": "Rigid & specialty boxes engineered for mass production.",
+    "heroSubtitle": "From classic lid & base structures to magnetic and drawer boxes, built for repeatable campaigns.",
+    "cardTitle": "Rigid & specialty boxes for gifting.",
+    "cardDescription": "Magnetic, drawer, book-style and lid & base boxes tailored to your product size and positioning.",
+    "cardImage": "https://img.mbpack.co/uploads/1763573944112-b13adf8a39852898.png",
+    "baseCategory": "GIFT_BOX",
+    "order": 2,
+    "isActive": true,
+    "createdAt": "2025-11-16T19:21:59.958Z",
+    "updatedAt": "2025-11-19T17:39:08.472Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": [
+      {
+        "id": "cmi6eoejj000179qtmrfvyu9d",
+        "frontCategoryId": "cmi23qxlh000179rt6wsacczu",
+        "label": "1234",
+        "description": null,
+        "order": 0,
+        "createdAt": "2025-11-19T19:39:02.432Z",
+        "updatedAt": "2025-11-19T19:39:02.432Z",
+        "tagId": "cmi23qyuj000h79rtiwdxr1cs"
+      },
+      {
+        "id": "cmi6ep172000379qt40ud9mah",
+        "frontCategoryId": "cmi23qxlh000179rt6wsacczu",
+        "label": "1234,kk",
+        "description": null,
+        "order": 1,
+        "createdAt": "2025-11-19T19:39:31.791Z",
+        "updatedAt": "2025-11-19T19:39:31.791Z",
+        "tagId": "cmi23qyuj000l79rtmsob2jqo"
+      }
+    ]
+  },
+  {
+    "id": "cmi23qxq0000279rt3fwav34v",
+    "slug": "gift-sets",
+    "name": "Gift Sets",
+    "heroTitle": "Complete gift set packaging, from content to logistics.",
+    "heroSubtitle": "We handle content, structure, artwork and mass production as one coherent project.",
+    "cardTitle": "Complete gift set packaging solutions.",
+    "cardDescription": "Box, insert, bag and outer carton designed as one system, tagged by festival or program type.",
+    "cardImage": "https://img.mbpack.co/uploads/1763574071503-01139e55fe5efa73.jpg",
+    "baseCategory": "GIFT_SET",
+    "order": 3,
+    "isActive": true,
+    "createdAt": "2025-11-16T19:22:00.121Z",
+    "updatedAt": "2025-11-19T17:41:16.880Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": []
+  },
+  {
+    "id": "cmi23qxch000079rtbxc2slqu",
+    "slug": "gifts",
+    "name": "Gifts",
+    "heroTitle": "Curated corporate gifts, ready to be packed.",
+    "heroSubtitle": "Single items that can stand alone or be combined into a gift set: snacks, daily-use items and long-life carriers.",
+    "cardTitle": "Curated corporate gifts, ready to be packed.",
+    "cardDescription": "Single gifts which can be used on their own or as part of a full gift set. Ideal for corporate and seasonal campaigns.",
+    "cardImage": "/uploads/1763362994489-f881240a667da934.jpg",
+    "baseCategory": "GIFT",
+    "order": 1,
+    "isActive": true,
+    "createdAt": "2025-11-16T19:21:59.633Z",
+    "updatedAt": "2025-11-20T16:39:55.365Z",
+    "heroImage": null,
+    "version": 1,
+    "FrontCategoryTagGroup": [
+      {
+        "id": "cmi2tmd3m000379tqo9i8va1e",
+        "frontCategoryId": "cmi23qxch000079rtbxc2slqu",
+        "label": "test002",
+        "description": null,
+        "order": 1,
+        "createdAt": "2025-11-17T07:26:16.786Z",
+        "updatedAt": "2025-11-17T07:41:16.234Z",
+        "tagId": "cmi23qyuj000g79rtw8da5qgy"
+      },
+      {
+        "id": "cmi2u5ndg000179sj5hjbq2nt",
+        "frontCategoryId": "cmi23qxch000079rtbxc2slqu",
+        "label": "test0023",
+        "description": null,
+        "order": 2,
+        "createdAt": "2025-11-17T07:41:16.565Z",
+        "updatedAt": "2025-11-17T07:41:16.565Z",
+        "tagId": "cmi23qyuj000m79rtvnfw7b4c"
+      },
+      {
+        "id": "cmi2u5nmo000379sjkcsh987b",
+        "frontCategoryId": "cmi23qxch000079rtbxc2slqu",
+        "label": "TEST000254",
+        "description": null,
+        "order": 3,
+        "createdAt": "2025-11-17T07:41:16.897Z",
+        "updatedAt": "2025-11-17T07:41:16.897Z",
+        "tagId": "cmi23qyuj000j79rtvvxfxgvx"
+      },
+      {
+        "id": "cmi2u5nrb000579sjcozj0jcv",
+        "frontCategoryId": "cmi23qxch000079rtbxc2slqu",
+        "label": "222",
+        "description": null,
+        "order": 4,
+        "createdAt": "2025-11-17T07:41:17.064Z",
+        "updatedAt": "2025-11-17T07:41:17.064Z",
+        "tagId": "cmi23qyuj000l79rtmsob2jqo"
+      }
+    ]
+  }
+]

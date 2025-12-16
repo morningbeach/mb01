@@ -1,0 +1,218 @@
+[
+  {
+    "id": 72,
+    "type": "HERO",
+    "order": 10,
+    "enabled": true,
+    "payload": {
+      "imageUrl": "",
+      "primaryUrl": "/contact",
+      "subtitle_en": "Built for global scale, with faster clarity and seamless manufacturing across regions.",
+      "subtitle_zh": "為行動迅速的品牌與客戶 打造 —— 精準執行，無邊界的生產整合。",
+      "secondaryUrl": "/products",
+      "titleLine1_en": "MorningBeach",
+      "titleLine1_zh": "MorningBeach - 清晨沙灘",
+      "titleLine2_en": "AI-First. A better way to build your packaging.",
+      "titleLine2_zh": "AI-First，為品牌打造更好的包裝方式。",
+      "primaryLabel_en": "Start Your Project",
+      "primaryLabel_zh": "開始專案諮詢",
+      "secondaryLabel_en": "Download Catalog",
+      "secondaryLabel_zh": "立即看產品"
+    },
+    "createdAt": "2025-11-28T00:29:50.830Z",
+    "updatedAt": "2025-12-01T20:21:44.720Z"
+  },
+  {
+    "id": 76,
+    "type": "GALLERY",
+    "order": 30,
+    "enabled": true,
+    "payload": {
+      "effect": "waterfall",
+      "albumId": "cminbhz3t001swyl4iv7nqe8p",
+      "title_en": "",
+      "title_zh": "近期客戶產品",
+      "imageLimit": null,
+      "subtitle_en": "",
+      "subtitle_zh": ""
+    },
+    "createdAt": "2025-11-28T00:40:53.504Z",
+    "updatedAt": "2025-12-01T15:43:23.531Z"
+  },
+  {
+    "id": 73,
+    "type": "WHY",
+    "order": 20,
+    "enabled": true,
+    "payload": {
+      "cards": [
+        {
+          "body_en": "Clean edges, precise structures and consistent color from sample to mass production.",
+          "body_zh": "年服務超過一百間大型公司/知名公關公司/公家機關",
+          "title_en": "Brand-Level Quality",
+          "title_zh": "無數大型品牌的指定選擇"
+        },
+        {
+          "body_en": "Experienced teams, strict QC and realistic schedules for seasonal campaigns.",
+          "body_zh": "有經驗的團隊與實際可行的排程，支援檔期與季節專案。",
+          "title_en": "Reliable Production",
+          "title_zh": "穩定量產與交期"
+        },
+        {
+          "body_en": "Gift box, insert, bag and shipping carton integrated into a single project.",
+          "body_zh": "從禮盒、內襯、提袋到外箱，整合成同一個專案管理。",
+          "title_en": "One-Stop Packaging",
+          "title_zh": "一站式包裝服務"
+        }
+      ],
+      "title_en": "Why Brands Choose Us",
+      "title_zh": "為什麼品牌選擇我們？",
+      "subtitle_en": "Strong engineering, stable quality and clear communication for packaging projects that actually land on time.",
+      "subtitle_zh": "從結構工程、品質管理到溝通回應，以專案需求為核心協助你穩定落地每一檔活動。"
+    },
+    "createdAt": "2025-11-28T00:30:17.873Z",
+    "updatedAt": "2025-11-28T00:39:50.271Z"
+  },
+  {
+    "id": 78,
+    "type": "FACTORY",
+    "order": 40,
+    "enabled": true,
+    "payload": {
+      "cards": [
+        {
+          "body_en": "ISO-audited production space with flexible lines for different box types.",
+          "body_zh": "通過稽核的生產空間，可彈性配置不同盒型產線。",
+          "imageUrl": "https://tomorrowtw.com/wp-content/uploads/2024/08/S__14786662_0.jpg",
+          "title_en": "10,000 m² Facility",
+          "title_zh": "一萬平方公尺廠房"
+        },
+        {
+          "body_en": "Offset printing, die-cutting, lamination, hot stamping and rigid box forming.",
+          "body_zh": "膠版印刷、模切、過膜、燙金到自動成型機一應俱全。",
+          "imageUrl": "https://tomorrowtw.com/wp-content/uploads/2025/07/DSC09144.jpg",
+          "title_en": "Advanced Equipment",
+          "title_zh": "完整包裝設備"
+        },
+        {
+          "body_en": "In-house structural engineers and QC checks at critical stages of production.",
+          "body_zh": "雙地以上品管，品管式支援第三方正式品管",
+          "imageUrl": "https://tomorrowtw.com/wp-content/uploads/2025/07/DSC09139.jpg",
+          "title_en": "QC & Engineering",
+          "title_zh": "台灣品管"
+        }
+      ],
+      "title_en": "Factory Strength",
+      "title_zh": "工廠實力與產能",
+      "subtitle_en": "A clean production base with the capacity and equipment to support global gifting programs.",
+      "subtitle_zh": "深圳/溫州\r\n自有整潔生產基地與完整設備配置\r\n支援品牌專案與大檔期需求。"
+    },
+    "createdAt": "2025-11-28T00:46:13.511Z",
+    "updatedAt": "2025-11-28T00:50:24.990Z"
+  },
+  {
+    "id": 79,
+    "type": "CTA",
+    "order": 50,
+    "enabled": true,
+    "payload": {
+      "style": {
+        "textTone": "light",
+        "backgroundMode": "image",
+        "overlayOpacity": 0.4,
+        "backgroundColor": "#675151",
+        "backgroundImageUrl": ""
+      },
+      "buttons": [
+        {
+          "value": "https://lin.ee/JRPBhOm",
+          "label_en": "Get a Quote",
+          "label_zh": "加line取得報價",
+          "actionType": "line"
+        },
+        {
+          "value": "morningbeachtw@gmail.com",
+          "label_en": "Email Your Brief",
+          "label_zh": "寄信給我們",
+          "actionType": "email"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        },
+        {
+          "value": "",
+          "label_en": "",
+          "label_zh": "",
+          "actionType": "link"
+        }
+      ],
+      "title_en": "Start Your Gift Box Project",
+      "title_zh": "加入我們的LINE 立即開始專案",
+      "subtitle_en": "Send us your quantity, timeline and a rough idea. We’ll reply with structural suggestions and a quick quotation.",
+      "subtitle_zh": "提供數量、時程與大致方向，我們會回覆結構建議與估價範圍，協助你快速啟動專案。"
+    },
+    "createdAt": "2025-11-28T00:54:55.723Z",
+    "updatedAt": "2025-11-28T01:28:13.612Z"
+  },
+  {
+    "id": 80,
+    "type": "PRODUCTS",
+    "order": 60,
+    "enabled": true,
+    "payload": {
+      "layout": {
+        "type": "scroll",
+        "carousel": {
+          "autoPlay": true,
+          "showArrows": false,
+          "itemsPerView": 3
+        },
+        "clickable": true,
+        "showSubtitle": false,
+        "showPriceHint": false,
+        "showProductName": false,
+        "showSectionTitle": false
+      },
+      "source": {
+        "mode": "latest",
+        "limit": 25,
+        "tagIds": [],
+        "matchMode": "any",
+        "manualProductIds": []
+      },
+      "title_en": "",
+      "title_zh": "產品與方案",
+      "subtitle_en": "",
+      "subtitle_zh": "聚焦幾種常見的禮盒與包裝形式，方便快速溝通與估價。"
+    },
+    "createdAt": "2025-11-28T10:47:56.828Z",
+    "updatedAt": "2025-11-29T09:24:26.610Z"
+  }
+]

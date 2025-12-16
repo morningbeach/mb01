@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cmi23r8gb000v79rtfh5elmfw",
+    "productId": "cmi23r5l2000t79rtjj4drplu",
+    "GiftSetItem": [
+      {
+        "id": "cmi23r8gb000x79rt6y0aemj0",
+        "giftSetId": "cmi23r8gb000v79rtfh5elmfw",
+        "productId": "cmi23r2l6000q79rt3oz7seca",
+        "quantity": 1
+      },
+      {
+        "id": "cmi23r8gb000w79rt7qo41a7o",
+        "giftSetId": "cmi23r8gb000v79rtfh5elmfw",
+        "productId": "cmi23qzlg000o79rtpx0m9u0e",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "cmi23raki000z79rt5l6k4a4i",
+    "productId": "cmi23r77g000u79rtuhl5qbyc",
+    "GiftSetItem": [
+      {
+        "id": "cmi23raki001079rtknk0ybf9",
+        "giftSetId": "cmi23raki000z79rt5l6k4a4i",
+        "productId": "cmi23r4l4000s79rt0rnk5y4f",
+        "quantity": 1
+      }
+    ]
+  }
+]
