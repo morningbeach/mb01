@@ -60,13 +60,21 @@ export async function middleware(req: NextRequest) {
   let isValidSession = false;
   
   try {
-    const validateUrl = new URL("/api/admin/session/validate", req.url);
+    // 使用絕對 URL 確保在 Edge Runtime 中正確呼叫
+    const origin = req.nextUrl.origin;
+    const validateUrl = `${origin}/api/admin/session/validate`;
+    
+    console.log('[Middleware] Validating session for path:', path);
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超時
     
-    const res = await fetch(validateUrl.toString(), {
+    const res = await fetch(validateUrl, {
       method: "GET",
-      headers: { cookie },
+      headers: { 
+        cookie,
+        'x-middleware-validate': '1'  // 標記這是 middleware 的請求
+      },
       signal: controller.signal,
     });
     
@@ -74,22 +82,26 @@ export async function middleware(req: NextRequest) {
 
     if (res.ok) {
       const data = await res.json();
+      console.log('[Middleware] Session data:', JSON.stringify(data));
       if (data?.valid) {
         isValidSession = true;
         userRole = data?.session?.role || null;
+        console.log('[Middleware] User role:', userRole);
       }
     }
   } catch (e: any) {
-    console.error("Session validate fetch error:", e?.message || e);
+    console.error("[Middleware] Session validate fetch error:", e?.message || e);
   }
 
   // 4. 角色權限檢查（無論開發還是正式環境都檢查）
   if (isValidSession && userRole === 'research_admin') {
+    console.log('[Middleware] Checking research_admin permissions for path:', path);
     const isResearchPath = path.startsWith('/admin/research') || 
                            path.startsWith('/api/admin/research');
     const isLogoutPath = path === '/api/admin/logout' || path === '/admin/login';
     
     if (!isResearchPath && !isLogoutPath) {
+      console.log('[Middleware] BLOCKING access - redirecting to research studio');
       // 非授權路徑，重導向到研究室
       if (isAdminApi) {
         return NextResponse.json(
@@ -99,6 +111,7 @@ export async function middleware(req: NextRequest) {
       }
       return NextResponse.redirect(new URL("/admin/research/studio", req.url));
     }
+    console.log('[Middleware] ALLOWING research_admin access to:', path);
   }
 
   // 5. 只在 production 或設定 ADMIN_PROTECT=1 時強制登入驗證
